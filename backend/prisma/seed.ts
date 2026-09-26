@@ -1,7 +1,8 @@
 import { PrismaClient, Role } from '@prisma/client';
 import * as argon2 from 'argon2';
+import { createPrismaAdapter } from '../src/prisma/prisma-adapter';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 async function main(): Promise<void> {
   const adminEmail = 'admin@case.local';

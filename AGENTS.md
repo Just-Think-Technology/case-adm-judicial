@@ -163,10 +163,17 @@ pnpm install          # installs both workspaces from the pinned lockfile
 pnpm build            # builds both apps
 docker compose --file deploy/docker-compose.yml up -d postgres seaweedfs   # local dependencies only (fast dev loop, apps on host)
 docker compose --file deploy/docker-compose.yml up -d                      # full stack dev with hot-reload (backend pnpm dev, frontend pnpm dev via volumes)
-docker compose --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml up -d --build  # production-like via Caddy (only 80/443 published)
+docker compose --env-file .env --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml up -d --build  # production-like via Caddy (only 80/443 published)
 ```
 
-Local development has two modes: **hot-reload via Compose** (`deploy/docker-compose.yml` mounts `../` and runs `pnpm dev` inside containers) or **apps on the host** against `docker compose --file deploy/docker-compose.yml up -d postgres seaweedfs`. `docker compose --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml up --build` verifies the production build. `pnpm seed` is mandatory before the first login: the admin is provisioned outside the product, so local/dev needs a way to create one.
+Local development has two modes: **hot-reload via Compose** (`deploy/docker-compose.yml` mounts `../` and runs `pnpm dev` inside containers) or **apps on the host** against `docker compose --file deploy/docker-compose.yml up -d postgres seaweedfs`. `docker compose --env-file .env --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml up --build` verifies the production build. `pnpm seed` is mandatory before the first login: the admin is provisioned outside the product, so local/dev needs a way to create one.
+
+**`--env-file .env` is required for the production stack.** The production
+compose uses `${VAR}` without defaults (a missing value must not silently become
+an empty password), and `env_file: ../.env` only injects variables *into* the
+container — it does not feed `${VAR}` interpolation. Without `--env-file` the
+interpolation resolves to empty strings and Postgres refuses to initialize.
+The dev stack works without it because every value has a default.
 
 Quality gates that will exist regardless of stack: **lint**, **typecheck**,
 **unit/integration tests**, **end-to-end tests** and **build**. A PR is only

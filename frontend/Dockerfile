@@ -18,6 +18,9 @@ RUN pnpm build
 FROM base AS runner
 ENV NODE_ENV=production
 WORKDIR /app/frontend
+# Workspace manifests must match the installed tree, otherwise `pnpm run` treats
+# deps as stale and re-installs at container start
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ../
 COPY --from=deps /app/node_modules ../node_modules
 COPY --from=deps /app/frontend/node_modules ./node_modules
 COPY --from=build /app/frontend/.next ./.next

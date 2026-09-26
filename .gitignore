@@ -15,9 +15,6 @@ frontend/out/
 .env.staging
 .env.*.local
 
-# Prisma
-backend/prisma/migrations/
-
 # OS / editors
 .DS_Store
 Thumbs.db
@@ -39,5 +36,6 @@ test-results/
 
 # TS build info
 *.tsbuildinfo
+next-env.d.ts
 .next/
 dist/

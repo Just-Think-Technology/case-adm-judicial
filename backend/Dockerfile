@@ -18,10 +18,18 @@ RUN pnpm prisma:generate && pnpm build
 FROM base AS runner
 ENV NODE_ENV=production
 WORKDIR /app/backend
+# Workspace manifests must match the installed tree, otherwise `pnpm run` treats
+# deps as stale and re-installs at container start
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ../
 COPY --from=deps /app/node_modules ../node_modules
 COPY --from=deps /app/backend/node_modules ./node_modules
 COPY --from=build /app/backend/dist ./dist
+# prisma.config.ts carries the datasource URL in Prisma 7 — migrate deploy fails without it
 COPY --from=build /app/backend/prisma ./prisma
+COPY --from=build /app/backend/prisma.config.ts ./prisma.config.ts
 COPY backend/package.json ./package.json
+# The generated client lives inside the pnpm virtual store, which the runner takes
+# from the pre-generate deps stage — regenerate it in place or the app cannot import it
+RUN pnpm prisma:generate
 EXPOSE 3000
 CMD ["sh", "-c", "pnpm prisma:deploy && node dist/main.js"]

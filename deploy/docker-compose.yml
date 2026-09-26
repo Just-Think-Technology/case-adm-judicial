@@ -35,15 +35,19 @@ services:
       - "9333:9333" # filer
       - "19333:19333" # master
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9333/cluster/status || exit 1"]
+      # 127.0.0.1, not localhost: on alpine `localhost` resolves to ::1 first and
+      # the services bind IPv4 only, which would leave the container unhealthy
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9333/cluster/status || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
 
   backend:
     build:
-      context: ../backend
-      dockerfile: Dockerfile
+      # Root context: the Dockerfile installs the pnpm workspace, so it needs the
+      # root manifests and pnpm-lock.yaml. Volumes below do the hot-reload.
+      context: ..
+      dockerfile: backend/Dockerfile
       target: base
     restart: unless-stopped
     working_dir: /app
@@ -84,15 +88,19 @@ services:
     ports:
       - "3000:3000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      # 127.0.0.1, not localhost: on alpine `localhost` resolves to ::1 first and
+      # the app binds IPv4 only, which would leave the container permanently unhealthy
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
 
   frontend:
     build:
-      context: ../frontend
-      dockerfile: Dockerfile
+      # Root context: the Dockerfile installs the pnpm workspace, so it needs the
+      # root manifests and pnpm-lock.yaml. Volumes below do the hot-reload.
+      context: ..
+      dockerfile: frontend/Dockerfile
       target: base
     restart: unless-stopped
     working_dir: /app
@@ -119,7 +127,7 @@ services:
     ports:
       - "3001:3001"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/health || wget -qO- http://localhost:3001/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
