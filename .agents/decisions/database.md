@@ -1,0 +1,49 @@
+# Database
+
+- **Status:** Accepted — inherited from the previous project
+- **Engine:** PostgreSQL, single instance in the compose stack
+
+## Rules
+
+- **Least-privilege role:** the application connects as a dedicated
+  non-privileged role (never a superuser / owner / `postgres`).
+- **Grants:** only the DML the application needs (`SELECT, INSERT, UPDATE,
+  DELETE`) on the application schema, `USAGE` on sequences, and **no `CREATE`**
+  on schema or database.
+- **Migrations** (`prisma migrate deploy`, schema in
+  `backend/prisma/schema.prisma`) run at deploy time with a separate
+  **privileged** connection (`DIRECT_URL`/`MIGRATION_DATABASE_URL`), never with
+  the application role.
+- Default privileges cover tables/sequences created by future migrations, so a
+  new table does not silently need a manual grant.
+- `postgres` is **internal to the compose network** — never published to the
+  host, never reachable from the internet.
+- Backups and restore: [../security/backups.md](../security/backups.md).
+
+## Data rules
+
+- **Cascade is explicit, never implicit:** deleting a case or a client removes
+  its documents (see [document storage](document-storage.md)); deleting a user
+  removes their profile picture. Nothing is soft-deleted.
+- **`content_hash` is UNIQUE** — the database enforces the content identity
+  rule; the application must translate the unique-violation into a friendly
+  PT-BR message ("this file was already sent"), never a 500.
+- Status and visibility are **constrained at the application layer** to the
+  closed sets in [document status](document-status.md) and
+  [document visibility](document-visibility.md); the database may back them
+  with an enum or a check constraint — one definition, not two that can drift.
+- Dates are stored as `date`/`timestamptz` and displayed as `dd/mm/aaaa`.
+  Times that represent a judicial deadline are stored in the case timezone
+  (America/Cuiaba) and never as a formatted string.
+- Index the columns you filter by: `case_id`, `status`, `sender_id`, and the
+  visibility filter used in the guest list.
+- PII columns (name, e-mail, ip_address) are **never written to application
+  logs** ([personal data](../security/personal-data-and-secrecy.md)).
+
+## Migration discipline
+
+- Every migration is reviewed as generated SQL before being applied; a
+  migration that drops or rewrites data is a **large change** and needs an
+  announced plan (see [Task flow](../../AGENTS.md#task-flow)).
+- Migrations are forward-only in production: a destructive change ships as
+  expand → migrate → contract, never as a single destructive step.

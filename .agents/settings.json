@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    "docs/base-system-features.md",
+    ".agents/rules/architecture.md",
+    ".agents/rules/clean-code.md",
+    ".agents/rules/comments.md",
+    ".agents/rules/nielsen-heuristics.md",
+    ".agents/rules/task-checklists.md"
+  ],
+  "references": {
+    "agents": {
+      "path": "./.agents",
+      "description": "Product decisions, security policies, architecture and task rules"
+    },
+    "backend": {
+      "path": "./backend",
+      "description": "NestJS backend: auth, cases, documents, accounts, notifications modules"
+    },
+    "frontend": {
+      "path": "./frontend",
+      "description": "Next.js App Router frontend: public and authenticated screens"
+    },
+    "legacy": {
+      "path": "../case-adm-judicial-old",
+      "description": "Legacy system — read-only behavior reference, never modify or port from"
+    }
+  }
+}
