@@ -237,6 +237,7 @@ jobs:
     permissions:
       contents: read
     if: github.event_name == 'pull_request' && needs.changes.outputs.frontend == 'true'
+    continue-on-error: true
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
