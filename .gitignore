@@ -1,0 +1,43 @@
+# Deps
+node_modules/
+.pnpm-store/
+
+# Build
+backend/dist/
+frontend/.next/
+frontend/out/
+.next/
+
+# Env — never commit secrets (AGENTS.md "Never do" 1, 2)
+.env
+.env.local
+.env.prod
+.env.staging
+.env.*.local
+
+# Prisma
+backend/prisma/migrations/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Docker volumes (local)
+postgres_data/
+seaweedfs_data/
+
+# Coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# TS build info
+*.tsbuildinfo
+.next/
+dist/

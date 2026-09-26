@@ -75,7 +75,7 @@ PR.
 | Next.js | 16.3.6 | App Router |
 | Prisma | 7.10.0 | **never install `prisma@latest`**: the `latest` dist-tag currently points to `8.0.0-rc.17`; always install the stable major explicitly |
 | PostgreSQL | 17 | single instance in compose |
-| SeaweedFS | pinned image tag | S3 gateway on `:8333`; the tag is recorded with the compose files |
+| SeaweedFS | `chrislusf/seaweedfs:3.97` | S3 gateway on `:8333`; the tag is recorded with the compose files |
 
 ## Monorepo layout
 
@@ -87,8 +87,9 @@ backend/          # NestJS app: auth, cases, documents, accounts, notifications 
 frontend/         # Next.js app (App Router): public + authenticated screens
 docs/             # Functional contract and project documentation
 .agents/          # Security, product and deploy decisions (agent rules)
-docker-compose.yml            # Local/staging stack
-docker-compose.production.yml # Production stack (Lightsail)
+Caddyfile         # Reverse proxy — only published port, routes /api/v1 and /health
+docker-compose.yml            # Local/staging stack (postgres + seaweedfs + backend + frontend + caddy)
+docker-compose.production.yml # Production stack (Lightsail) — overrides, no ports except caddy
 ```
 
 No shared package between backend and frontend: they communicate only over
