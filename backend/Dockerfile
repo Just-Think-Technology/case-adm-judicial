@@ -13,8 +13,7 @@ RUN pnpm install --filter backend --frozen-lockfile || pnpm install --filter bac
 FROM deps AS build
 COPY backend ./backend
 WORKDIR /app/backend
-RUN pnpm prisma:generate
-RUN pnpm build
+RUN pnpm prisma:generate && pnpm build
 
 FROM base AS runner
 ENV NODE_ENV=production
