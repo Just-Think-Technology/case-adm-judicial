@@ -139,6 +139,5 @@ model Document {
   @@index([ownerId])
   @@index([status])
   @@index([visibility])
-  @@index([contentHash])
   @@map("documents")
 }
