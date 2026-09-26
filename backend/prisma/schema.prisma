@@ -56,6 +56,8 @@ model User {
   sessions          Session[]
   emailTokens       EmailToken[]
 
+  // Filtered by the 5-accounts-per-IP cap
+  @@index([registrationIp])
   @@map("users")
 }
 
