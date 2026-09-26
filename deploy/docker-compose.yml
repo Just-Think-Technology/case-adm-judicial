@@ -40,9 +40,12 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
+      target: base
     restart: unless-stopped
+    working_dir: /app
+    command: sh -c "corepack enable && corepack prepare pnpm@11.25.0 --activate && pnpm install && pnpm --filter backend prisma:generate && pnpm --filter backend dev"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3000
@@ -59,6 +62,16 @@ services:
       SMTP_PORT: ${SMTP_PORT:-1025}
       APP_URL: ${APP_URL:-http://localhost}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
+      # Hot-reload inside Docker (polling fallback when inotify is flaky on mounts)
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ../:/app:cached
+      - /app/node_modules
+      - /app/backend/node_modules
+      - /app/backend/dist
+      - /app/frontend/node_modules
+      - /app/frontend/.next
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,14 +87,26 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
+      target: base
     restart: unless-stopped
+    working_dir: /app
+    command: sh -c "corepack enable && corepack prepare pnpm@11.25.0 --activate && pnpm install && pnpm --filter frontend dev"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3001
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api/v1}
       BACKEND_INTERNAL_URL: http://backend:3000
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ../:/app:cached
+      - /app/node_modules
+      - /app/backend/node_modules
+      - /app/frontend/node_modules
+      - /app/frontend/.next
+      - /app/backend/dist
     depends_on:
       backend:
         condition: service_healthy

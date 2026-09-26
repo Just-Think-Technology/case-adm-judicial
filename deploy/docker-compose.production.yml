@@ -20,6 +20,11 @@ services:
       - seaweedfs_data:/data
 
   backend:
+    build:
+      target: runner
+    command: !reset [] # use Dockerfile CMD (prisma deploy + node)
+    volumes: !reset []
+    working_dir: !reset null
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL} # least-privilege app role
@@ -45,6 +50,11 @@ services:
           memory: 512M
 
   frontend:
+    build:
+      target: runner
+    command: !reset [] # use Dockerfile CMD (next start)
+    volumes: !reset []
+    working_dir: !reset null
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: /api/v1
