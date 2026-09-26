@@ -13,7 +13,7 @@ security headers.
 - `default-src 'self'`
 - `frame-ancestors 'none'` and `X-Frame-Options: DENY` — no clickjacking
 - `object-src 'none'`
-- `script-src` / `style-src` allow `'unsafe-inline'` **only** where Next.js
+- `script-src` and `style-src` allow `'unsafe-inline'` **only** where Next.js
   strictly requires it (hydration payload / inline styles), documented inline
   with a comment explaining why; never globally
 - `connect-src` allows only the gateway origin; `img-src` and `media-src` allow
@@ -21,6 +21,23 @@ security headers.
 - HSTS: 1 year, `includeSubDomains`, preload — enabled only in staging/production
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `X-Content-Type-Options: nosniff`
+
+### The `'unsafe-inline'` exception is settled, not pending
+
+Next.js emits the hydration bootstrap as an **inline script**. Blocking it does
+not degrade the page, it breaks it: React throws error #412 and client-side
+navigation dies. Verified against a production build, not assumed.
+
+So the frontend `script-src` is `'self' 'unsafe-inline'`, with the reason written
+inline in `frontend/next.config.ts`. The backend keeps `script-src 'self'` — it
+serves JSON and Swagger, never an application document, so it has no reason to
+relax.
+
+The stricter alternative is a **per-request nonce**, which Next supports natively
+via the `nonce` prop. It was not chosen because a nonce only exists per request,
+so every page would have to be dynamic and static generation would be given up
+for the whole frontend. Revisit if the frontend ever needs to be fully static
+*and* free of `unsafe-inline` — those two cannot both hold.
 
 ## Documents and user content
 
@@ -35,5 +52,11 @@ security headers.
 
 - A new page, route or third-party script (fonts, analytics, CDN) is added only
   with an update to this file in the same PR.
-- `unsafe-eval` and `unsafe-inline` in `script-src` are **not** accepted; a need
-  for them is a signal to change the approach, not to relax the policy.
+- `unsafe-eval` is **not accepted anywhere** — it is never needed, and it is not
+  the same trade-off as `unsafe-inline`.
+- `unsafe-inline` in `script-src` is accepted **only** on the frontend, and only
+  for the Next.js hydration payload, per the settled exception above. The backend
+  never gets it. Adding a second reason means either dropping the exception or
+  moving to nonces — not appending to the list.
+- Anything that widens the policy needs the trade-off written down here, not just
+  a comment in code.
