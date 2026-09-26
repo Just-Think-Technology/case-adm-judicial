@@ -313,14 +313,14 @@ jobs:
 
   codeql:
     needs: changes
-    if: needs.changes.outputs.backend == 'true'
+    # Disabled until GitHub Advanced Security is enabled (private repo)
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
       security-events: write
       actions: read
-    continue-on-error: true
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
