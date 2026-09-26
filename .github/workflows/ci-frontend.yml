@@ -215,14 +215,14 @@ jobs:
 
   codeql:
     needs: changes
-    # Disabled until GitHub Advanced Security is enabled
-    if: false
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
       security-events: write
       actions: read
+    continue-on-error: true
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
@@ -239,8 +239,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
-    # Disabled until Dependency Graph is enabled
-    if: false
+    if: github.event_name == 'pull_request' && needs.changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 

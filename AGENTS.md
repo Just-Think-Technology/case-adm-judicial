@@ -88,6 +88,7 @@ frontend/         # Next.js app (App Router): public + authenticated screens
 deploy/           # Compose + Caddy — deploy/Caddyfile, deploy/docker-compose.yml (dev hot-reload) and deploy/docker-compose.production.yml (Lightsail)
 docs/             # Functional contract and project documentation
 .agents/          # Security, product and deploy decisions (agent rules)
+.env.example      # Root env template — cp .env.example .env, used by deploy/*.yml via env_file: ../.env (never commit .env)
 ```
 
 No shared package between backend and frontend: they communicate only over

@@ -57,6 +57,9 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
+      - name: Provide .env for compose (root .env is gitignored)
+        run: test -f .env || cp .env.example .env
+
       - name: Validate docker compose (dev)
         run: docker compose --file deploy/docker-compose.yml config -q
 
