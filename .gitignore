@@ -15,6 +15,18 @@ frontend/out/
 .env.staging
 .env.*.local
 
+# Judicial documents — the repo is public, a committed file is permanent.
+# Uploads stream to SeaweedFS and never land here; these cover test fixtures
+# and anything dropped in the working tree.
+*.pdf
+*.docx
+*.xlsx
+*.doc
+*.xls
+*.jpg
+*.jpeg
+*.png
+
 # OS / editors
 .DS_Store
 Thumbs.db
