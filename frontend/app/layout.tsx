@@ -6,11 +6,7 @@ export const metadata: Metadata = {
     'Envio e acompanhamento de documentos para processos de Recuperação Judicial e Falência.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}): React.ReactNode {
+export default function RootLayout({ children }: { children: React.ReactNode }): React.ReactNode {
   return (
     <html lang="pt-BR">
       <body>{children}</body>

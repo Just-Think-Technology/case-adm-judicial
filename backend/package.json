@@ -51,6 +51,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "22.15.30",
     "@types/nodemailer": "^7.0.1",
+    "@types/supertest": "^7.2.1",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
     "eslint": "^9.18.0",
