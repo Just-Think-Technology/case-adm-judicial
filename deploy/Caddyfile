@@ -1,0 +1,50 @@
+# Caddy — reverse proxy, the only published port.
+# Backend is source of truth; frontend never talks to DB/storage directly.
+# Keep Host header for S3 presigned URLs — SigV4 includes host.
+
+{
+  admin off
+  # local dev: http://localhost; production: APP_URL with auto HTTPS
+}
+
+:80 {
+  # Health — excluded from /api/v1 prefix per .agents/decisions/api-versioning.md
+  handle /health* {
+    reverse_proxy backend:3000
+  }
+
+  # API — versioned URL per api-versioning.md
+  handle /api/v1/* {
+    reverse_proxy backend:3000
+  }
+
+  # S3 presigned delivery — strip prefix, preserve Host
+  handle /api/v1/storage/* {
+    uri strip_prefix /api/v1/storage
+    reverse_proxy seaweedfs:8333 {
+      header_up Host {host}
+    }
+  }
+
+  # Frontend — everything else
+  handle {
+    reverse_proxy frontend:3001
+  }
+
+  log {
+    output stdout
+    format json
+  }
+}
+
+# Production with TLS — Caddy will obtain certs for {$APP_HOST} when APP_URL is set.
+# Uncomment and set APP_HOST env when deploying to Lightsail:
+# {$APP_HOST} {
+#   handle /health* { reverse_proxy backend:3000 }
+#   handle /api/v1/* { reverse_proxy backend:3000 }
+#   handle /api/v1/storage/* {
+#     uri strip_prefix /api/v1/storage
+#     reverse_proxy seaweedfs:8333 { header_up Host {host} }
+#   }
+#   handle { reverse_proxy frontend:3001 }
+# }

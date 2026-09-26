@@ -42,6 +42,10 @@
 
 ## Migration discipline
 
+- **Migration SQL is versioned in git** (`backend/prisma/migrations/`, never
+  ignored): `prisma migrate deploy` runs from the repository in CI and in the
+  production image, so a migration that is not committed is a migration that is
+  never applied.
 - Every migration is reviewed as generated SQL before being applied; a
   migration that drops or rewrites data is a **large change** and needs an
   announced plan (see [Task flow](../../AGENTS.md#task-flow)).

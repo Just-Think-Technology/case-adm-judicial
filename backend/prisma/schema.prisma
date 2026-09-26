@@ -1,0 +1,144 @@
+// Prisma 7.10.0 — stable major, never `latest` (see AGENTS.md)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---- Enums — closed sets, single source of truth ----
+
+enum Role {
+  CREDITOR
+  ADMIN
+}
+
+enum CaseNature {
+  RECUPERACAO_JUDICIAL
+  FALENCIA
+}
+
+enum DocumentStatus {
+  EM_ANALISE
+  DEFERIDO
+  INDEFERIDO
+}
+
+enum DocumentVisibility {
+  PUBLICO
+  PRIVADO
+}
+
+enum DocumentType {
+  HABILITACAO_CREDITO
+  DIVERGENCIA_CREDITO
+  HABILITACAO_ACG
+  OUTROS
+}
+
+// ---- Core models ----
+
+model User {
+  id                String    @id @default(cuid())
+  name              String    @db.VarChar(20)
+  email             String    @unique @db.VarChar(255)
+  passwordHash      String    @map("password_hash")
+  role              Role      @default(CREDITOR)
+  emailVerified     Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt   DateTime? @map("email_verified_at") @db.Timestamptz
+  avatarKey         String?   @map("avatar_key")
+  registrationIp    String?   @map("registration_ip") @db.VarChar(45)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  documents         Document[] @relation("DocumentOwner")
+  sessions          Session[]
+  emailTokens       EmailToken[]
+
+  @@map("users")
+}
+
+model Session {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  tokenHash   String    @unique @map("token_hash") @db.VarChar(64) // SHA-256 hex
+  userAgent   String?   @map("user_agent")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  lastUsedAt  DateTime  @default(now()) @map("last_used_at") @db.Timestamptz
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model EmailToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash") @db.VarChar(64)
+  type      String   @db.VarChar(32) // VERIFICATION | PASSWORD_RESET
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  usedAt    DateTime? @map("used_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("email_tokens")
+}
+
+model Company {
+  id               String     @id @default(cuid())
+  name             String     @db.VarChar(300)
+  judicialAdmin    String     @map("judicial_admin") @db.VarChar(300)
+  judge            String     @db.VarChar(300)
+  nature           CaseNature
+  processNumber    String     @map("process_number") @db.VarChar(50)
+  protocolDate     DateTime   @map("protocol_date") @db.Date
+  author           String     @db.VarChar(300)
+  comarca          String     @db.VarChar(300)
+  observations     String?    @db.VarChar(300)
+  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  documents        Document[]
+
+  @@index([nature])
+  @@index([processNumber])
+  @@map("companies")
+}
+
+model Document {
+  id              String             @id @default(cuid())
+  name            String             @db.VarChar(255)
+  description     String?            @db.VarChar(1000)
+  type            DocumentType
+  customType      String?            @map("custom_type") @db.VarChar(255) // when type == OUTROS
+  status          DocumentStatus     @default(EM_ANALISE)
+  visibility      DocumentVisibility
+  // Storage — private bucket, server-generated key
+  storageKey      String             @unique @map("storage_key")
+  size            Int                // bytes, max 40 MB enforced app-side
+  mimeType        String             @map("mime_type") @db.VarChar(255)
+  extension       String             @db.VarChar(10)
+  contentHash     String             @unique @map("content_hash") @db.VarChar(64) // SHA-256 unique
+  companyId       String             @map("company_id")
+  ownerId         String             @map("owner_id")
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  company         Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  owner           User               @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([ownerId])
+  @@index([status])
+  @@index([visibility])
+  @@index([contentHash])
+  @@map("documents")
+}

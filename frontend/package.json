@@ -1,0 +1,42 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": "22.23.x",
+    "pnpm": "11.25.0"
+  },
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "next": "16.3.6",
+    "react": "19.2.1",
+    "react-dom": "19.2.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "3.3.1",
+    "@eslint/js": "9.18.0",
+    "@playwright/test": "^1.55.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "22.15.30",
+    "@types/react": "^19.1.8",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "16.3.6",
+    "globals": "16.4.0",
+    "jsdom": "^30.1.1",
+    "prettier": "^3.6.2",
+    "typescript": "5.9.2",
+    "typescript-eslint": "8.45.0",
+    "vitest": "^3.2.4"
+  }
+}

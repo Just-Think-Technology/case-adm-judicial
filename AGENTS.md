@@ -75,7 +75,7 @@ PR.
 | Next.js | 16.3.6 | App Router |
 | Prisma | 7.10.0 | **never install `prisma@latest`**: the `latest` dist-tag currently points to `8.0.0-rc.17`; always install the stable major explicitly |
 | PostgreSQL | 17 | single instance in compose |
-| SeaweedFS | pinned image tag | S3 gateway on `:8333`; the tag is recorded with the compose files |
+| SeaweedFS | `chrislusf/seaweedfs:3.97` | S3 gateway on `:8333`; the tag is recorded with the compose files |
 
 ## Monorepo layout
 
@@ -85,10 +85,10 @@ anything, listing each top-level folder with a one-line purpose.
 ```text
 backend/          # NestJS app: auth, cases, documents, accounts, notifications modules
 frontend/         # Next.js app (App Router): public + authenticated screens
+deploy/           # Compose + Caddy — deploy/Caddyfile, deploy/docker-compose.yml (dev hot-reload) and deploy/docker-compose.production.yml (Lightsail)
 docs/             # Functional contract and project documentation
 .agents/          # Security, product and deploy decisions (agent rules)
-docker-compose.yml            # Local/staging stack
-docker-compose.production.yml # Production stack (Lightsail)
+.env.example      # Root env template — cp .env.example .env, used by deploy/*.yml via env_file: ../.env (never commit .env)
 ```
 
 No shared package between backend and frontend: they communicate only over
@@ -146,7 +146,7 @@ pnpm prisma:generate  # regenerate the Prisma client after a schema change
 pnpm prisma:migrate   # prisma migrate dev (local only)
 pnpm prisma:deploy    # prisma migrate deploy (deploy/production)
 pnpm prisma:studio    # Prisma Studio — local only, never in production
-pnpm seed             # create the local ADMIN account + fake data
+pnpm seed             # create the local ADMIN account (admin@case.local) — no fake data; documents are uploaded by hand
 
 # Frontend — inside frontend/
 pnpm dev              # next dev
@@ -161,14 +161,19 @@ pnpm test:e2e         # Playwright, the journeys in docs/base-system-features.md
 # Repository root
 pnpm install          # installs both workspaces from the pinned lockfile
 pnpm build            # builds both apps
-docker compose up -d postgres seaweedfs   # local dependencies only (fast dev loop)
-docker compose up                          # full stack, production-like
+docker compose --file deploy/docker-compose.yml up -d postgres seaweedfs   # local dependencies only (fast dev loop, apps on host)
+docker compose --file deploy/docker-compose.yml up -d                      # full stack dev with hot-reload (backend pnpm dev, frontend pnpm dev via volumes)
+docker compose --env-file .env --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml up -d --build  # production-like via Caddy (only 80/443 published)
 ```
 
-Local development runs the **apps on the host** against PostgreSQL and
-SeaweedFS provided by the compose stack; `docker compose up` is for verifying
-the production build. `pnpm seed` is mandatory before the first login: the admin
-is provisioned outside the product, so local/dev needs a way to create one.
+Local development has two modes: **hot-reload via Compose** (`deploy/docker-compose.yml` mounts `../` and runs `pnpm dev` inside containers) or **apps on the host** against `docker compose --file deploy/docker-compose.yml up -d postgres seaweedfs`. `docker compose --env-file .env --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml up --build` verifies the production build. `pnpm seed` is mandatory before the first login: the admin is provisioned outside the product, so local/dev needs a way to create one.
+
+**`--env-file .env` is required for the production stack.** The production
+compose uses `${VAR}` without defaults (a missing value must not silently become
+an empty password), and `env_file: ../.env` only injects variables *into* the
+container — it does not feed `${VAR}` interpolation. Without `--env-file` the
+interpolation resolves to empty strings and Postgres refuses to initialize.
+The dev stack works without it because every value has a default.
 
 Quality gates that will exist regardless of stack: **lint**, **typecheck**,
 **unit/integration tests**, **end-to-end tests** and **build**. A PR is only
@@ -351,8 +356,8 @@ reverse proxy is exposed to the internet.
 
 * **Containers:** reverse proxy (the only published port), `frontend` (Next.js),
   `backend` (NestJS), `postgres`, `seaweedfs` (master + volume + filer + S3)
-* **Local/staging:** `docker-compose.yml`; **production:**
-  `docker-compose.production.yml`, stacks isolated by compose project `name`
+* **Local/staging:** `deploy/docker-compose.yml`; **production:**
+  `deploy/docker-compose.production.yml`, stacks isolated by compose project `name`
 * **One command per environment** for build/deploy/up, recorded here when the
   deploy pipeline is created
 * **The instance is a single point of failure.** This is the reason backups

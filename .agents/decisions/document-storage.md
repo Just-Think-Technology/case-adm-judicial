@@ -52,6 +52,14 @@ security boundary — it never bypasses the authorization check.
   constraints; a body-size limit must be set at the proxy **and** in the
   application so the two agree (a 100 MB body limit was used in the previous
   project, leaving headroom for multi-part overhead).
+- **Why not the obvious alternatives:** the upload screen sends 3 files
+  concurrently (§4.9 of the functional contract) and the production backend
+  runs under a 512 MB memory limit
+  (`deploy/docker-compose.production.yml`). Buffering in memory would hold
+  3 × 40 MB per user; writing to a temp path would put a judicial document on
+  the app filesystem — which, in dev, is the repository working tree, because
+  the compose stack mounts `../` at `/app`. Stream from request to bucket, or
+  the container runs out of memory.
 
 ### Content identity
 

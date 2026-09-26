@@ -1,0 +1,53 @@
+# Deps
+node_modules/
+.pnpm-store/
+
+# Build
+backend/dist/
+frontend/.next/
+frontend/out/
+.next/
+
+# Env — never commit secrets (AGENTS.md "Never do" 1, 2)
+.env
+.env.local
+.env.prod
+.env.staging
+.env.*.local
+
+# Judicial documents — the repo is public, a committed file is permanent.
+# Uploads stream to SeaweedFS and never land here; these cover test fixtures
+# and anything dropped in the working tree.
+*.pdf
+*.docx
+*.xlsx
+*.doc
+*.xls
+*.jpg
+*.jpeg
+*.png
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Docker volumes (local)
+postgres_data/
+seaweedfs_data/
+
+# Coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# TS build info
+*.tsbuildinfo
+next-env.d.ts
+.next/
+dist/

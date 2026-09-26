@@ -1,0 +1,78 @@
+name: case-adm-judicial-prod
+
+# Production stack for AWS Lightsail — single instance, only Caddy is published.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.production.yml up -d --build
+
+services:
+  postgres:
+    ports: !reset [] # never published in production — internal network only
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # backups leave the machine — see .agents/security/backups.md
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  seaweedfs:
+    ports: !reset [] # never published — backend reaches it via internal network :8333
+    volumes:
+      - seaweedfs_data:/data
+
+  backend:
+    build:
+      target: runner
+    command: !reset [] # use Dockerfile CMD (prisma deploy + node)
+    volumes: !reset []
+    working_dir: !reset null
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL} # least-privilege app role
+      DIRECT_URL: ${DIRECT_URL} # privileged migration role — used only at deploy
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      SEAWEEDFS_ENDPOINT: http://seaweedfs:8333
+      SEAWEEDFS_BUCKET_DOCUMENTS: ${SEAWEEDFS_BUCKET_DOCUMENTS:-documents}
+      SEAWEEDFS_BUCKET_AVATARS: ${SEAWEEDFS_BUCKET_AVATARS:-avatars}
+      SEAWEEDFS_ACCESS_KEY: ${SEAWEEDFS_ACCESS_KEY}
+      SEAWEEDFS_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      APP_URL: ${APP_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+    ports: !reset [] # only via Caddy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  frontend:
+    build:
+      target: runner
+    command: !reset [] # use Dockerfile CMD (next start)
+    volumes: !reset []
+    working_dir: !reset null
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: /api/v1
+      BACKEND_INTERNAL_URL: http://backend:3000
+    ports: !reset [] # only via Caddy
+
+  caddy:
+    # In production Caddy terminates TLS (auto HTTPS via Let's Encrypt).
+    # Set APP_URL / CORS_ORIGIN and DNS accordingly before first deploy.
+    ports:
+      - "80:80"
+      - "443:443"
+
+  mailpit:
+    profiles: ["debug"] # never start in production unless explicitly debugging
+
+volumes:
+  postgres_data:
+  seaweedfs_data:
+  caddy_data:
+  caddy_config:
