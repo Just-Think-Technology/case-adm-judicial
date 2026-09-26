@@ -142,9 +142,6 @@ CREATE INDEX "documents_status_idx" ON "documents"("status");
 -- CreateIndex
 CREATE INDEX "documents_visibility_idx" ON "documents"("visibility");
 
--- CreateIndex
-CREATE INDEX "documents_content_hash_idx" ON "documents"("content_hash");
-
 -- AddForeignKey
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
