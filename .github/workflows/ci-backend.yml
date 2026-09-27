@@ -79,7 +79,9 @@ jobs:
           --health-retries=5
     env:
       NODE_ENV: test
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/case_adm_test?schema=public
+      # Runtime mirrors production topology: the app connects as the
+      # least-privilege role, migrations as the owner (DIRECT_URL).
+      DATABASE_URL: postgresql://case_adm_app:case_adm_app_test@localhost:5432/case_adm_test?schema=public
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/case_adm_test?schema=public
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -98,6 +100,18 @@ jobs:
 
       - name: Create test database
         run: PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE case_adm_test;"
+
+      # The CI postgres image is vanilla, so the role from
+      # deploy/postgres-init does not exist here — create it the same way, with
+      # default privileges so tables made by migrate deploy inherit the grants.
+      - name: Create least-privilege app role
+        run: >-
+          PGPASSWORD=postgres psql -h localhost -U postgres -d case_adm_test
+          -c "CREATE ROLE case_adm_app WITH LOGIN PASSWORD 'case_adm_app_test';"
+          -c "GRANT CONNECT ON DATABASE case_adm_test TO case_adm_app;"
+          -c "GRANT USAGE ON SCHEMA public TO case_adm_app;"
+          -c "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO case_adm_app;"
+          -c "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT USAGE ON SEQUENCES TO case_adm_app;"
 
       - name: Generate Prisma client
         run: pnpm --filter backend prisma:generate
@@ -150,6 +164,17 @@ jobs:
       - name: Create E2E test database
         run: PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE case_adm_test_e2e;"
 
+      # Same topology as production: the app boots as case_adm_app, so the E2E
+      # suite proves the least-privilege role can actually run the system.
+      - name: Create least-privilege app role
+        run: >-
+          PGPASSWORD=postgres psql -h localhost -U postgres -d case_adm_test_e2e
+          -c "CREATE ROLE case_adm_app WITH LOGIN PASSWORD 'case_adm_app_test';"
+          -c "GRANT CONNECT ON DATABASE case_adm_test_e2e TO case_adm_app;"
+          -c "GRANT USAGE ON SCHEMA public TO case_adm_app;"
+          -c "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO case_adm_app;"
+          -c "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT USAGE ON SEQUENCES TO case_adm_app;"
+
       - name: Apply Prisma migrations
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/case_adm_test_e2e?schema=public
@@ -158,7 +183,7 @@ jobs:
 
       - name: Run E2E tests
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/case_adm_test_e2e?schema=public
+          DATABASE_URL: postgresql://case_adm_app:case_adm_app_test@localhost:5432/case_adm_test_e2e?schema=public
           DIRECT_URL: postgresql://postgres:postgres@localhost:5432/case_adm_test_e2e?schema=public
         run: pnpm --filter backend test:e2e
 

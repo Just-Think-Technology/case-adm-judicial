@@ -10,6 +10,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Required, no default — feeds the entrypoint script that creates the
+      # least-privilege app role. A missing value must fail loudly, never
+      # become an empty password.
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD}
     # backups leave the machine — see .agents/security/backups.md
     volumes:
       - postgres_data:/var/lib/postgresql/data

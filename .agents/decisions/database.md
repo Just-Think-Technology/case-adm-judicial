@@ -20,6 +20,23 @@
   host, never reachable from the internet.
 - Backups and restore: [../security/backups.md](../security/backups.md).
 
+## How the roles are provisioned
+
+- The application role is fixed as **`case_adm_app`**, created by
+  `deploy/postgres-init/01-app-role.sh` on first database initialization with
+  the grants above plus `ALTER DEFAULT PRIVILEGES` for the owner, so tables
+  made by future migrations inherit them.
+- Its password comes from **`POSTGRES_APP_PASSWORD`** — a dev default in the
+  compose files, a required secret with no default in production. A missing
+  value fails the entrypoint loudly instead of creating an empty-password role.
+- The backend runtime reads **`DATABASE_URL`** (app role); migrations read
+  **`DIRECT_URL`** (owner). Production secrets must embed those two different
+  users — pointing `DATABASE_URL` at a superuser silently disables the whole
+  arrangement.
+- CI mirrors production: the ephemeral postgres gets the same role and grants,
+  migrations run as the owner, and the E2E suite boots the app as
+  `case_adm_app` — so a missing grant breaks the build, not the deploy.
+
 ## Data rules
 
 - **Cascade is explicit, never implicit:** deleting a case or a client removes
