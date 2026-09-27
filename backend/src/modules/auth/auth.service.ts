@@ -2,6 +2,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { THROTTLED_MESSAGE } from '../../common/throttling/throttling.constants';
+import { QueryClient } from '../../prisma/query-client';
+import { PrismaService } from '../../prisma/prisma.service';
 import { RegistrationLimitService } from '../accounts/registration-limit.service';
 import { UserRepository } from '../accounts/user.repository';
 import { MailerService } from '../notifications/mailer.service';
@@ -116,6 +118,7 @@ export class AuthService {
     private readonly passwords: PasswordService,
     private readonly tokens: TokenService,
     private readonly mailer: MailerService,
+    private readonly prisma: PrismaService,
   ) {
     // Links mailed to users must point at the public gateway, which only the
     // deployment knows — same direct-env pattern as the rest of the codebase.
@@ -160,8 +163,15 @@ export class AuthService {
       throw new InvalidVerificationLinkError();
     }
 
-    await this.users.markVerified(record.userId);
-    await this.emailTokens.markUsed(record.id);
+    // One transaction, consume first: a link burned without the account being
+    // confirmed would leave the guarantee half-honoured, and throwing after the
+    // consume rolls the burn back, so a failed attempt keeps the link usable.
+    await this.prisma.$transaction(async (tx) => {
+      if (!(await this.emailTokens.consume(record.id, tx))) {
+        throw new InvalidVerificationLinkError();
+      }
+      await this.users.markVerified(record.userId, tx);
+    });
   }
 
   /**
@@ -244,9 +254,19 @@ export class AuthService {
       throw new PasswordMismatchError();
     }
 
-    await this.users.updatePassword(record.userId, await this.passwords.hash(password));
-    await this.emailTokens.markUsed(record.id);
-    await this.sessions.revokeAll(record.userId);
+    const passwordHash = await this.passwords.hash(password);
+
+    // One transaction, consume first. The order matters twice over: a crash
+    // between the password write and the revocation would leave every session —
+    // including one held by an attacker who triggered the reset — alive under
+    // the new password, and a losing racer must change nothing at all.
+    await this.prisma.$transaction(async (tx) => {
+      if (!(await this.emailTokens.consume(record.id, tx))) {
+        throw new InvalidResetLinkError();
+      }
+      await this.users.updatePassword(record.userId, passwordHash, tx);
+      await this.sessions.revokeAll(record.userId, tx);
+    });
   }
 
   /**
@@ -269,8 +289,12 @@ export class AuthService {
       throw new InvalidSessionError();
     }
 
-    await this.sessions.revokeById(record.id);
-    return this.openSession(user.id, user.role, user.emailVerified, userAgent);
+    // One transaction so a crash mid-rotation cannot consume the old token
+    // without handing out a new one, which would log the user out for good.
+    return this.prisma.$transaction(async (tx) => {
+      await this.sessions.revokeById(record.id, tx);
+      return this.openSession(user.id, user.role, user.emailVerified, userAgent, tx);
+    });
   }
 
   /** Ends one session — the row named by the access token, owned by the caller. */
@@ -286,15 +310,19 @@ export class AuthService {
     role: string,
     emailVerified: boolean,
     userAgent?: string,
+    client?: QueryClient,
   ): Promise<SessionTokens> {
     const { raw, hash } = this.tokens.newOpaqueToken();
     const refreshExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
-    const session = await this.sessions.create({
-      userId,
-      tokenHash: hash,
-      userAgent,
-      expiresAt: refreshExpiresAt,
-    });
+    const session = await this.sessions.create(
+      {
+        userId,
+        tokenHash: hash,
+        userAgent,
+        expiresAt: refreshExpiresAt,
+      },
+      client,
+    );
 
     return {
       accessToken: this.tokens.signAccess({

@@ -116,6 +116,14 @@ change, delete, bulk status save).
 | Refresh token reuse | Revokes every session of that user |
 | Admin flag removed out-of-band | Effective within one access-token lifetime (≤ 15 min) |
 
+- **Single-use tokens are consumed conditionally, inside a transaction.** Both the
+  account confirmation and the password change write more than one row, and both
+  are only true if every write lands or none does: a burned link whose account
+  stayed unconfirmed, or — far worse — a changed password whose sessions stayed
+  alive for whoever triggered the reset. The consume is a conditional
+  `UPDATE ... WHERE used_at IS NULL` and the caller checks that it won, so two
+  simultaneous clicks on the same link cannot both succeed; the loser writes
+  nothing. The losing request fails, it does not kill the user's sessions.
 - The reset link lives **1 hour**, single-use. A reset arrives with no session
   of its own, so "keeping the current one" does not apply — a completed reset
   revokes **all** sessions of that user.

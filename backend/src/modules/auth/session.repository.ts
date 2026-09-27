@@ -1,6 +1,7 @@
 // Session repository — the only place that touches the sessions table
 
 import { Injectable } from '@nestjs/common';
+import { QueryClient } from '../../prisma/query-client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export interface CreateSessionData {
@@ -26,8 +27,8 @@ export interface SessionRow {
 export class SessionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateSessionData): Promise<SessionRow> {
-    return this.prisma.session.create({ data });
+  async create(data: CreateSessionData, client: QueryClient = this.prisma): Promise<SessionRow> {
+    return client.session.create({ data });
   }
 
   async findByHash(tokenHash: string): Promise<SessionRow | null> {
@@ -38,12 +39,12 @@ export class SessionRepository {
     return this.prisma.session.findUnique({ where: { id } });
   }
 
-  async revokeById(id: string): Promise<void> {
-    await this.prisma.session.update({ where: { id }, data: { revokedAt: new Date() } });
+  async revokeById(id: string, client: QueryClient = this.prisma): Promise<void> {
+    await client.session.update({ where: { id }, data: { revokedAt: new Date() } });
   }
 
-  async revokeAll(userId: string): Promise<void> {
-    await this.prisma.session.updateMany({
+  async revokeAll(userId: string, client: QueryClient = this.prisma): Promise<void> {
+    await client.session.updateMany({
       where: { userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });

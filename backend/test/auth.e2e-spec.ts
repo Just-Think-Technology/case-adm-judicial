@@ -465,6 +465,26 @@ describe('POST /auth/forgot-password + /auth/reset-password', () => {
     expect(newLogin.status).toBe(200);
   });
 
+  // Racing resets are the dangerous version of a double click: two requests that
+  // both read the link as valid, where the loser's write must not survive.
+  // Hashing the new password runs before the transaction, which is what makes
+  // the window real here — without the conditional consume this test returns
+  // two 200s instead of failing, so it is not a tautology.
+  it('lets only one of two simultaneous resets through', async () => {
+    await registeredVerified('203.0.113.150');
+    await postWithCsrf('/auth/forgot-password', { email: 'maria@case.com' }, '203.0.113.150');
+    const { link } = await findMail('maria@case.com');
+    const token = tokenFromLink(link);
+    const body = { token, password: 'Nova@456', passwordConfirmation: 'Nova@456' };
+
+    const [first, second] = await Promise.all([
+      postWithCsrf('/auth/reset-password', body, '203.0.113.150'),
+      postWithCsrf('/auth/reset-password', body, '203.0.113.150'),
+    ]);
+
+    expect([first.status, second.status].sort()).toEqual([200, 400]);
+  });
+
   it('rejects a reused reset link', async () => {
     await registeredVerified('203.0.113.143');
     await postWithCsrf('/auth/forgot-password', { email: 'maria@case.com' }, '203.0.113.143');
