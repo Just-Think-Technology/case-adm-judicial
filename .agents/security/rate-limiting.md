@@ -18,7 +18,7 @@ point so it also covers static and health traffic. Baseline target:
 | Route | Limit | Rationale |
 |---|---|---|
 | `POST /auth/login` | 10 req/min per IP+email | brute force on credentials |
-| `POST /auth/register` | **5 accounts per IP** (hard cap, persisted) | mass account creation; see [accounts and access](../decisions/accounts-and-access.md) |
+| `POST /auth/register` | **2 accounts per IP** (hard cap, persisted) | mass account creation; see [accounts and access](../decisions/accounts-and-access.md) |
 | `POST /auth/verification-notification` | 6 req/min **+ 5 min cooldown per user** | e-mail bombing; the legacy behavior is the reference |
 | `POST /auth/forgot-password` | 5 req/min per IP | e-mail bombing via password reset |
 | `POST /documents` (upload) | 20 req/min per account | bandwidth abuse and object-storage cost |
@@ -26,10 +26,15 @@ point so it also covers static and health traffic. Baseline target:
 
 Rules:
 
-- The **account cap of 5 per IP is not time-based**: it survives restarts and
+- The **account cap of 2 per IP is not time-based**: it survives restarts and
   is evaluated before the account is created.
 - Limits are **per authenticated account** when a session exists, and **per IP**
   otherwise (guests have no account to throttle).
+- The account must be known **before** the budget is consumed: the throttler
+  guard runs ahead of the enforcing guards, so a non-blocking session resolver
+  names the caller first. Throttling never authenticates — it only buckets by
+  an already-resolved name, and a revoked-but-unexpired token still names its
+  account for budgeting (the request itself is still blocked downstream).
 - Exceeding a limit returns a **PT-BR message that tells the user what to do**
   ("Por favor, aguarde antes de tentar novamente") — never a bare 429 page.
 - Throttling decisions are server-side. The client-side hints (disabled
@@ -46,7 +51,7 @@ Rules:
   this decision must be revisited (the decision record is the place to say so).
 - **Reverse proxy** contributes its own connection/rate ceiling as the outermost
   layer; application limits stay authoritative for the sensitive routes.
-- The **5-accounts-per-IP cap is stored in the database**, not in memory, so it
+- The **2-accounts-per-IP cap is stored in the database**, not in memory, so it
   survives restarts and redeploys. It is the one limit that must not be lost.
 - Tests cover: limit hit, window reset, per-account vs per-IP keying, and that
   the account cap is not cache-dependent.

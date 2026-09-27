@@ -148,7 +148,7 @@ O sistema trabalha com **três situações de uso** (apenas as duas últimas exi
 - E-mail: obrigatório, formato válido, **único** no sistema (e-mail já cadastrado é recusado com aviso específico), máximo de 255 caracteres.  
 - Senha: obrigatória, mínimo de 8 caracteres, com maiúscula, minúscula, número e caractere especial (@ $ ! % * ? &).  
 - Confirmação de senha: obrigatória e igual à senha.  
-- **Limite de contas por origem:** cada endereço de rede pode criar no máximo  **5 contas**. Ao ultrapassar, o sistema recusa o novo cadastro e informa o limite.  
+- **Limite de contas por origem:** cada endereço de rede pode criar no máximo  **2 contas**. Ao ultrapassar, o sistema recusa o novo cadastro e informa o limite.  
 - O endereço de origem do cadastro é registrado e usado para aplicar esse limite.  
 **Mensagens ao usuário:** sucesso do cadastro (com aviso para checar o spam), e-mail já cadastrado, lista de erros de validação e limite de contas atingido.  
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAANUlEQVR4nO3OMQ2AABAAsSPBCj5fFyM6mJHAjAU2QtIq6DIzW7UHAMBfnGt1V8fXEwAAXrsexOEF35f1aEgAAAAASUVORK5CYII=)  
@@ -566,7 +566,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 | | |  
 |-|-|  
 | **Limite** | **Valor** |   
-| Contas criadas por endereço de rede | **5** |   
+| Contas criadas por endereço de rede | **2** |   
 | Intervalo para reenviar a verificação de e-mail | **5 minutos** por usuário |   
 | Pedidos de reenvio de verificação | **6 por minuto** |   
 | Tamanho máximo de documento enviado | **40 MB** (verificado antes do envio) |   
@@ -613,7 +613,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 - **Senha:** obrigatória; mínimo de 8 caracteres; ao menos uma maiúscula, uma minúscula, um número e um caractere especial entre @ $ ! % * ? &; confirmação obrigatória e idêntica.  
 - **Troca de senha:** exige senha atual correta; nova senha não pode ser igual à atual.  
 - **Login:** exige e-mail e senha; só passa quem tem e-mail verificado.  
-- **Contas por endereço de rede:** máximo de 5.  
+- **Contas por endereço de rede:** máximo de 2.  
 **Perfil**  
 - **Foto:** JPG/JPEG/PNG; até 2 MB; deve ser uma imagem.  
 - **Nome e e-mail:** mesmas regras da conta; e-mail único.  

@@ -1,7 +1,7 @@
 // Throttler keying and client IP resolution
 
 import { GLOBAL_LIMIT_PER_MINUTE, ONE_MINUTE_IN_MS } from './throttling.constants';
-import { getThrottleTracker, globalThrottler } from './throttler.config';
+import { getThrottleTracker, defaultThrottler } from './throttler.config';
 import { resolveClientIp } from './client-ip';
 
 describe('resolveClientIp', () => {
@@ -63,13 +63,17 @@ describe('getThrottleTracker', () => {
   });
 });
 
-describe('globalThrottler', () => {
+describe('defaultThrottler', () => {
   it('is 100 requests per minute, the documented baseline', () => {
-    expect(globalThrottler.limit).toBe(GLOBAL_LIMIT_PER_MINUTE);
-    expect(globalThrottler.ttl).toBe(ONE_MINUTE_IN_MS);
+    expect(defaultThrottler.limit).toBe(GLOBAL_LIMIT_PER_MINUTE);
+    expect(defaultThrottler.ttl).toBe(ONE_MINUTE_IN_MS);
   });
 
   it('uses the shared keying rule', () => {
-    expect(globalThrottler.getTracker).toBe(getThrottleTracker);
+    expect(defaultThrottler.getTracker).toBe(getThrottleTracker);
+  });
+
+  it('is named default, the only name per-route overrides resolve against', () => {
+    expect(defaultThrottler.name).toBe('default');
   });
 });

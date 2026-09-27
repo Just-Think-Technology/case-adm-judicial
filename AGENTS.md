@@ -346,8 +346,6 @@ in visibility rules, new email): [.agents/rules/task-checklists.md](.agents/rule
   verification, per-IP account limit, admin provisioning, login throttling
 * [Database](.agents/decisions/database.md) — least-privilege role, migrations
   with a privileged connection
-* [API versioning](.agents/decisions/api-versioning.md) — URL `v1`, `v2` on
-  breaking changes
 
 ## Deploy
 

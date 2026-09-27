@@ -32,7 +32,7 @@
 - Reads go through the backend: it checks authorization
   ([document visibility](document-visibility.md)) and then either streams the
   object or returns a **short-lived presigned URL (15 minutes)**.
-- **Gateway caveat:** Caddy strips `/api/v1/storage` for the storage route and
+- **Gateway caveat:** Caddy strips `/api/storage` for the storage route and
   must preserve `Host` — the S3 SigV4 signature includes the host, so a
   rewritten host invalidates the presigned URL. Carried over from the previous
   project; verify when wiring the proxy.

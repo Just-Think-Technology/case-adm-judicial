@@ -1,25 +1,7 @@
 // Storage connection — single home for reaching SeaweedFS
 
 import { S3Client } from '@aws-sdk/client-s3';
-
-/**
- * Fails fast when a required variable is missing, instead of letting the S3
- * client build a request against `undefined` and fail pages later with an
- * opaque error.
- *
- * @param name - The environment variable to read
- * @returns Its value, guaranteed non-empty
- * @throws {Error} If the variable is missing or blank
- */
-export function requiredEnv(name: string): string {
-  const value = process.env[name];
-
-  if (typeof value !== 'string' || value.trim() === '') {
-    throw new Error(`${name} is not set — storage cannot be reached without it`);
-  }
-
-  return value;
-}
+import { requiredEnv } from '../env';
 
 /**
  * Builds the S3 client for SeaweedFS. The endpoint, region and credentials all

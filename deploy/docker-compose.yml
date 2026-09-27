@@ -75,6 +75,8 @@ services:
       SEAWEEDFS_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY:-admin}
       SMTP_HOST: ${SMTP_HOST:-mailpit}
       SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_FROM: ${SMTP_FROM:-nao-responda@case.local}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Portal do Credor}
       APP_URL: ${APP_URL:-http://localhost}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
       # Hot-reload inside Docker (polling fallback when inotify is flaky on mounts)
@@ -117,7 +119,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3001
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api/v1}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api}
       BACKEND_INTERNAL_URL: http://backend:3000
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"

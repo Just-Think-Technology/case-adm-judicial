@@ -43,6 +43,8 @@ services:
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
       APP_URL: ${APP_URL}
       CORS_ORIGIN: ${CORS_ORIGIN}
     ports: !reset [] # only via Caddy
@@ -60,7 +62,7 @@ services:
     working_dir: !reset null
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: /api/v1
+      NEXT_PUBLIC_API_URL: /api
       BACKEND_INTERNAL_URL: http://backend:3000
     ports: !reset [] # only via Caddy
 

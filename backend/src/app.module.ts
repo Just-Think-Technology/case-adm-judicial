@@ -3,7 +3,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './common/health/health.module';
-import { globalThrottler, throttledMessage } from './common/throttling/throttler.config';
+import { defaultThrottler, throttledMessage } from './common/throttling/throttler.config';
+import { OriginGuard } from './modules/auth/origin.guard';
+import { OptionalSessionGuard } from './modules/auth/optional-session.guard';
 import {
   StorageBootstrapService,
   createStorageBootstrapService,
@@ -21,7 +23,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     // are declared as @Throttle metadata when each route is implemented.
     // In-memory storage is sufficient — a single instance, per the decision.
     ThrottlerModule.forRoot({
-      throttlers: [globalThrottler],
+      throttlers: [defaultThrottler],
       errorMessage: throttledMessage,
     }),
     PrismaModule,
@@ -33,6 +35,18 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     NotificationsModule,
   ],
   providers: [
+    // Origin first: cheap reject before the throttle budget is touched.
+    {
+      provide: APP_GUARD,
+      useClass: OriginGuard,
+    },
+    // Identity before budget: the throttler keys by account when a session
+    // exists, but the enforcing guards run after it — without this resolver the
+    // account would not be known yet and everything would key by IP.
+    {
+      provide: APP_GUARD,
+      useClass: OptionalSessionGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

@@ -8,19 +8,19 @@
 }
 
 :80 {
-  # Health — excluded from /api/v1 prefix per .agents/decisions/api-versioning.md
+  # Health — answers directly on the backend, outside /api
   handle /health* {
     reverse_proxy backend:3000
   }
 
-  # API — versioned URL per api-versioning.md
-  handle /api/v1/* {
+  # API — unversioned by decision; controllers own their full paths
+  handle /api/* {
     reverse_proxy backend:3000
   }
 
   # S3 presigned delivery — strip prefix, preserve Host
-  handle /api/v1/storage/* {
-    uri strip_prefix /api/v1/storage
+  handle /api/storage/* {
+    uri strip_prefix /api/storage
     reverse_proxy seaweedfs:8333 {
       header_up Host {host}
     }
@@ -41,9 +41,9 @@
 # Uncomment and set APP_HOST env when deploying to Lightsail:
 # {$APP_HOST} {
 #   handle /health* { reverse_proxy backend:3000 }
-#   handle /api/v1/* { reverse_proxy backend:3000 }
-#   handle /api/v1/storage/* {
-#     uri strip_prefix /api/v1/storage
+#   handle /api/* { reverse_proxy backend:3000 }
+#   handle /api/storage/* {
+#     uri strip_prefix /api/storage
 #     reverse_proxy seaweedfs:8333 { header_up Host {host} }
 #   }
 #   handle { reverse_proxy frontend:3001 }

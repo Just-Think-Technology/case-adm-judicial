@@ -29,7 +29,7 @@ export const DOWNLOAD_LIMIT_PER_MINUTE = 60;
  * and is evaluated before the account is created, so it is enforced against the
  * database rather than by the throttler.
  */
-export const MAX_ACCOUNTS_PER_IP = 5;
+export const MAX_ACCOUNTS_PER_IP = 2;
 
 export const ONE_MINUTE_IN_MS = 60_000;
 
