@@ -1,4 +1,4 @@
-// Registration limit — at most 5 accounts per source IP
+// Registration limit — at most 2 accounts per source IP
 
 import { Injectable } from '@nestjs/common';
 import { MAX_ACCOUNTS_PER_IP } from '../../common/throttling/throttling.constants';
@@ -16,7 +16,7 @@ export class AccountLimitExceededError extends Error {
 }
 
 /**
- * The 5-accounts-per-IP cap.
+ * The 2-accounts-per-IP cap.
  *
  * This is a business rule, not a throttle: it is not time-based, it must survive
  * a restart, and it is evaluated **before** the account is created. That is why it

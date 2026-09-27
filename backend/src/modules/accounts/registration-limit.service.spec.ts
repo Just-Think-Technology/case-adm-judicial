@@ -1,4 +1,4 @@
-// Registration limit service — the 5-accounts-per-IP cap
+// Registration limit service — the 2-accounts-per-IP cap
 
 jest.mock('@nestjs/common', () => ({
   Injectable: () => () => {},

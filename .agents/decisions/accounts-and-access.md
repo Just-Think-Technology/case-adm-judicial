@@ -43,7 +43,7 @@
 
 ## Registration limits
 
-- **Maximum of 5 accounts per source IP address.** The address used at
+- **Maximum of 2 accounts per source IP address.** The address used at
   registration is stored for this purpose only.
 - Exceeding the limit blocks the registration with a clear message; it does not
   silently drop the account.
