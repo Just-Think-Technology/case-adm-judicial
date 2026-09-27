@@ -4,11 +4,14 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { getSecurityHeaders } from './common/security/security-headers';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
-  app.use(helmet());
+  // One CSP policy for every response, per .agents/security/content-security-policy.md
+  const isProduction = process.env.NODE_ENV === 'production';
+  app.use(helmet(getSecurityHeaders(isProduction)));
   app.use(cookieParser());
 
   // Global DTO validation — messages in PT-BR per AGENTS.md
@@ -33,7 +36,7 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix('api/v1', { exclude: ['health'] });
 
   // Swagger — only in non-production (never exposed in prod)
-  if (process.env.NODE_ENV !== 'production') {
+  if (!isProduction) {
     const config = new DocumentBuilder()
       .setTitle('Portal do Credor API')
       .setDescription('Case Administração Judicial')
