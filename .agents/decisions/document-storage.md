@@ -18,6 +18,15 @@
 - The object key is **server-generated**. The original file name is kept as the
   document name for display and download, and the **original extension is
   appended** to it when the user typed a name without one.
+- Keys are **namespaced per company**: every object lives under the
+  `{companyId}/` prefix inside the `documents` bucket. S3 has no real folders —
+  the prefix is a naming convention, created implicitly by the first write, so
+  there is nothing to provision per company. The company id is an opaque
+  generated value, so the prefix leaks no information.
+- Rationale for the namespace: a company's documents are listed, audited and
+  deleted as one set. Deleting a company removes every object under its prefix
+  together with the rows, and a prefix-scoped listing can never return another
+  company's file by construction.
 - The bucket is **private**: anonymous access is never enabled and nothing is
   served from a permanent public URL.
 - Reads go through the backend: it checks authorization
@@ -59,6 +68,21 @@ security boundary — it never bypasses the authorization check.
   the app filesystem — which, in dev, is the repository working tree, because
   the compose stack mounts `../` at `/app`. Stream from request to bucket, or
   the container runs out of memory.
+
+### Bucket provisioning
+
+- The `documents` bucket is created by the **backend itself on boot**
+  (`StorageBootstrapService`): `HeadBucket`, create on `NotFound`. No compose
+  init container, no manual step — the same code path provisions dev, staging
+  and production, so a fresh environment cannot reach the first upload with no
+  bucket.
+- A missing or unreachable storage does **not** stop the boot: the failure is
+  logged as a warning and `/health` keeps answering. The upload route fails
+  explicitly when the bucket is absent. Rationale: storage is a dependency of
+  documents, not of the process — coupling the process liveness to it would
+  take down login, health checks and every unrelated route on a storage
+  hiccup.
+- Skipped when `NODE_ENV=test`, where no SeaweedFS exists.
 
 ### Content identity
 
