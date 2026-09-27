@@ -33,7 +33,7 @@
 - **An unverified account cannot log in**: the attempt is refused, the session
   is closed and the user is sent back to the login screen with the option to
   **resend** the verification e-mail.
-- The verification link is **single-purpose and expiring**; an invalid or
+- The verification link is **single-purpose and expiring (24 hours)**; an invalid or
   tampered link reports an invalid link, it does not verify anything.
 - Resend has two limits: a **cooldown of 5 minutes per user** and a **global
   request rate limit** (see [rate limiting](../security/rate-limiting.md)).
@@ -73,11 +73,14 @@ a server-side rotating refresh token for continuity and revocation.
 
 | Token | Form | Lifetime | Stored |
 |---|---|---|---|
-| **Access** | Signed JWT (HS256/RS256), claims: `sub`, `role`, `emailVerified`, `exp` | **15 minutes** | Not stored — verified by signature |
+| **Access** | Signed JWT (HS256), claims: `sub`, `role`, `emailVerified`, `jti`, `exp` | **15 minutes** | Not stored — verified by signature |
 | **Refresh** | 256-bit random opaque string | **7 days**, rotating | **Hashed** (SHA-256) in the `sessions` table |
 
 - The refresh token is stored **hashed**: a database leak must not hand over
   working sessions.
+- The access token carries the session row id as `jti`, so logout can revoke
+  exactly the current session. Without it, the access token could name the user
+  but never the device.
 - A `sessions` row carries: token hash, user id, created at, last used at,
   expires at, revoked at and user agent. No document or case data.
 - Every refresh **rotates**: the used row is revoked and a new one is issued.
@@ -89,6 +92,9 @@ a server-side rotating refresh token for continuity and revocation.
 - `access_token` — `httpOnly`, `Secure`, `SameSite=Lax`, short `max-age`.
 - `refresh_token` — `httpOnly`, `Secure`, `SameSite=Strict`, **`Path` scoped to
   the refresh route only**, so it is not attached to ordinary requests.
+- `Secure` is development's documented exception: local development serves plain
+  HTTP, where a `Secure` cookie is never sent and login silently breaks. The
+  flag is on in every non-development environment, set from `NODE_ENV`.
 - JavaScript **never reads either cookie**; the frontend never writes them and
   never builds an `Authorization` header of its own. The Next.js server
   components forward the cookie to the backend, which is the only authority on
@@ -109,6 +115,10 @@ change, delete, bulk status save).
 | Change / reset password | Revokes **all other sessions** of that user, keeping the current one |
 | Refresh token reuse | Revokes every session of that user |
 | Admin flag removed out-of-band | Effective within one access-token lifetime (≤ 15 min) |
+
+- The reset link lives **1 hour**, single-use. A reset arrives with no session
+  of its own, so "keeping the current one" does not apply — a completed reset
+  revokes **all** sessions of that user.
 
 The last row is the known cost of signing the access token: anything that must
 take effect **immediately** re-reads the session from the server instead of
@@ -142,8 +152,9 @@ storage.
   client cannot escalate by sending a different role.
 - Every admin-only surface checks the role once, in a shared guard/policy, not
   per screen (see [architecture](../rules/architecture.md)).
-- **Password hashing:** argon2id (parameters recorded here when the auth module
-  is created; a change in cost is an announced decision, not a silent tweak).
+- **Password hashing:** argon2id with time cost 3, 64 MiB memory and parallelism
+  4. A change in cost is an announced decision, not a silent tweak: raising it
+  slows every login, lowering it weakens every stored hash.
 - The `sessions` table is **personal data** (user agent, activity) and follows
   the retention rule in
   [personal data](../security/personal-data-and-secrecy.md): expired and revoked

@@ -33,9 +33,13 @@ export function getThrottleTracker(req: Record<string, unknown>): string {
  */
 export const throttledMessage = (): string => THROTTLED_MESSAGE;
 
-/** Global per-IP ceiling, the baseline every route inherits. */
-export const globalThrottler = {
-  name: 'global',
+/**
+ * The single throttler every route inherits. It must be named `default`: the
+ * guard resolves per-route overrides by the forRoot names, so a custom name
+ * here would make every @Throttle decorator silently inert.
+ */
+export const defaultThrottler = {
+  name: 'default',
   ttl: ONE_MINUTE_IN_MS,
   limit: GLOBAL_LIMIT_PER_MINUTE,
   getTracker: getThrottleTracker,

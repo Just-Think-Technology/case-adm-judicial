@@ -2,7 +2,8 @@
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateBucketCommand, HeadBucketCommand, NotFound, S3Client } from '@aws-sdk/client-s3';
-import { createStorageClient, requiredEnv } from './storage.config';
+import { requiredEnv } from '../env';
+import { createStorageClient } from './storage.config';
 
 /**
  * Creates the `documents` bucket on boot when it does not exist yet.

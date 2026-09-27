@@ -138,8 +138,16 @@ beforeAll(async () => {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   app.stdout?.on('data', (chunk: Buffer) => {
-    for (const line of chunk.toString().split('\n')) {
-      const match = /^test-mail: to=(\S+) link=(\S+)\s*$/.exec(line);
+    // Nest prefixes every line ([Nest] pid — timestamp LOG [context]) with ANSI
+    // colors, which have no whitespace — a (\S+) capture would swallow the
+    // trailing reset code into the token and break its hash. Stripping first
+    // keeps the capture plain. The control escape below is deliberate, which
+    // is why the rule is disabled on this line only.
+    // eslint-disable-next-line no-control-regex
+    const ansiEscape = /\x1b\[[0-9;]*m/g;
+    for (const raw of chunk.toString().split('\n')) {
+      const line = raw.replace(ansiEscape, '');
+      const match = /test-mail: to=(\S+) link=(\S+)/.exec(line);
       if (match) mailQueue.push({ to: match[1], link: match[2] });
     }
   });
@@ -152,7 +160,9 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  await db.query('TRUNCATE TABLE email_tokens, sessions, users');
+  // documents references users but auth never writes there — listing it keeps
+  // the truncate valid without CASCADE wiping anything else.
+  await db.query('TRUNCATE TABLE email_tokens, sessions, documents, users');
   mailQueue.length = 0;
 });
 
@@ -266,6 +276,11 @@ describe('POST /auth/verification-notification', () => {
   it('resends to an unverified address', async () => {
     await postWithCsrf('/auth/register', REGISTER, '203.0.113.121');
     await findMail('maria@case.com');
+    // The registration mail counts as a send: age it past the cooldown to
+    // simulate the user waiting, instead of weakening the rule for the test.
+    await db.query(
+      "UPDATE email_tokens SET created_at = NOW() - INTERVAL '6 minutes' WHERE type = 'VERIFICATION'",
+    );
     mailQueue.length = 0;
 
     const response = await postWithCsrf(

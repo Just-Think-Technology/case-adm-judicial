@@ -1,8 +1,10 @@
 // Registration limit repository — accounts created per source IP
 
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 /** Data access for the per-IP account cap. */
+@Injectable()
 export class RegistrationLimitRepository {
   constructor(private readonly prisma: PrismaService) {}
 
