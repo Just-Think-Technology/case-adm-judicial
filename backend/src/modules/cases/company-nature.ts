@@ -1,4 +1,7 @@
 // Company nature — PT-BR labels and URL slugs into the closed enum
+//
+// Nest-free on purpose: translating this into an HTTP error is the service's
+// job, so the seam stays unit-testable under the repo's jest setup.
 
 import type { CaseNature } from '@prisma/client';
 

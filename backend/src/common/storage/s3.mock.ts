@@ -18,6 +18,10 @@ export class HeadBucketCommand extends FakeCommand {}
 
 export class CreateBucketCommand extends FakeCommand {}
 
+export class ListObjectsV2Command extends FakeCommand {}
+
+export class DeleteObjectsCommand extends FakeCommand {}
+
 export class NotFound extends Error {
   constructor(options?: { message?: string }) {
     super(options?.message ?? 'Not Found');

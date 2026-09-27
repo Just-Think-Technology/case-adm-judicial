@@ -5,6 +5,7 @@ import { requiredEnv } from '../../common/env';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthenticatedGuard } from './session.guard';
+import { AdminGuard } from './admin.guard';
 import { CsrfGuard } from './csrf.guard';
 import { CsrfService } from './csrf.service';
 import { EmailTokenRepository } from './email-token.repository';
@@ -25,6 +26,7 @@ import { TokenService } from './token.service';
     CsrfService,
     AuthService,
     AuthenticatedGuard,
+    AdminGuard,
     CsrfGuard,
     OptionalSessionGuard,
     {
@@ -32,6 +34,6 @@ import { TokenService } from './token.service';
       useFactory: () => new TokenService(requiredEnv('JWT_ACCESS_SECRET')),
     },
   ],
-  exports: [AuthenticatedGuard, OptionalSessionGuard, TokenService],
+  exports: [AuthenticatedGuard, AdminGuard, OptionalSessionGuard, TokenService],
 })
 export class AuthModule {}

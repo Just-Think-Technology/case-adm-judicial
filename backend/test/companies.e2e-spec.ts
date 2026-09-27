@@ -42,8 +42,8 @@ beforeEach(async () => {
 
   const passwords = new PasswordService();
   await db.query(
-    `INSERT INTO users (id, name, email, password_hash, role, email_verified, email_verified_at)
-     VALUES ($1, $2, $3, $4, 'ADMIN', true, now())`,
+    `INSERT INTO users (id, name, email, password_hash, role, email_verified, email_verified_at, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, 'ADMIN', true, now(), now(), now())`,
     [randomUUID(), 'Administrador', ADMIN.email, await passwords.hash(ADMIN.password)],
   );
 });
@@ -220,7 +220,10 @@ describe('PUT /companies/:id', () => {
   it('refuses visitors and creditors', async () => {
     const id = await createCompany('203.0.113.192');
 
-    const anonymous = await postWithCsrf(`/companies/${id}`, COMPANY, '203.0.113.193');
+    const anonymous = await api('PUT', `/companies/${id}`, {
+      body: COMPANY,
+      ip: '203.0.113.193',
+    });
     expect(anonymous.status).toBe(401);
 
     const creditor = await creditorCookies('203.0.113.194', 'outro@case.com');
