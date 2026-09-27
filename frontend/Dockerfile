@@ -13,7 +13,10 @@ RUN pnpm install --filter frontend --frozen-lockfile || pnpm install --filter fr
 FROM deps AS build
 COPY frontend ./frontend
 WORKDIR /app/frontend
-RUN pnpm build
+# public/ is an empty, untracked directory in a fresh checkout — git does not
+# store empty dirs, so the COPY in the runner stage would fail there. Always
+# present, empty or not.
+RUN mkdir -p ./public && pnpm build
 
 FROM base AS runner
 ENV NODE_ENV=production
