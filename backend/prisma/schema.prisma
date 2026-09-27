@@ -47,7 +47,6 @@ model User {
   role              Role      @default(CREDITOR)
   emailVerified     Boolean   @default(false) @map("email_verified")
   emailVerifiedAt   DateTime? @map("email_verified_at") @db.Timestamptz
-  avatarKey         String?   @map("avatar_key")
   registrationIp    String?   @map("registration_ip") @db.VarChar(45)
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz

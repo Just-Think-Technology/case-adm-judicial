@@ -11,8 +11,7 @@
 ### Storage
 
 - Documents live in **SeaweedFS** through its S3 API, in a dedicated bucket
-  (`documents`) separate from profile pictures. The database stores metadata
-  only.
+  (`documents`). The database stores metadata only.
 - SeaweedFS runs in the compose stack (master + volume + filer + S3) and is
   **not published to the host**. The backend reaches it over the internal
   network (`:8333`).
@@ -77,8 +76,6 @@ security boundary — it never bypasses the authorization check.
 - Deleting a case or a client removes **all** documents they own, in the same
   operation. A failure to remove an object is logged and surfaced — never
   silently ignored, and never left as a permanent orphan.
-- Profile pictures are a separate object class with the same deletion rule
-  (see [Personal data](../security/personal-data-and-secrecy.md)).
 
 ## Consequences
 

@@ -4,7 +4,7 @@
   (creditors' personal data + judicial documents)
 
 This system handles **personal data** (creditor's name, e-mail, IP address at
-registration, profile picture) and **confidential judicial documents**. The
+registration) and **confidential judicial documents**. The
 baseline is confidentiality by default.
 
 ## Rules
@@ -32,10 +32,8 @@ baseline is confidentiality by default.
   internal new-document notice; the e-mail provider is an infrastructure
   dependency to be reviewed before production, because it processes personal
   data.
-- **Deletion is real deletion:** removing a client removes their documents,
-  files and profile picture (no soft delete, no trash, no restore).
-- Profile picture is personal data with a short lifecycle: it is deleted
-  together with the account.
+- **Deletion is real deletion:** removing a client removes their documents and
+  files (no soft delete, no trash, no restore).
 
 ## Responses to users
 
