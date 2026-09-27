@@ -213,6 +213,27 @@ jobs:
       - name: Sign image (keyless, via OIDC/Sigstore)
         run: cosign sign --yes "${{ env.IMAGE_REF }}@${{ steps.docker_build.outputs.digest }}"
 
+  # The production image only builds on push to main — without this check, a
+  # broken Dockerfile (e.g. COPY of a path missing from a fresh checkout)
+  # sails through every PR and explodes on merge. Mirrors ci-backend.yml.
+  docker-build-check:
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: false
+
   codeql:
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
