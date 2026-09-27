@@ -1,6 +1,11 @@
 // Document access — the read matrix as explicit cases
 
-import { canReadDocument } from './document-access';
+import {
+  InvalidVisibilityError,
+  VISIBILITY_LABELS,
+  canReadDocument,
+  normalizeVisibility,
+} from './document-access';
 
 describe('canReadDocument', () => {
   const publicDoc = { visibility: 'PUBLICO' as const, ownerId: 'owner-1', ownerRole: 'CREDITOR' };
@@ -34,5 +39,23 @@ describe('canReadDocument', () => {
   it('shows admin-sent private documents to any authenticated account', () => {
     expect(canReadDocument(adminPrivate, stranger)).toBe(true);
     expect(canReadDocument(adminPrivate, undefined)).toBe(false);
+  });
+});
+
+describe('normalizeVisibility', () => {
+  it('accepts the pair with accents and sloppy casing', () => {
+    expect(normalizeVisibility('público')).toBe('PUBLICO');
+    expect(normalizeVisibility('PRIVADO')).toBe('PRIVADO');
+    expect(normalizeVisibility('  Privado  ')).toBe('PRIVADO');
+  });
+
+  it('rejects anything outside the pair', () => {
+    expect(() => normalizeVisibility('secreto')).toThrow(InvalidVisibilityError);
+    expect(() => normalizeVisibility('')).toThrow(InvalidVisibilityError);
+  });
+
+  it('labels the pair in PT-BR', () => {
+    expect(VISIBILITY_LABELS.PUBLICO).toBe('Público');
+    expect(VISIBILITY_LABELS.PRIVADO).toBe('Privado');
   });
 });
