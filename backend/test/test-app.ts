@@ -5,9 +5,11 @@
 // speaking HTTP like a browser. Suites run with --runInBand, so the single
 // fixed port is never contended.
 
+import { randomUUID } from 'node:crypto';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { join } from 'node:path';
 import { Pool } from 'pg';
+import { PasswordService } from '../src/modules/auth/password.service';
 
 export const PORT = Number(process.env.AUTH_E2E_PORT ?? 3399);
 export const BASE = `http://localhost:${PORT}`;
@@ -94,6 +96,57 @@ export async function postWithCsrf(
     cookies: { ...cookies, ...csrfCookies },
     headers: { 'x-csrf-token': token },
   });
+}
+
+/**
+ * Multipart sibling of api(): the Content-Type is left for fetch to set with
+ * its boundary. Used by the upload journeys; everything else stays JSON.
+ */
+export async function apiForm(
+  method: string,
+  path: string,
+  form: FormData,
+  options: {
+    cookies?: Record<string, string>;
+    headers?: Record<string, string>;
+    ip?: string;
+  } = {},
+): Promise<ApiResponse> {
+  const headers: Record<string, string> = {
+    ...(options.ip ? { 'X-Forwarded-For': options.ip } : {}),
+    ...options.headers,
+  };
+  if (method !== 'GET' && !headers.Origin) headers.Origin = ORIGIN;
+  if (options.cookies && Object.keys(options.cookies).length > 0) {
+    headers.Cookie = Object.entries(options.cookies)
+      .map(([k, v]) => `${k}=${v}`)
+      .join('; ');
+  }
+
+  const response = await fetch(`${BASE}${path}`, { method, headers, body: form });
+  return {
+    status: response.status,
+    body: await response.json().catch(() => null),
+    cookies: parseCookies(response.headers.getSetCookie()),
+  };
+}
+
+/**
+ * Provisions an admin straight into the database — the product has no
+ * promotion path by design, and production provisions outside the product the
+ * same way. Idempotent, so every suite's beforeEach can call it.
+ */
+export async function provisionAdmin(
+  email = 'admin@case.local',
+  password = 'Admin@123',
+): Promise<void> {
+  const passwords = new PasswordService();
+  await db.query(
+    `INSERT INTO users (id, name, email, password_hash, role, email_verified, email_verified_at, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, 'ADMIN', true, now(), now(), now())
+     ON CONFLICT (email) DO NOTHING`,
+    [randomUUID(), 'Administrador', email, await passwords.hash(password)],
+  );
 }
 
 export interface TestMail {
