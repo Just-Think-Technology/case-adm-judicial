@@ -19,6 +19,7 @@ export interface UserRow {
   role: string;
   emailVerified: boolean;
   registrationIp: string | null;
+  createdAt: Date;
 }
 
 /** Data access for accounts. Auth flows read through here, never Prisma directly. */
@@ -47,5 +48,13 @@ export class UserRepository {
 
   async updatePassword(id: string, passwordHash: string, client: QueryClient = this.prisma): Promise<void> {
     await client.user.update({ where: { id }, data: { passwordHash } });
+  }
+
+  async updateProfile(
+    id: string,
+    data: { name?: string; email?: string },
+    client: QueryClient = this.prisma,
+  ): Promise<UserRow> {
+    return client.user.update({ where: { id }, data });
   }
 }

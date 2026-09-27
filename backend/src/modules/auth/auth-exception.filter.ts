@@ -5,11 +5,13 @@ import { AccountLimitExceededError } from '../accounts/registration-limit.servic
 import {
   EmailAlreadyRegisteredError,
   EmailNotVerifiedError,
+  IncorrectCurrentPasswordError,
   InvalidCredentialsError,
   InvalidResetLinkError,
   InvalidSessionError,
   InvalidVerificationLinkError,
   PasswordMismatchError,
+  PasswordUnchangedError,
   VerificationCooldownError,
 } from './auth.service';
 
@@ -22,6 +24,8 @@ const STATUS_BY_ERROR: Array<[new (...args: never[]) => Error, HttpStatus]> = [
   [InvalidVerificationLinkError, HttpStatus.BAD_REQUEST],
   [InvalidResetLinkError, HttpStatus.BAD_REQUEST],
   [PasswordMismatchError, HttpStatus.BAD_REQUEST],
+  [IncorrectCurrentPasswordError, HttpStatus.BAD_REQUEST],
+  [PasswordUnchangedError, HttpStatus.BAD_REQUEST],
   [VerificationCooldownError, HttpStatus.TOO_MANY_REQUESTS],
 ];
 

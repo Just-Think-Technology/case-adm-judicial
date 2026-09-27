@@ -49,4 +49,12 @@ export class SessionRepository {
       data: { revokedAt: new Date() },
     });
   }
+
+  /** Ends every session except the one the caller is standing in. */
+  async revokeAllExcept(userId: string, exceptId: string, client: QueryClient = this.prisma): Promise<void> {
+    await client.session.updateMany({
+      where: { userId, revokedAt: null, id: { not: exceptId } },
+      data: { revokedAt: new Date() },
+    });
+  }
 }
