@@ -801,7 +801,7 @@ describe('GET /clients', () => {
     const response = await api('GET', '/clients', { cookies: admin, ip: '203.0.113.281' });
 
     expect(response.status).toBe(200);
-    const items = response.body as Array<{ name: string; companies: Array<{ name: string }> }>;
+    const items = (response.body as { items: Array<{ name: string; companies: Array<{ name: string }> }> }).items;
     expect(items.map((u) => u.name)).toEqual(['Administrador', 'Credor Teste']);
     const zebedeu = items.find((u) => u.name === 'Credor Teste') ?? { companies: [] };
     expect(zebedeu.companies.map((c) => c.name)).toEqual(['Empresa Exemplo S.A.']);
@@ -809,8 +809,9 @@ describe('GET /clients', () => {
   });
 
   it('searches by name, e-mail and company', async () => {
-    await createCompany('203.0.113.282');
-    await creditorCookies('203.0.113.282', 'procurado@case.com');
+    const companyId = await createCompany('203.0.113.282');
+    const cookies = await creditorCookies('203.0.113.282', 'procurado@case.com');
+    await upload('203.0.113.282', companyId, cookies);
     const admin = await adminCookies('203.0.113.282');
 
     const byName = await api('GET', '/clients?search=credor', { cookies: admin, ip: '203.0.113.282' });

@@ -1,6 +1,7 @@
 // User repository — the only place that touches the users table
 
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { QueryClient } from '../../prisma/query-client';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -19,6 +20,7 @@ export interface UserRow {
   role: string;
   emailVerified: boolean;
   registrationIp: string | null;
+  createdAt: Date;
 }
 
 /** Data access for accounts. Auth flows read through here, never Prisma directly. */
@@ -47,5 +49,52 @@ export class UserRepository {
 
   async updatePassword(id: string, passwordHash: string, client: QueryClient = this.prisma): Promise<void> {
     await client.user.update({ where: { id }, data: { passwordHash } });
+  }
+
+  async deleteById(id: string, client: QueryClient = this.prisma): Promise<void> {
+    await client.user.delete({ where: { id } });
+  }
+
+  /**
+   * The admin clients tab: every account, alphabetical, with optional text
+   * and company filters. The company filter keeps accounts holding documents
+   * in a matching company.
+   */
+  async findClients(filters: {
+    search?: string;
+    company?: string;
+    take: number;
+    skip: number;
+  }): Promise<UserRow[]> {
+    return this.prisma.user.findMany({
+      where: this.clientFilters(filters),
+      orderBy: { name: 'asc' },
+      take: filters.take,
+      skip: filters.skip,
+    });
+  }
+
+  async countClients(filters: { search?: string; company?: string }): Promise<number> {
+    return this.prisma.user.count({ where: this.clientFilters(filters) });
+  }
+
+  private clientFilters(filters: { search?: string; company?: string }): Prisma.UserWhereInput {
+    return {
+      ...(filters.search
+        ? {
+            OR: [
+              { name: { contains: filters.search, mode: 'insensitive' } },
+              { email: { contains: filters.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+      ...(filters.company
+        ? {
+            documents: {
+              some: { company: { name: { contains: filters.company, mode: 'insensitive' } } },
+            },
+          }
+        : {}),
+    };
   }
 }

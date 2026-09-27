@@ -1,6 +1,6 @@
 // Company nature — labels and slugs into the closed enum
 
-import { InvalidNatureError, normalizeNature } from './company-nature';
+import { InvalidNatureError, NATURE_LABELS, normalizeNature } from './company-nature';
 
 describe('normalizeNature', () => {
   it('accepts the PT-BR labels', () => {
@@ -17,5 +17,10 @@ describe('normalizeNature', () => {
   it('rejects anything outside the closed set', () => {
     expect(() => normalizeNature('Concordata')).toThrow(InvalidNatureError);
     expect(() => normalizeNature('')).toThrow(InvalidNatureError);
+  });
+
+  it('labels the pair in PT-BR', () => {
+    expect(NATURE_LABELS.RECUPERACAO_JUDICIAL).toBe('Recuperação Judicial');
+    expect(NATURE_LABELS.FALENCIA).toBe('Falência');
   });
 });

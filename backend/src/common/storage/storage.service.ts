@@ -177,4 +177,21 @@ export class StorageService {
   async deleteObject(key: string): Promise<void> {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
+
+  /**
+   * Removes an explicit key list in 1000-key batches — the client-deletion
+   * cascade, where objects scatter across company prefixes and no single
+   * prefix covers them. An empty list resolves without a call.
+   */
+  async deleteObjects(keys: string[]): Promise<void> {
+    for (let index = 0; index < keys.length; index += 1000) {
+      const batch = keys.slice(index, index + 1000);
+      await this.client.send(
+        new DeleteObjectsCommand({
+          Bucket: this.bucket,
+          Delete: { Objects: batch.map((Key) => ({ Key })) },
+        }),
+      );
+    }
+  }
 }
