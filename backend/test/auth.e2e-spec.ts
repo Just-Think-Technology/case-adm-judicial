@@ -5,158 +5,28 @@
 // sending, so the suite extracts verification tokens the way a user would click
 // them. Each group uses its own source IP because throttle budgets key by address.
 
-import { spawn, type ChildProcess } from 'node:child_process';
-import { join } from 'node:path';
-import { Pool } from 'pg';
-
-const PORT = Number(process.env.AUTH_E2E_PORT ?? 3399);
-const BASE = `http://localhost:${PORT}`;
-const ORIGIN = 'http://localhost:3399';
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} must be set to run the auth e2e suite`);
-  return value;
-}
-
-const db = new Pool({ connectionString: requireEnv('DIRECT_URL') });
-
-interface ApiResponse {
-  status: number;
-  body: unknown;
-  cookies: Record<string, string>;
-}
-
-function parseCookies(setCookie: string[] | null): Record<string, string> {
-  const jar: Record<string, string> = {};
-  for (const header of setCookie ?? []) {
-    const [pair] = header.split(';');
-    const index = pair.indexOf('=');
-    if (index > 0) jar[pair.slice(0, index).trim()] = pair.slice(index + 1);
-  }
-  return jar;
-}
-
-async function api(
-  method: string,
-  path: string,
-  options: {
-    body?: unknown;
-    cookies?: Record<string, string>;
-    headers?: Record<string, string>;
-    ip?: string;
-  } = {},
-): Promise<ApiResponse> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.ip ? { 'X-Forwarded-For': options.ip } : {}),
-    ...options.headers,
-  };
-  if (options.cookies && Object.keys(options.cookies).length > 0) {
-    headers.Cookie = Object.entries(options.cookies)
-      .map(([k, v]) => `${k}=${v}`)
-      .join('; ');
-  }
-  // State-changing requests always carry an Origin, like a browser would.
-  if (method !== 'GET' && !headers.Origin) headers.Origin = ORIGIN;
-
-  const response = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
-  return {
-    status: response.status,
-    body: await response.json().catch(() => null),
-    cookies: parseCookies(response.headers.getSetCookie()),
-  };
-}
-
-async function csrf(ip: string): Promise<{ token: string; cookies: Record<string, string> }> {
-  const response = await api('GET', '/auth/csrf-token', { ip });
-  expect(response.status).toBe(200);
-  const token = (response.body as { token: string }).token;
-  expect(token).toMatch(/^[0-9a-f]{64}$/);
-  return { token, cookies: response.cookies };
-}
-
-async function postWithCsrf(
-  path: string,
-  body: unknown,
-  ip: string,
-  cookies: Record<string, string> = {},
-): Promise<ApiResponse> {
-  const { token, cookies: csrfCookies } = await csrf(ip);
-  return api('POST', path, {
-    body,
-    ip,
-    cookies: { ...cookies, ...csrfCookies },
-    headers: { 'x-csrf-token': token },
-  });
-}
-
-interface TestMail {
-  to: string;
-  link: string;
-}
-
-const mailQueue: TestMail[] = [];
-
-async function findMail(to: string, timeoutMs = 8000): Promise<TestMail> {
-  const started = Date.now();
-  for (;;) {
-    const found = mailQueue.find((m) => m.to === to);
-    if (found) return found;
-    if (Date.now() - started > timeoutMs) throw new Error(`no e-mail captured for ${to}`);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-}
-
-function tokenFromLink(link: string): string {
-  return new URL(link).searchParams.get('token') ?? '';
-}
+import type { ChildProcess } from 'node:child_process';
+import {
+  api,
+  BASE,
+  bootTestApp,
+  csrf,
+  db,
+  findMail,
+  mailQueue,
+  postWithCsrf,
+  stopTestApp,
+  tokenFromLink,
+} from './test-app';
 
 let app: ChildProcess | undefined;
 
-async function waitForHealth(): Promise<void> {
-  const started = Date.now();
-  for (;;) {
-    try {
-      const response = await fetch(`${BASE}/health`);
-      if (response.ok) return;
-    } catch {
-      // not up yet
-    }
-    if (Date.now() - started > 30000) throw new Error('backend did not boot in time');
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-}
-
 beforeAll(async () => {
-  app = spawn('node', [join(__dirname, '..', 'dist', 'main.js')], {
-    env: { ...process.env, PORT: String(PORT) },
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  app.stdout?.on('data', (chunk: Buffer) => {
-    // Nest prefixes every line ([Nest] pid — timestamp LOG [context]) with ANSI
-    // colors, which have no whitespace — a (\S+) capture would swallow the
-    // trailing reset code into the token and break its hash. Stripping first
-    // keeps the capture plain. The control escape below is deliberate, which
-    // is why the rule is disabled on this line only.
-    // eslint-disable-next-line no-control-regex
-    const ansiEscape = /\x1b\[[0-9;]*m/g;
-    for (const raw of chunk.toString().split('\n')) {
-      const line = raw.replace(ansiEscape, '');
-      const match = /test-mail: to=(\S+) link=(\S+)/.exec(line);
-      if (match) mailQueue.push({ to: match[1], link: match[2] });
-    }
-  });
-  await waitForHealth();
+  app = await bootTestApp();
 }, 60000);
 
 afterAll(async () => {
-  app?.kill('SIGTERM');
-  await db.end();
+  await stopTestApp(app);
 });
 
 beforeEach(async () => {
