@@ -10,8 +10,14 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-case_adm}
       POSTGRES_USER: ${POSTGRES_USER:-case_adm}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-case_adm_dev}
+      # Feeds the entrypoint script that creates the least-privilege app role.
+      # Dev-only default, same convention as POSTGRES_PASSWORD above.
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:-case_adm_app_dev}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Runs once, on first initialization — creates case_adm_app with DML-only
+      # grants plus default privileges for future tables.
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
     ports:
       # Exposed for host dev (pnpm dev runs on host against compose DB).
       # Not published in production stack — see docker-compose.production.yml
@@ -57,7 +63,9 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3000
-      DATABASE_URL: ${DATABASE_URL:-postgresql://case_adm:case_adm_dev@postgres:5432/case_adm?schema=public}
+      # Runtime uses the least-privilege role; migrations use the owner.
+      # Dev-only defaults, same convention as the postgres service above.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://case_adm_app:${POSTGRES_APP_PASSWORD:-case_adm_app_dev}@postgres:5432/case_adm?schema=public}
       DIRECT_URL: ${DIRECT_URL:-postgresql://case_adm:case_adm_dev@postgres:5432/case_adm?schema=public}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-access-secret-change-me-32chars}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-change-me-32chars}
