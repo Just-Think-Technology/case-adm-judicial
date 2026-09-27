@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './common/health/health.module';
+import { globalThrottler, throttledMessage } from './common/throttling/throttler.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { CasesModule } from './modules/cases/cases.module';
 import { DocumentsModule } from './modules/documents/documents.module';
@@ -11,14 +12,14 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 
 @Module({
   imports: [
-    // Rate limiting — global 100 req/min per IP + stricter per-route overrides
-    // per .agents/security/rate-limiting.md — in-memory is sufficient (single instance)
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60_000,
-        limit: 100,
-      },
-    ]),
+    // The one rate limiting configuration: global ceiling plus the account-or-IP
+    // keying, per .agents/security/rate-limiting.md. Stricter per-route limits
+    // are declared as @Throttle metadata when each route is implemented.
+    // In-memory storage is sufficient — a single instance, per the decision.
+    ThrottlerModule.forRoot({
+      throttlers: [globalThrottler],
+      errorMessage: throttledMessage,
+    }),
     PrismaModule,
     HealthModule,
     AuthModule,

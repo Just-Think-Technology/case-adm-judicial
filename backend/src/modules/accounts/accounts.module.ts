@@ -1,4 +1,9 @@
 import { Module } from '@nestjs/common';
+import { RegistrationLimitRepository } from './registration-limit.repository';
+import { RegistrationLimitService } from './registration-limit.service';
 
-@Module({})
+@Module({
+  providers: [RegistrationLimitRepository, RegistrationLimitService],
+  exports: [RegistrationLimitService],
+})
 export class AccountsModule {}
