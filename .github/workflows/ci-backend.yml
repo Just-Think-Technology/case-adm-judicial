@@ -193,6 +193,7 @@ jobs:
           CORS_ORIGIN: http://localhost:3399
           SMTP_HOST: localhost
           SMTP_PORT: 1025
+          JUDICIAL_NOTIFICATION_EMAIL: documentos@case.local
           SEAWEEDFS_ENDPOINT: http://localhost:8333
           SEAWEEDFS_BUCKET_DOCUMENTS: documents
           SEAWEEDFS_ACCESS_KEY: e2e

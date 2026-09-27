@@ -200,7 +200,9 @@ export async function bootTestApp(): Promise<ChildProcess> {
     const ansiEscape = /\x1b\[[0-9;]*m/g;
     for (const raw of chunk.toString().split('\n')) {
       const line = raw.replace(ansiEscape, '');
-      const match = /test-mail: to=(\S+) link=(\S+)/.exec(line);
+      // The link group is optional: notification mails carry no link, and the
+      // suite asserts exactly that.
+      const match = /test-mail: to=(\S+) link=(\S*)/.exec(line);
       if (match) mailQueue.push({ to: match[1], link: match[2] });
     }
   });

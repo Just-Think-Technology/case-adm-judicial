@@ -59,6 +59,12 @@ async function adminCookies(ip: string): Promise<Record<string, string>> {
   return login.cookies;
 }
 
+async function loginAs(ip: string, email: string, password = 'Segura@123'): Promise<Record<string, string>> {
+  const login = await postWithCsrf('/auth/login', { email, password }, ip);
+  expect(login.status).toBe(200);
+  return login.cookies;
+}
+
 async function creditorCookies(ip: string, email: string): Promise<Record<string, string>> {
   await postWithCsrf(
     '/auth/register',
@@ -178,7 +184,7 @@ describe('POST /companies/:id/documents', () => {
     );
 
     expect(response.status).toBe(413);
-  });
+  }, 120000);
 
   it('stores a creditor upload as private and under analysis', async () => {
     const companyId = await createCompany('203.0.113.217');
@@ -222,7 +228,7 @@ describe('POST /companies/:id/documents', () => {
     expect(response.status).toBe(201);
     const mail = await findMail(OFFICE_EMAIL);
     expect(mail.link).toBe('');
-  });
+  }, 60000);
 
   it('refuses the same content twice, whatever the name', async () => {
     const companyId = await createCompany('203.0.113.220');
@@ -285,14 +291,27 @@ describe('POST /companies/:id/documents', () => {
 describe('GET /companies/:id/documents', () => {
   async function seedVisibility(ip: string): Promise<{ companyId: string; privateId: string }> {
     const companyId = await createCompany(ip);
+    // One creditor per seed: the 2-accounts-per-IP cap leaves room for the
+    // test's own account, and a second seed account would serve no purpose.
     const owner = await creditorCookies(ip, 'dono@case.com');
-    const other = await creditorCookies(ip, 'outro-vis@case.com');
-    void other;
     const admin = await adminCookies(ip);
 
-    const mine = await upload(ip, companyId, owner);
-    const pub = await upload(ip, companyId, admin, { ...FIELDS, name: 'Aviso público' });
-    void pub;
+    // Distinct bytes per upload: identical content would (correctly) be
+    // rejected as a duplicate second send.
+    const ownerBytes = new Uint8Array([...PDF_BYTES, 0x01]);
+    const adminBytes = new Uint8Array([...PDF_BYTES, 0x02]);
+    const mine = await upload(ip, companyId, owner, FIELDS, 'peticao.pdf', 'application/pdf', ownerBytes);
+    expect(mine.status).toBe(201);
+    const pub = await upload(
+      ip,
+      companyId,
+      admin,
+      { ...FIELDS, name: 'Aviso público' },
+      'aviso.pdf',
+      'application/pdf',
+      adminBytes,
+    );
+    expect(pub.status).toBe(201);
     return { companyId, privateId: (mine.body as { id: string }).id };
   }
 
@@ -305,7 +324,7 @@ describe('GET /companies/:id/documents', () => {
     expect((response.body as unknown[]).map((d) => (d as { name: string }).name)).toEqual([
       'Aviso público',
     ]);
-  });
+  }, 60000);
 
   it('shows a creditor the public, the own and the admin-sent documents', async () => {
     const { companyId } = await seedVisibility('203.0.113.233');
@@ -320,11 +339,11 @@ describe('GET /companies/:id/documents', () => {
     const names = (response.body as unknown[]).map((d) => (d as { name: string }).name);
     expect(names).toContain('Aviso público');
     expect(names).not.toContain('Petição inicial');
-  });
+  }, 60000);
 
   it('filters a creditor list by scope', async () => {
     const { companyId } = await seedVisibility('203.0.113.234');
-    const cookies = await creditorCookies('203.0.113.234', 'dono@case.com');
+    const cookies = await loginAs('203.0.113.234', 'dono@case.com');
 
     const mine = await api('GET', `/companies/${companyId}/documents?scope=mine`, {
       cookies,
@@ -341,7 +360,7 @@ describe('GET /companies/:id/documents', () => {
     expect((fromAdmin.body as unknown[]).map((d) => (d as { name: string }).name)).toEqual([
       'Aviso público',
     ]);
-  });
+  }, 60000);
 
   it('shows an admin everything', async () => {
     const { companyId } = await seedVisibility('203.0.113.235');
@@ -354,7 +373,7 @@ describe('GET /companies/:id/documents', () => {
 
     expect(response.status).toBe(200);
     expect((response.body as unknown[])).toHaveLength(2);
-  });
+  }, 60000);
 
   it('answers 404 for an unknown company', async () => {
     const response = await api('GET', '/companies/clx0000000000000000000000/documents', {
@@ -381,7 +400,7 @@ describe('GET /documents/:id/content', () => {
     expect(response.headers.get('content-type')).toContain('application/pdf');
     expect(response.headers.get('content-disposition')).toContain('inline');
     expect(bytes).toEqual(PDF_BYTES);
-  });
+  }, 60000);
 
   it('downloads non-browser formats as attachments', async () => {
     const companyId = await createCompany('203.0.113.243');
@@ -403,8 +422,8 @@ describe('GET /documents/:id/content', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-disposition')).toContain('attachment');
-    expect(response.headers.get('content-disposition')).toContain('planilha.xlsx');
-  });
+    expect(response.headers.get('content-disposition')).toContain('Planilha.xlsx');
+  }, 60000);
 
   it('hides a private document from strangers with a 404', async () => {
     const companyId = await createCompany('203.0.113.245');

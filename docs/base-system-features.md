@@ -329,7 +329,7 @@ Aberta pelo botão **ACESSAR** do cartão.
 - A tela não exibe o indicador de carregamento global durante o envio (há um indicador próprio de progresso).  
 **Validações aplicadas:**  
 - **Formatos aceitos:** PDF, JPEG, JPG, PNG, DOCX e XLSX. Arquivos de outro tipo são recusados antes do envio, com a lista de formatos aceitos.  
-- **Tamanho máximo por arquivo:** 40 MB (verificação feita antes do envio).  
+- **Tamanho máximo por arquivo:** 60 MB (verificação feita pelo servidor durante o envio).  
 - Nome do documento: obrigatório, até 255 caracteres.  
 - Descrição: até 1000 caracteres.  
 - Tipo: obrigatório.  
@@ -391,7 +391,7 @@ Aberta pelo botão **ACESSAR** do cartão.
 - A exclusão exige **confirmação** com o aviso:  **“Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.”**  
 - Após a confirmação, o sistema confirma o resultado e a lista é atualizada.  
 - A exclusão remove **o documento e o arquivo enviado** — o conteúdo deixa de existir no sistema.  
-- Em caso de recusa por falta de permissão, o usuário recebe a mensagem **“Você não tem permissão para excluir este documento!”**  
+- Documento inexistente ou fora do alcance do usuário responde **Não Encontrado (404)**, sem revelar sua existência.  
 - Documento inexistente gera o aviso de que o documento não foi encontrado.  
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAANklEQVR4nO3OMQ2AABAAsSNBCkLfFR7wwIgHRiywEZJWQZeZ2ao9AAD+4lyruzq+ngAA8Nr1AOIEBeX8aGZPAAAAAElFTkSuQmCC)  
 **4.14 Documentos de um cliente (visão do administrador)**  
@@ -470,7 +470,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 |-|-|  
 | **Erro** | **O que o usuário vê** |   
 | **404 — Página não Encontrada** | Endereço inexistente ou registro que não existe mais (empresa, documento ou usuário removido) |   
-| **403 — Acesso Proibido** | Tentativa de acessar algo restrito a administradores, ou documento privado de outra pessoa |   
+| **403 — Acesso Proibido** | Tentativa de acessar algo restrito a administradores |   
 | Demais erros (400, 401, 402, 405, 408, 419, 429, 500, 503) | Telas de erro padronizadas do sistema, sempre com a marca e com a opção de retornar ao painel |   
    
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAANklEQVR4nO3OQQmAABRAsSeYxZw/lVeDGMACBrCCNxG2BFtmZquOAAD4i3Ot7mr/egIAwGvXA6fOBdd+dKAKAAAAAElFTkSuQmCC)  
@@ -528,7 +528,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 - Na página de uma empresa, o **administrador visualiza apenas os documentos enviados por administradores**.  
 - Na página de uma empresa, o **credor** visualiza os documentos públicos, os enviados por administradores e os seus próprios.  
 - O **visitante** visualiza apenas os documentos públicos.  
-- Abrir um documento restrito diretamente pelo link apresenta **Acesso Proibido (403)** a quem não tem permissão.  
+- Abrir um documento restrito diretamente pelo link apresenta **Não Encontrado (404)** a quem não tem permissão — a existência do documento não é revelada.  
 - Documento sem arquivo disponível apresenta **Página não Encontrada (404)**.  
 **6.2 Ciclo de vida do documento**  
 [envio pelo credor]  →  Em análise (privado)  →  Deferido / Indeferido  →  [exclusão]  
@@ -569,7 +569,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 | Contas criadas por endereço de rede | **2** |   
 | Intervalo para reenviar a verificação de e-mail | **5 minutos** por usuário |   
 | Pedidos de reenvio de verificação | **6 por minuto** |   
-| Tamanho máximo de documento enviado | **40 MB** (verificado antes do envio) |   
+| Tamanho máximo de documento enviado | **60 MB** (verificado pelo servidor durante o envio) |   
 | Envios simultâneos | **3 arquivos por vez** |   
 | Documentos por página na lista de um cliente | **10** |   
 | Validade do link de confirmação de e-mail | Temporária (o link expira) |   
@@ -620,7 +620,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 **Empresas**  
 - **Todos os campos obrigatórios**; textos até 300 caracteres;  **número do processo** até 50 caracteres, apenas letras, números, ponto, hífen e barra;  **protocolo** é uma data;  **natureza** limitada a Recuperação Judicial ou Falência.  
 **Documentos**  
-- **Arquivo:** PDF, JPEG, JPG, PNG, DOCX ou XLSX; até 40 MB.  
+- **Arquivo:** PDF, JPEG, JPG, PNG, DOCX ou XLSX; até 60 MB.  
 - **Nome do documento:** obrigatório; até 255 caracteres.  
 - **Descrição:** até 1000 caracteres.  
 - **Tipo:** obrigatório; quando “Outros”, a especificação é obrigatória.  

@@ -4,8 +4,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import {
+  buildNewDocumentEmail,
   buildPasswordResetEmail,
   buildVerificationEmail,
+  type NewDocumentNotice,
   type OutgoingMail,
 } from './mailer.templates';
 import { requiredEnv } from '../../common/env';
@@ -57,6 +59,14 @@ export class MailerService {
 
   async sendPasswordResetEmail(to: MailRecipient, link: string): Promise<void> {
     await this.send(to, buildPasswordResetEmail(to.name, link));
+  }
+
+  /**
+   * Alerts the office that a document landed. Like every other trigger, a
+   * failed send is logged and swallowed — the uploader keeps their upload.
+   */
+  async sendNewDocumentEmail(to: MailRecipient, notice: NewDocumentNotice): Promise<void> {
+    await this.send(to, buildNewDocumentEmail(notice));
   }
 
   private async send(to: MailRecipient, mail: OutgoingMail): Promise<void> {

@@ -42,7 +42,7 @@
 | Rule | Value |
 |---|---|
 | Formats | PDF, JPEG, JPG, PNG, DOCX, XLSX |
-| Max size per file | 40 MB (the client checks this for convenience; the **server is the authority**) |
+| Max size per file | 60 MB (enforced by the **server while streaming**; no client-side optimization — the limit is hard) |
 | Document name | required, up to 255 characters |
 | Description | up to 1000 characters |
 | Type | required; "Outros" requires a free-text specification |
@@ -56,7 +56,7 @@ security boundary — it never bypasses the authorization check.
 
 - The file is **streamed** from the request to SeaweedFS. It is never buffered
   fully in memory and never written to the local disk first.
-- SeaweedFS volume capacity and the 40 MB per-file limit are the only upload
+- SeaweedFS volume capacity and the 60 MB per-file limit are the only upload
   constraints; a body-size limit must be set at the proxy **and** in the
   application so the two agree (a 100 MB body limit was used in the previous
   project, leaving headroom for multi-part overhead).
@@ -64,7 +64,7 @@ security boundary — it never bypasses the authorization check.
   concurrently (§4.9 of the functional contract) and the production backend
   runs under a 512 MB memory limit
   (`deploy/docker-compose.production.yml`). Buffering in memory would hold
-  3 × 40 MB per user; writing to a temp path would put a judicial document on
+  3 × 60 MB per user; writing to a temp path would put a judicial document on
   the app filesystem — which, in dev, is the repository working tree, because
   the compose stack mounts `../` at `/app`. Stream from request to bucket, or
   the container runs out of memory.
