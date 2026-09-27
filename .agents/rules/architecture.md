@@ -26,9 +26,8 @@
 - The frontend **never talks to the database or to storage directly**: it calls
   the backend only through the gateway, and it treats the backend as the source
   of truth for status, visibility, ownership, role and verification state.
-- The gateway owns TLS, the public API prefix and the per-route rate-limit
-  budget (see [API versioning](../decisions/api-versioning.md) and
-  [Rate limiting](../security/rate-limiting.md)).
+- The gateway owns TLS, the public `/api` prefix and the per-route rate-limit
+  budget (see [Rate limiting](../security/rate-limiting.md)).
 - Document access is always resolved server-side: the client never decides
   whether it may see a document
   (see [Document visibility](../decisions/document-visibility.md)).

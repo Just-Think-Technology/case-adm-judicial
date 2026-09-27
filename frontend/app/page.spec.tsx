@@ -8,9 +8,9 @@ describe('HomePage', () => {
     expect(screen.getByRole('heading', { name: /Portal do Credor/i })).toBeInTheDocument();
   });
 
-  it('mentions /api/v1 and /health contract', () => {
+  it('mentions /api and /health contract', () => {
     render(<HomePage />);
-    expect(screen.getByText('/api/v1')).toBeInTheDocument();
+    expect(screen.getByText('/api')).toBeInTheDocument();
     expect(screen.getByText('/health')).toBeInTheDocument();
   });
 });

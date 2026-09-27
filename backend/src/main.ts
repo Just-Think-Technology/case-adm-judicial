@@ -31,9 +31,8 @@ async function bootstrap(): Promise<void> {
     credentials: true,
   });
 
-  // API versioning — url /api/v1 per .agents/decisions/api-versioning.md
-  // Health is excluded from the prefix.
-  app.setGlobalPrefix('api/v1', { exclude: ['health'] });
+  // No version prefix: the API is small and versioning was deliberately
+  // dropped — controllers own their full paths, health answers on /health.
 
   // Swagger — only in non-production (never exposed in prod)
   if (!isProduction) {

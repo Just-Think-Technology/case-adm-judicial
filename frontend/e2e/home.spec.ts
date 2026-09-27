@@ -8,7 +8,7 @@ test.describe('landing page', () => {
 
   test('shows API contract links', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('/api/v1').first()).toBeVisible();
+    await expect(page.getByText('/api').first()).toBeVisible();
     await expect(page.getByText('/health').first()).toBeVisible();
   });
 });
