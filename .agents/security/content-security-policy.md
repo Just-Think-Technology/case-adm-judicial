@@ -21,6 +21,13 @@ security headers.
 - HSTS: 1 year, `includeSubDomains`, preload — enabled only in staging/production
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `X-Content-Type-Options: nosniff`
+- `Permissions-Policy` denies what the product never uses — `camera=()`,
+  `microphone=()`, `geolocation=()`, `payment=()`. The system shows documents
+  and redirects to the gateway; it needs none of these capabilities
+- Cross-Origin-Embedder-Policy is **off** on the backend. COEP `require-corp`
+  constrains documents that load subresources; the backend serves JSON, not
+  documents, so the header would add no protection and one more thing to debug
+  in development
 
 ### The `'unsafe-inline'` exception is settled, not pending
 
