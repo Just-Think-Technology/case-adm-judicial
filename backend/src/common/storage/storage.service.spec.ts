@@ -7,6 +7,9 @@ import * as mockS3 from './s3.mock';
 jest.mock('@aws-sdk/client-s3', () => mockS3);
 jest.mock('@nestjs/common', () => ({
   Injectable: () => () => {},
+  Logger: class {
+    warn(): void {}
+  },
 }));
 
 import { DeleteObjectsCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
@@ -61,5 +64,21 @@ describe('StorageService.deletePrefix', () => {
     await new StorageService(client, 'documents').deletePrefix('company-1/');
 
     expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats a missing bucket as nothing to delete, and rethrows anything else', async () => {
+    const { client, send } = mockClient();
+    const noBucket = new Error('The specified bucket does not exist.');
+    noBucket.name = 'NoSuchBucket';
+    send.mockRejectedValueOnce(noBucket);
+
+    await expect(
+      new StorageService(client, 'documents').deletePrefix('company-1/'),
+    ).resolves.toBeUndefined();
+
+    send.mockRejectedValueOnce(new Error('connect ECONNREFUSED'));
+    await expect(
+      new StorageService(client, 'documents').deletePrefix('company-1/'),
+    ).rejects.toThrow('connect ECONNREFUSED');
   });
 });
