@@ -30,6 +30,11 @@ Rules:
   is evaluated before the account is created.
 - Limits are **per authenticated account** when a session exists, and **per IP**
   otherwise (guests have no account to throttle).
+- The account must be known **before** the budget is consumed: the throttler
+  guard runs ahead of the enforcing guards, so a non-blocking session resolver
+  names the caller first. Throttling never authenticates — it only buckets by
+  an already-resolved name, and a revoked-but-unexpired token still names its
+  account for budgeting (the request itself is still blocked downstream).
 - Exceeding a limit returns a **PT-BR message that tells the user what to do**
   ("Por favor, aguarde antes de tentar novamente") — never a bare 429 page.
 - Throttling decisions are server-side. The client-side hints (disabled

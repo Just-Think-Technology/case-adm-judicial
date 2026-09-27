@@ -8,6 +8,7 @@ import { AuthenticatedGuard } from './session.guard';
 import { CsrfGuard } from './csrf.guard';
 import { CsrfService } from './csrf.service';
 import { EmailTokenRepository } from './email-token.repository';
+import { OptionalSessionGuard } from './optional-session.guard';
 import { PasswordService } from './password.service';
 import { SessionRepository } from './session.repository';
 import { TokenService } from './token.service';
@@ -25,11 +26,12 @@ import { TokenService } from './token.service';
     AuthService,
     AuthenticatedGuard,
     CsrfGuard,
+    OptionalSessionGuard,
     {
       provide: TokenService,
       useFactory: () => new TokenService(requiredEnv('JWT_ACCESS_SECRET')),
     },
   ],
-  exports: [AuthenticatedGuard, TokenService],
+  exports: [AuthenticatedGuard, OptionalSessionGuard, TokenService],
 })
 export class AuthModule {}

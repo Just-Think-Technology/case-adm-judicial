@@ -626,3 +626,41 @@ describe('request guards', () => {
     expect(response.status).toBe(403);
   });
 });
+
+describe('throttle keying', () => {
+  async function sessionFor(ip: string, email: string): Promise<Record<string, string>> {
+    await postWithCsrf('/auth/register', { ...REGISTER, email }, ip);
+    const { link } = await findMail(email);
+    await api('GET', `/auth/verify-email?token=${tokenFromLink(link)}`, { ip });
+    mailQueue.length = 0;
+    const login = await postWithCsrf('/auth/login', { email, password: 'Segura@123' }, ip);
+    expect(login.status).toBe(200);
+    return login.cookies;
+  }
+
+  // The decision keys by account when a session exists and by IP otherwise. The
+  // global budget is the instrument: burning it as account A from one address
+  // must still block account A from another address, while a second account on
+  // the original address keeps its own budget. Without the identity resolver
+  // ahead of the throttler, the 101st request from the new address would pass.
+  it('follows the account across addresses instead of the address', async () => {
+    const accountA = await sessionFor('203.0.113.171', 'conta-a@case.com');
+    const accountB = await sessionFor('203.0.113.172', 'conta-b@case.com');
+
+    for (let i = 0; i < 100; i++) {
+      await api('GET', '/health', { cookies: accountA, ip: '203.0.113.171' });
+    }
+
+    const blockedElsewhere = await api('GET', '/health', {
+      cookies: accountA,
+      ip: '203.0.113.179',
+    });
+    expect(blockedElsewhere.status).toBe(429);
+
+    const otherAccount = await api('GET', '/health', {
+      cookies: accountB,
+      ip: '203.0.113.171',
+    });
+    expect(otherAccount.status).toBe(200);
+  }, 60000);
+});

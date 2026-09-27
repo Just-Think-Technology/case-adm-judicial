@@ -1,14 +1,11 @@
 // Authenticated guard — the access-token cookie is the session
 
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { resolveSessionIdentity, type SessionIdentity } from './session-identity';
 import { TokenService } from './token.service';
 
-export interface AuthenticatedUser {
-  id: string;
-  role: string;
-  emailVerified: boolean;
-  sessionId: string;
-}
+/** The caller behind a valid access-token cookie. */
+export type AuthenticatedUser = SessionIdentity;
 
 /**
  * Authenticates a request from its access-token cookie. The frontend never
@@ -22,23 +19,15 @@ export class AuthenticatedGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const raw: unknown = request?.cookies?.access_token;
+    // The identity logic has a single home in session-identity.ts — this guard
+    // only adds the decision: no identity, no entry.
+    const identity = resolveSessionIdentity(request?.cookies, this.tokens);
 
-    if (typeof raw !== 'string' || raw === '') {
+    if (!identity) {
       throw new UnauthorizedException('Sessão inválida ou expirada. Entre novamente.');
     }
 
-    try {
-      const claims = this.tokens.verifyAccess(raw);
-      request.user = {
-        id: claims.sub,
-        role: claims.role,
-        emailVerified: claims.emailVerified,
-        sessionId: claims.jti,
-      } satisfies AuthenticatedUser;
-      return true;
-    } catch {
-      throw new UnauthorizedException('Sessão inválida ou expirada. Entre novamente.');
-    }
+    request.user = identity;
+    return true;
   }
 }

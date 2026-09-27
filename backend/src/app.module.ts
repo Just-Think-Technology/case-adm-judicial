@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './common/health/health.module';
 import { defaultThrottler, throttledMessage } from './common/throttling/throttler.config';
 import { OriginGuard } from './modules/auth/origin.guard';
+import { OptionalSessionGuard } from './modules/auth/optional-session.guard';
 import {
   StorageBootstrapService,
   createStorageBootstrapService,
@@ -38,6 +39,13 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     {
       provide: APP_GUARD,
       useClass: OriginGuard,
+    },
+    // Identity before budget: the throttler keys by account when a session
+    // exists, but the enforcing guards run after it — without this resolver the
+    // account would not be known yet and everything would key by IP.
+    {
+      provide: APP_GUARD,
+      useClass: OptionalSessionGuard,
     },
     {
       provide: APP_GUARD,
