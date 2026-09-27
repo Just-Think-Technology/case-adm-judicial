@@ -10,7 +10,7 @@
 - **Database:** daily `pg_dump` (compressed) of PostgreSQL, taken inside the
   compose stack by a `db-backup` service on a cron schedule, with
   `BACKUP_RETENTION_DAYS=7`.
-- **Objects (documents and profile pictures):** the SeaweedFS volume must be
+- **Objects (case documents):** the SeaweedFS volume must be
   covered by the same window — a database row without its object is a **broken
   restore**
   ([document storage](../decisions/document-storage.md)).

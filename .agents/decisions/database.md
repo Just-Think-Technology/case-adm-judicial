@@ -40,8 +40,8 @@
 ## Data rules
 
 - **Cascade is explicit, never implicit:** deleting a case or a client removes
-  its documents (see [document storage](document-storage.md)); deleting a user
-  removes their profile picture. Nothing is soft-deleted.
+  its documents (see [document storage](document-storage.md)). Nothing is
+  soft-deleted.
 - **`content_hash` is UNIQUE** — the database enforces the content identity
   rule; the application must translate the unique-violation into a friendly
   PT-BR message ("this file was already sent"), never a 500.

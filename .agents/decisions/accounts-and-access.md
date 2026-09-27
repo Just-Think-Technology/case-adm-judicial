@@ -51,9 +51,8 @@
 
 ## Profile changes
 
-- A user may change their own **name**, **e-mail**, **password** and **profile
-  picture**, and nothing else — there is no self-service profile for another
-  user.
+- A user may change their own **name**, **e-mail** and **password**, and nothing
+  else — there is no self-service profile for another user.
 - **Name:** 5–20 characters, letters only (accents allowed).
 - **E-mail:** valid, **unique** in the system, stored lowercase.
 - **Password:** minimum 8 characters with at least one uppercase letter, one

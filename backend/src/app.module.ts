@@ -4,6 +4,10 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './common/health/health.module';
 import { globalThrottler, throttledMessage } from './common/throttling/throttler.config';
+import {
+  StorageBootstrapService,
+  createStorageBootstrapService,
+} from './common/storage/storage-bootstrap.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { CasesModule } from './modules/cases/cases.module';
 import { DocumentsModule } from './modules/documents/documents.module';
@@ -32,6 +36,12 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    // Creates the documents bucket on boot when missing; skips itself when
+    // NODE_ENV is test, per .agents/decisions/document-storage.md.
+    {
+      provide: StorageBootstrapService,
+      useFactory: createStorageBootstrapService,
     },
   ],
 })

@@ -197,13 +197,8 @@ O sistema trabalha com **três situações de uso** (apenas as duas últimas exi
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAANklEQVR4nO3OQQmAABRAsSfYxZo/jVEMYQLPJrCCNxG2BFtmZquOAAD4i3Ot7mr/egIAwGvXA4rLBc059ysnAAAAAElFTkSuQmCC)  
 **4.6 Menu da conta (perfil do usuário)**  
 **Quem usa:** credores e administradores autenticados. O acesso é pelo item  **“Menu”** no menu do usuário, no topo da tela.  
-A tela tem três cartões:  
-***a) Foto de perfil***  
-- Mostra a foto atual ou, quando não há foto, um ícone de pessoa como imagem padrão.  
-- **Alterar imagem:** o usuário escolhe um arquivo de imagem; ele é enviado e a foto passa a aparecer no cabeçalho do sistema, no menu e nas telas que exibem a imagem do cliente.  
-- **Remover imagem:** disponível apenas quando existe foto; exige confirmação e, após a remoção, o ícone padrão volta a ser exibido.  
-- **Regras:** apenas imagens  **JPG, JPEG ou PNG**; tamanho máximo de  **2 MB** (o sistema também avisa, antes do envio, se o arquivo passar de 5 MB). Arquivo que não seja imagem é recusado com aviso.  
-***b) Nome e e-mail***  
+A tela tem dois cartões:  
+***a) Nome e e-mail***  
 - Campos preenchidos com os dados atuais.  
 - O botão **Salvar** só fica disponível quando há alteração  **e** os campos estão preenchidos e válidos.  
 - **Regras:** nome de 5 a 20 caracteres, apenas letras; e-mail válido, único no sistema e com no máximo 255 caracteres.  
@@ -211,7 +206,7 @@ A tela tem três cartões:
 - O novo e-mail é gravado em minúsculas.  
 - **Observação de comportamento:** a troca de e-mail  **não** dispara um novo processo de verificação — a conta continua ativa com o novo endereço.  
 - Mensagens: sucesso (“Dados atualizados!”), e-mail já utilizado, formato inválido, nome fora das regras e erro inesperado.  
-***c) Senha***  
+***b) Senha***  
 - Campos: **senha atual**,  **nova senha** e  **confirmar nova senha**, todos com botão de mostrar/ocultar.  
 - Um ícone de informação abre um **pop-up com os requisitos de senha** (mínimo de 8 caracteres, uma maiúscula, uma minúscula, um número, um caractere especial e senhas iguais).  
 - O botão **Salvar** só é liberado quando os três campos estão preenchidos e a nova senha atende aos requisitos.  
@@ -434,7 +429,7 @@ Aberta pelo botão **ACESSAR** do cartão.
 **Remoção de cliente:**  
 1. O administrador aciona **REMOVER** e confirma a mensagem  **“Tem certeza que deseja remover o cliente ‘nome’?”**  
 2. Em caso de sucesso, o cartão desaparece e surge a notificação **“Cliente ‘nome’ foi removido com sucesso!”**  
-3. A exclusão de um cliente **remove também todos os documentos enviados por ele** (registros e arquivos), além da foto de perfil.  
+3. A exclusão de um cliente **remove também todos os documentos enviados por ele** (registros e arquivos).  
 4. **Não é permitido remover usuários administradores** — a tentativa é recusada com o aviso de que não é permitido excluir usuários administradores.  
 5. Não é possível remover o próprio administrador.  
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAM0lEQVR4nO3OUQmAQBBAwSdcjsu6HYxoDsEK/okwk2COmdnVGQAAf3GtalX76wkAAK/dDxFWBDkFf6+SAAAAAElFTkSuQmCC)  
@@ -511,10 +506,9 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 3. O cartão desaparece com confirmação visual; no caso do cliente, todos os documentos dele também são removidos.  
 **Fluxo 6 — Manutenção da própria conta**  
 1. Usuário acessa **Menu** no topo da tela.  
-2. Atualiza a **foto de perfil** (ou a remove).  
-3. Corrige **nome e e-mail**.  
-4. Troca a **senha** informando a atual e escolhendo uma nova que atenda aos requisitos.  
-5. Sai da conta pelo menu do usuário.  
+2. Corrige **nome e e-mail**.  
+3. Troca a **senha** informando a atual e escolhendo uma nova que atenda aos requisitos.  
+4. Sai da conta pelo menu do usuário.  
 **Fluxo 7 — Recuperação de acesso**  
 1. Usuário clica em **Esqueceu sua senha?**  
 2. Informa o e-mail e recebe o link de redefinição.  
@@ -578,7 +572,6 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 | Tamanho máximo de documento enviado | **40 MB** (verificado antes do envio) |   
 | Envios simultâneos | **3 arquivos por vez** |   
 | Documentos por página na lista de um cliente | **10** |   
-| Tamanho máximo da foto de perfil | **2 MB** (com aviso antecipado acima de 5 MB) |   
 | Validade do link de confirmação de e-mail | Temporária (o link expira) |   
 | Validade do link de redefinição de senha | Temporária (o link expira) |   
 | Tamanho máximo de senha / nome / e-mail | senha ≥ 8 caracteres; nome 5–20; e-mail até 255 |   
@@ -588,7 +581,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 |-|-|  
 | **Ação** | **Efeitos** |   
 | **Excluir documento** | Some o documento e o arquivo correspondente |   
-| **Excluir cliente** | Some o usuário, **todos os seus documentos e arquivos**, e a foto de perfil |   
+| **Excluir cliente** | Some o usuário, **todos os seus documentos e arquivos** |   
 | **Excluir empresa** | Some a empresa e **todos os seus documentos** |   
 | **Excluir administrador** | **Não permitido** pelo sistema |   
    
@@ -608,7 +601,6 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
   - Credores: página inicial do portal.  
   - Administradores: página inicial do portal e **Empresas** (cadastro de processos).  
 - **Menu do usuário:** acesso ao  **Menu** (minha conta) e à ação  **Sair**.  
-- **Foto de perfil** no cabeçalho, substituindo o ícone de pessoa quando há imagem.  
 - **Menu hambúrguer** para telas estreitas, que recolhe os itens de navegação em um painel expansível.  
 - **Botão “VOLTAR”** nas telas de detalhe (empresa e documentos do cliente), retornando ao painel.  
 - **Ícones identificadores** para cada natureza de documento, perfil (administrador/cliente) e estado (público/privado, deferido/indeferido/em análise).  
@@ -640,7 +632,7 @@ Registrados aqui para evitar surpresas e orientar melhorias futuras:
 1. **O administrador não vê, na página da empresa, os documentos enviados por credores** — a listagem de uma empresa mostra a ele apenas os documentos enviados por administradores. O acesso direto ao arquivo, porém, é permitido.  
 2. **O mesmo arquivo não pode ser enviado duas vezes.** Enviar um arquivo idêntico a outro já enviado faz o envio falhar; é preciso enviar uma versão diferente.  
 3. **Credor não visualiza botão de excluir na página da empresa.** A permissão de excluir o próprio documento existe, mas o botão só aparece nas telas de gestão, acessíveis a administradores.  
-4. **A exclusão de clientes remove em cascata todos os documentos e a foto de perfil** — não há como recuperar os arquivos enviados.  
+4. **A exclusão de clientes remove em cascata todos os documentos** — não há como recuperar os arquivos enviados.  
 5. **A exclusão de empresa remove em cascata todos os documentos vinculados.**  
 6. **Não há histórico de alterações de status**, nem trilha de auditoria visível ao usuário: o status é sobrescrito e o valor anterior só aparece momentaneamente na tela, antes de salvar.  
 7. **O campo “Autor” do processo é obrigatório no cadastro, mas não é exibido na página da empresa.**  
