@@ -60,4 +60,15 @@ describe('CompanyPanel', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Falência' }));
     expect(screen.getByText(/nenhuma empresa em falência/i)).toBeInTheDocument();
   });
+
+  it('offers the Clientes tab to administrators', async () => {
+    render(<CompanyPanel companies={COMPANIES} isAdmin ownId="u-admin" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Clientes' }));
+    expect(await screen.findByText(/não foi possível carregar os clientes/i)).toBeInTheDocument();
+  });
+
+  it('hides the Clientes tab from visitors', () => {
+    render(<CompanyPanel companies={COMPANIES} />);
+    expect(screen.queryByRole('tab', { name: 'Clientes' })).not.toBeInTheDocument();
+  });
 });

@@ -42,6 +42,8 @@ export async function proxyBackend(path: string, request: Request): Promise<Next
   } catch {
     return NextResponse.json({ message: 'Serviço indisponível. Tente novamente.' }, { status: 502 });
   }
+  // 204 carries no body by definition — constructing a Response with one throws.
+  if (upstream.status === 204) return new NextResponse(null, { status: 204 });
   const body = await upstream.text();
   const outgoing = new NextResponse(body, { status: upstream.status });
   const contentType = upstream.headers.get('content-type');

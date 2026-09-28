@@ -44,6 +44,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   // Backend is source of truth — frontend never talks to DB/storage directly
+  // Enables the forbidden() + forbidden.tsx convention for the branded 403.
+  experimental: {
+    authInterrupts: true,
+  },
   async rewrites() {
     return [
       // In local dev without Caddy, proxy /api to backend directly
