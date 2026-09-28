@@ -10,7 +10,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
   // Fingerprinting: never advertise the framework.
-  app.disable('x-powered-by');
+  app.getHttpAdapter().getInstance().disable('x-powered-by');
 
   // One CSP policy for every response, per .agents/security/content-security-policy.md
   const isProduction = process.env.NODE_ENV === 'production';
