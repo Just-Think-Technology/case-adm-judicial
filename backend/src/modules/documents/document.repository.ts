@@ -1,7 +1,7 @@
 // Document repository — the only place that touches documents
 
 import { Injectable } from '@nestjs/common';
-import type { Document, DocumentType, DocumentVisibility, Prisma } from '@prisma/client';
+import type { Document, DocumentStatus, DocumentType, DocumentVisibility, Prisma } from '@prisma/client';
 import { QueryClient } from '../../prisma/query-client';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -22,6 +22,10 @@ export interface CreateDocumentData {
 
 export type DocumentWithOwner = Document & { owner: { id: string; name: string; role: string } };
 
+export type DocumentWithOwnerAndCompany = DocumentWithOwner & {
+  company: { id: string; name: string };
+};
+
 const OWNER_SELECT = { select: { id: true, name: true, role: true } };
 
 /** Every data access for documents; the service owns rules, never queries. */
@@ -39,6 +43,79 @@ export class DocumentRepository {
 
   async delete(id: string, client: QueryClient = this.prisma): Promise<void> {
     await client.document.delete({ where: { id } });
+  }
+
+  async updateStatus(id: string, status: DocumentStatus): Promise<DocumentWithOwner> {
+    return this.prisma.document.update({
+      where: { id },
+      data: { status },
+      include: { owner: OWNER_SELECT },
+    });
+  }
+
+  async updateVisibility(id: string, visibility: DocumentVisibility): Promise<DocumentWithOwner> {
+    return this.prisma.document.update({
+      where: { id },
+      data: { visibility },
+      include: { owner: OWNER_SELECT },
+    });
+  }
+
+  /** One page of a single owner's documents, newest first. */
+  async findByOwner(ownerId: string, take: number, skip: number): Promise<DocumentWithOwnerAndCompany[]> {
+    return this.prisma.document.findMany({
+      where: { ownerId },
+      include: { owner: OWNER_SELECT, company: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take,
+      skip,
+    });
+  }
+
+  async countByOwner(ownerId: string): Promise<number> {
+    return this.prisma.document.count({ where: { ownerId } });
+  }
+
+  /** Real totals per status across all of the owner's documents. */
+  async statsByOwner(ownerId: string): Promise<Record<DocumentStatus, number>> {
+    const groups = await this.prisma.document.groupBy({
+      by: ['status'],
+      where: { ownerId },
+      _count: { status: true },
+    });
+    const stats: Record<DocumentStatus, number> = {
+      EM_ANALISE: 0,
+      DEFERIDO: 0,
+      INDEFERIDO: 0,
+    };
+    for (const group of groups) {
+      stats[group.status] = group._count.status;
+    }
+    return stats;
+  }
+
+  /** Every stored key of an owner — the cascade inventory for deletion. */
+  async storageKeysByOwner(ownerId: string): Promise<string[]> {
+    const rows = await this.prisma.document.findMany({
+      where: { ownerId },
+      select: { storageKey: true },
+    });
+    return rows.map((row) => row.storageKey);
+  }
+
+  /** Distinct companies an owner has documents in, alphabetical. */
+  async companiesByOwner(ownerId: string): Promise<Array<{ id: string; name: string; nature: string }>> {
+    const rows = await this.prisma.document.findMany({
+      where: { ownerId },
+      distinct: ['companyId'],
+      select: { company: { select: { id: true, name: true, nature: true } } },
+      orderBy: { company: { name: 'asc' } },
+    });
+    return rows.map((row) => ({
+      id: row.company.id,
+      name: row.company.name,
+      nature: row.company.nature,
+    }));
   }
 
   /**

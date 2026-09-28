@@ -25,7 +25,13 @@ import { EmailNotVerifiedError } from '../auth/auth.service';
 import type { AuthenticatedUser } from '../auth/session.guard';
 import { CompanyNotFoundError } from '../cases/companies.service';
 import { CompanyRepository } from '../cases/company.repository';
-import { canReadDocument } from './document-access';
+import {
+  InvalidVisibilityError,
+  VISIBILITY_LABELS,
+  canReadDocument,
+  normalizeVisibility,
+} from './document-access';
+import { InvalidDocumentStatusError, STATUS_LABELS, normalizeDocumentStatus } from './document-status';
 import {
   DOCUMENT_TYPE_LABELS,
   InvalidDocumentTypeError,
@@ -33,6 +39,7 @@ import {
 } from './document-type';
 import { DocumentRepository, type DocumentWithOwner } from './document.repository';
 import { UploadDocumentDto } from './dto/upload-document.dto';
+import { InvalidPageError, parsePage, totalPages } from './pagination';
 import {
   MAX_FILE_BYTES,
   extensionOf,
@@ -41,6 +48,7 @@ import {
   isInline,
 } from './upload-rules';
 import { MailerService } from '../notifications/mailer.service';
+import { NATURE_LABELS } from '../cases/company-nature';
 
 /** Thrown when the stored bytes cannot be read back. */
 export class DocumentNotFoundError extends NotFoundException {
@@ -48,6 +56,65 @@ export class DocumentNotFoundError extends NotFoundException {
     super('Documento não encontrado.');
     this.name = 'DocumentNotFoundError';
   }
+}
+
+/** Thrown when no user answers to the id. */
+export class UserNotFoundError extends NotFoundException {
+  constructor() {
+    super('Usuário não encontrado.');
+    this.name = 'UserNotFoundError';
+  }
+}
+
+/** Thrown when an admin account is targeted for deletion. */
+export class ClientIsAdminError extends ForbiddenException {
+  constructor() {
+    super('Não é permitido excluir usuários administradores.');
+    this.name = 'ClientIsAdminError';
+  }
+}
+
+/** Thrown when an admin targets their own account. */
+export class SelfDeleteError extends ForbiddenException {
+  constructor() {
+    super('Você não pode remover a própria conta.');
+    this.name = 'SelfDeleteError';
+  }
+}
+
+export interface ClientDocumentItem {
+  id: string;
+  name: string;
+  type: string;
+  customType: string | null;
+  company: { id: string; name: string };
+  status: string;
+  createdAt: Date;
+}
+
+export interface ClientDocuments {
+  user: { id: string; name: string; email: string };
+  stats: { total: number; emAnalise: number; deferidos: number; indeferidos: number };
+  items: ClientDocumentItem[];
+  page: number;
+  totalPages: number;
+}
+
+export interface ClientItem {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: Date;
+  role: string;
+  companies: Array<{ id: string; name: string; nature: string }>;
+  totalCompanies: number;
+}
+
+export interface ClientList {
+  items: ClientItem[];
+  page: number;
+  totalPages: number;
+  total: number;
 }
 
 /** Thrown when the same content is sent twice. */
@@ -94,17 +161,6 @@ interface ParsedUpload {
   fileCount: number;
   badFormat: boolean;
 }
-
-const STATUS_LABELS = {
-  EM_ANALISE: 'Em análise',
-  DEFERIDO: 'Deferido',
-  INDEFERIDO: 'Indeferido',
-} as const;
-
-const VISIBILITY_LABELS = {
-  PUBLICO: 'Público',
-  PRIVADO: 'Privado',
-} as const;
 
 /**
  * Bytes still read after the store is doomed before the socket dies. A
@@ -289,6 +345,183 @@ export class DocumentsService {
       fileName: sanitizeFileName(fileNameWithExtension(row.name, row.extension)),
       inline: isInline(row.mimeType),
     };
+  }
+
+  /**
+   * Changes one document's status. Any state can go to any other state — the
+   * decision keeps no terminal state and no history, only the current value.
+   */
+  async setStatus(id: string, rawStatus: string): Promise<DocumentSummary> {
+    const row = await this.documents.findById(id);
+    if (!row) {
+      throw new DocumentNotFoundError();
+    }
+
+    let status;
+    try {
+      status = normalizeDocumentStatus(rawStatus);
+    } catch (error) {
+      if (error instanceof InvalidDocumentStatusError) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
+
+    return toSummary(await this.documents.updateStatus(id, status));
+  }
+
+  /** Flips one document between public and private, immediately effective. */
+  async setVisibility(id: string, rawVisibility: string): Promise<DocumentSummary> {
+    const row = await this.documents.findById(id);
+    if (!row) {
+      throw new DocumentNotFoundError();
+    }
+
+    let visibility;
+    try {
+      visibility = normalizeVisibility(rawVisibility);
+    } catch (error) {
+      if (error instanceof InvalidVisibilityError) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
+
+    return toSummary(await this.documents.updateVisibility(id, visibility));
+  }
+
+  /**
+   * Removes one document for its owner or an admin. Strangers meet a 404 —
+   * the row's existence must not leak. The object goes first: a bucket
+   * failure keeps the row and answers loudly instead of orphaning bytes.
+   */
+  async removeDocument(id: string, caller: AuthenticatedUser): Promise<void> {
+    const row = await this.documents.findById(id);
+    if (!row || (caller.role !== 'ADMIN' && row.ownerId !== caller.id)) {
+      throw new DocumentNotFoundError();
+    }
+
+    try {
+      await this.storage.deleteObject(row.storageKey);
+    } catch (error) {
+      this.logger.error(`Could not delete object ${row.storageKey}`, error);
+      throw new StorageUploadError();
+    }
+
+    await this.documents.delete(id);
+  }
+
+  /**
+   * One client's documents with real totals: the counters describe the whole
+   * account, not the page being displayed (deliberate contract change — the
+   * legacy page-scoped stats misled instead of summarizing).
+   */
+  async clientDocuments(userId: string, rawPage: string | undefined): Promise<ClientDocuments> {
+    const user = await this.users.findById(userId);
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
+    const { page, take, skip } = this.parsePage(rawPage);
+    const [rows, total, stats] = await Promise.all([
+      this.documents.findByOwner(userId, take, skip),
+      this.documents.countByOwner(userId),
+      this.documents.statsByOwner(userId),
+    ]);
+
+    return {
+      user: { id: user.id, name: user.name, email: user.email },
+      stats: {
+        total,
+        emAnalise: stats.EM_ANALISE,
+        deferidos: stats.DEFERIDO,
+        indeferidos: stats.INDEFERIDO,
+      },
+      items: rows.map((row) => ({
+        ...toSummary(row),
+        company: { id: row.company.id, name: row.company.name },
+        createdAt: row.createdAt,
+      })),
+      page,
+      totalPages: totalPages(total),
+    };
+  }
+
+  /** The admin clients tab: every account alphabetical, with company tags. */
+  async listClients(
+    search: string | undefined,
+    company: string | undefined,
+    rawPage: string | undefined,
+  ): Promise<ClientList> {
+    const { page, take, skip } = this.parsePage(rawPage);
+    const filters = {
+      ...(search ? { search } : {}),
+      ...(company ? { company } : {}),
+    };
+    const [users, total] = await Promise.all([
+      this.users.findClients({ ...filters, take, skip }),
+      this.users.countClients(filters),
+    ]);
+
+    const items: ClientItem[] = [];
+    for (const user of users) {
+      const companies = await this.documents.companiesByOwner(user.id);
+      items.push({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+        role: user.role,
+        companies: companies.slice(0, 3).map((entry) => ({
+          id: entry.id,
+          name: entry.name,
+          nature: NATURE_LABELS[entry.nature as keyof typeof NATURE_LABELS],
+        })),
+        totalCompanies: companies.length,
+      });
+    }
+
+    return { items, page, totalPages: totalPages(total), total };
+  }
+
+  /**
+   * Removes a client with everything they sent: every stored object first,
+   * then the row (the schema cascades document, session and token rows).
+   * Admins and the caller's own account refuse with 403.
+   */
+  async removeClient(targetId: string, callerId: string): Promise<void> {
+    const target = await this.users.findById(targetId);
+    if (!target) {
+      throw new UserNotFoundError();
+    }
+    if (target.id === callerId) {
+      throw new SelfDeleteError();
+    }
+    if (target.role === 'ADMIN') {
+      throw new ClientIsAdminError();
+    }
+
+    const keys = await this.documents.storageKeysByOwner(targetId);
+    try {
+      await this.storage.deleteObjects(keys);
+    } catch (error) {
+      this.logger.error(`Could not delete objects of client ${targetId}`, error);
+      throw new StorageUploadError();
+    }
+
+    await this.users.deleteById(targetId);
+  }
+
+  /** Page query into skip/take; rejects instead of silently clamping. */
+  private parsePage(rawPage: string | undefined): { page: number; take: number; skip: number } {
+    try {
+      return parsePage(rawPage);
+    } catch (error) {
+      if (error instanceof InvalidPageError) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
   }
 
   /**

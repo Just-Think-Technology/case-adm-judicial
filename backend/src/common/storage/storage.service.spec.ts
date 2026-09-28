@@ -178,4 +178,19 @@ describe('StorageService object operations', () => {
     expect(send.mock.calls[0][0]).toBeInstanceOf(DeleteObjectCommand);
     expect(send.mock.calls[0][0].input).toEqual({ Bucket: 'documents', Key: 'company-1/a.pdf' });
   });
+
+  it('deletes a key list in one batch, and skips an empty list', async () => {
+    const { client, send } = mockClient();
+    send.mockResolvedValueOnce({});
+
+    await new StorageService(client, 'documents').deleteObjects(['a', 'b']);
+
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0][0]).toBeInstanceOf(DeleteObjectsCommand);
+    expect(send.mock.calls[0][0].input.Delete).toEqual({ Objects: [{ Key: 'a' }, { Key: 'b' }] });
+
+    await new StorageService(client, 'documents').deleteObjects([]);
+
+    expect(send).toHaveBeenCalledTimes(1);
+  });
 });

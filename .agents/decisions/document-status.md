@@ -51,9 +51,9 @@ Rules:
 
 - The status label, its colour and its meaning have exactly one definition,
   shared by the case screen, the per-client table and the statistics counters.
-- The statistics shown on the per-client screen are computed from the list being
-  displayed; if the product ever needs a true total per client, that is an
-  explicit change here (see
+- The statistics shown on the per-client screen are true totals across all of
+  the client's documents, not the displayed page (deliberate change: page-scoped
+  counters misled instead of summarizing; see
   [Restrições](../../docs/base-system-features.md)
   item 8).
 - Status is **never** trusted from the browser: the server validates role and

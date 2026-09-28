@@ -6,11 +6,14 @@
 // existence must not leak through the status code.
 
 import {
+  Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -26,6 +29,7 @@ import {
   ONE_MINUTE_IN_MS,
   UPLOAD_LIMIT_PER_MINUTE,
 } from '../../common/throttling/throttling.constants';
+import { AdminGuard } from '../auth/admin.guard';
 import { AuthenticatedGuard, type AuthenticatedUser } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import {
@@ -85,5 +89,35 @@ export class DocumentsController {
       'Content-Disposition': `${file.inline ? 'inline' : 'attachment'}; filename="${file.fileName}"`,
     });
     return new StreamableFile(file.stream);
+  }
+
+  @Patch('documents/:id/status')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthenticatedGuard, AdminGuard)
+  setStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+  ): Promise<DocumentSummary> {
+    return this.documents.setStatus(id, body?.status);
+  }
+
+  @Patch('documents/:id/visibility')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthenticatedGuard, AdminGuard)
+  setVisibility(
+    @Param('id') id: string,
+    @Body() body: { visibility: string },
+  ): Promise<DocumentSummary> {
+    return this.documents.setVisibility(id, body?.visibility);
+  }
+
+  @Delete('documents/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AuthenticatedGuard)
+  async removeDocument(
+    @Param('id') id: string,
+    @CurrentUser() caller: AuthenticatedUser,
+  ): Promise<void> {
+    await this.documents.removeDocument(id, caller);
   }
 }

@@ -404,6 +404,7 @@ Aberta pelo botão **ACESSAR** do cartão.
 - Documentos **Em Análise**;  
 - Documentos **Deferidos**;  
 - Documentos **Indeferidos**.  
+Os indicadores refletem o total histórico do cliente, não apenas a página exibida.  
 **Tabela de documentos**, do mais recente para o mais antigo, com as colunas:  
 | | |  
 |-|-|  
@@ -416,7 +417,7 @@ Aberta pelo botão **ACESSAR** do cartão.
    
 **Paginação:** os documentos são exibidos  **10 por página**, com controles de navegação.  
 **Comportamento especial:** se o cliente  **não tiver nenhum documento**, o sistema exibe um aviso  **“Nenhuma informação para esse usuário.”** e devolve o administrador ao painel.  
-**Observação de comportamento:** os indicadores e a tabela refletem  **a página de resultados que está sendo exibida** no momento, e não o total histórico do cliente.  
+**Observação de comportamento:** a tabela reflete a página de resultados exibida no momento; os indicadores acima refletem o total histórico do cliente.  
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAANklEQVR4nO3OMQ2AABAAsSNBACPykMH4NpGACyywEZJWQZeZ2aszAAD+4l6rrTo+jgAA8N71AL/CBEiG5xPoAAAAAElFTkSuQmCC)  
 **4.15 Clientes (aba do painel)**  
 **Quem usa:** apenas administradores. A aba  **“Clientes”** aparece no painel somente para eles.  
@@ -426,6 +427,7 @@ Aberta pelo botão **ACESSAR** do cartão.
 - Busca por nome/e-mail do cliente e **busca separada por nome da empresa**, que permite localizar rapidamente os clientes que têm documentos em determinado processo.  
 - Botão **ACESSAR**, que abre a lista de documentos do cliente ([4.14).](#anchor-18 "#anchor-18")  
 - Menu **REMOVER** para excluir o cliente (não aparece sobre o próprio cartão).  
+- A lista de clientes é paginada de 10 em 10, como a tabela de documentos do cliente.  
 **Remoção de cliente:**  
 1. O administrador aciona **REMOVER** e confirma a mensagem  **“Tem certeza que deseja remover o cliente ‘nome’?”**  
 2. Em caso de sucesso, o cartão desaparece e surge a notificação **“Cliente ‘nome’ foi removido com sucesso!”**  
@@ -636,7 +638,7 @@ Registrados aqui para evitar surpresas e orientar melhorias futuras:
 5. **A exclusão de empresa remove em cascata todos os documentos vinculados.**  
 6. **Não há histórico de alterações de status**, nem trilha de auditoria visível ao usuário: o status é sobrescrito e o valor anterior só aparece momentaneamente na tela, antes de salvar.  
 7. **O campo “Autor” do processo é obrigatório no cadastro, mas não é exibido na página da empresa.**  
-8. **As estatísticas da tela de documentos do cliente refletem a página de resultados exibida**, e não o total histórico do cliente.  
+8. **As estatísticas da tela de documentos do cliente refletem o total histórico do cliente**, não apenas a página exibida.  
 9. **Trocar o e-mail no perfil dispensa nova verificação de e-mail.**  
 10. **Não há autoexclusão de conta nem interface de gestão de contas** (editar o perfil de outro usuário, redefinir a senha de terceiros, promover alguém a administrador).  
 11. **Não há mecanismo de notificação ao credor sobre a decisão (deferimento/indeferimento)** — o credor precisa consultar periodicamente a empresa para ver o novo status.  
