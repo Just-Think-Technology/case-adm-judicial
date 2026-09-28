@@ -30,7 +30,12 @@ export async function proxyBackend(path: string, request: Request): Promise<Next
       {
         method: request.method,
         headers,
-        body: hasBody ? await request.text() : undefined,
+        // Streamed, never buffered: uploads ride the same proxy as JSON, and
+        // a 60 MB file must not sit in Next.js memory first. `duplex` is an
+        // undici extension missing from the DOM RequestInit — the spread keeps
+        // the excess-property check from firing on a runtime-valid option.
+        body: hasBody ? request.body : undefined,
+        ...(hasBody ? { duplex: 'half' as const } : {}),
         cache: 'no-store',
       },
     );

@@ -5,7 +5,8 @@ import http from 'node:http';
 
 const PORT = 3000;
 
-const state = { failCompanies: false, failDocuments: false };
+const state = { failCompanies: false, failDocuments: false, failUpload: false };
+const accountState = { name: 'Credor Teste', email: 'credor@case.com' };
 
 const companies = [
   {
@@ -49,8 +50,8 @@ const details = {
 
 const documents = {
   c1: [
-    { id: 'd1', name: 'Petição inicial.pdf', type: 'Outros', customType: 'Petição' },
-    { id: 'd2', name: 'Lista de credores.xlsx', type: 'Habilitação de crédito', customType: null },
+    { id: 'd1', name: 'Petição inicial.pdf', type: 'Outros', customType: 'Petição', status: 'Em análise', mine: true },
+    { id: 'd2', name: 'Lista de credores.xlsx', type: 'Habilitação de crédito', customType: null, status: 'Deferido', mine: false },
   ],
   c2: [],
 };
@@ -95,6 +96,7 @@ const server = http.createServer(async (req, res) => {
         const body = JSON.parse(raw || '{}');
         if (typeof body.failCompanies === 'boolean') state.failCompanies = body.failCompanies;
         if (typeof body.failDocuments === 'boolean') state.failDocuments = body.failDocuments;
+        if (typeof body.failUpload === 'boolean') state.failUpload = body.failUpload;
       } catch {
         // Malformed control payloads keep the previous state on purpose.
       }
@@ -103,7 +105,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method !== 'GET' && req.method !== 'POST') {
+  if (req.method !== 'GET' && req.method !== 'POST' && req.method !== 'PATCH') {
     json(res, 405, { message: 'Método não permitido.' });
     return;
   }
@@ -177,22 +179,34 @@ const server = http.createServer(async (req, res) => {
 
   if (url.pathname === '/api/account') {
     const cookie = req.headers.cookie ?? '';
-    if (cookie.includes('sess-valid')) {
-      return authJson(res, 200, {
-        id: 'u1',
-        name: 'Credor Teste',
-        email: 'credor@case.com',
-        role: 'CREDITOR',
-        emailVerified: true,
-        createdAt: '2026-09-20T12:00:00.000Z',
-      });
+    if (!cookie.includes('sess-valid')) {
+      return authJson(res, 401, { message: 'Não autenticado.' });
     }
-    return authJson(res, 401, { message: 'Não autenticado.' });
+    if (req.method === 'PATCH') {
+      const body = await readBody(req);
+      if (body.email === 'usada@case.com') {
+        return authJson(res, 409, { message: 'Este e-mail já está em uso.' });
+      }
+      if (body.name) accountState.name = body.name;
+      if (body.email) accountState.email = body.email;
+      return authJson(res, 200, { ...accountState });
+    }
+    return authJson(res, 200, {
+      id: 'u1',
+      name: accountState.name,
+      email: accountState.email,
+      role: 'CREDITOR',
+      emailVerified: true,
+      createdAt: '2026-09-20T12:00:00.000Z',
+    });
   }
 
-  if (req.method !== 'GET') {
-    json(res, 405, { message: 'Método não permitido.' });
-    return;
+  if (url.pathname === '/api/account/password' && req.method === 'PATCH') {
+    const body = await readBody(req);
+    if (body.currentPassword === 'errada') {
+      return authJson(res, 400, { message: 'Senha atual incorreta.' });
+    }
+    return authJson(res, 200, { message: 'Senha alterada com sucesso!' });
   }
 
   if (url.pathname === '/api/companies') {
@@ -209,13 +223,28 @@ const server = http.createServer(async (req, res) => {
 
   const docsMatch = url.pathname.match(/^\/api\/companies\/([^/]+)\/documents$/);
   if (docsMatch) {
+    if (req.method === 'POST') {
+      const cookie = req.headers.cookie ?? '';
+      if (!cookie.includes('sess-valid')) return authJson(res, 401, { message: 'Não autenticado.' });
+      if (state.failUpload) return authJson(res, 500, { message: 'Falha no armazenamento.' });
+      // The multipart body streams through — the stub only answers.
+      req.resume();
+      return authJson(res, 201, { id: 'd9', name: 'enviado' });
+    }
     if (state.failDocuments) return json(res, 500, { message: 'Erro interno.' });
     const docs = documents[docsMatch[1]];
     if (!docs) return json(res, 404, { message: 'Empresa não encontrada.' });
-    return json(res, 200, docs);
+    const scope = url.searchParams.get('scope') ?? 'all';
+    const filtered =
+      scope === 'mine' ? docs.filter((doc) => doc.mine) : scope === 'admin' ? docs.filter((doc) => !doc.mine) : docs;
+    return json(res, 200, filtered);
   }
 
   const contentMatch = url.pathname.match(/^\/api\/documents\/([^/]+)\/content$/);
+  if (req.method !== 'GET') {
+    json(res, 405, { message: 'Método não permitido.' });
+    return;
+  }
   if (contentMatch) {
     const body = Buffer.from('%PDF-stub', 'utf8');
     res.writeHead(200, {

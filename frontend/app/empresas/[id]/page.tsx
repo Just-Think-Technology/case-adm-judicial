@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { PublicDocumentRow } from '@/components/public-document-row';
+import { CompanyDocuments } from '@/components/company-documents';
 import { backendFetch } from '@/lib/backend';
-import type { CompanyDetails, PublicDocument } from '@/lib/types';
+import { getSession } from '@/lib/session';
+import type { CompanyDetails } from '@/lib/types';
 
 function field(label: string, value: string | null): React.ReactNode {
   return (
@@ -13,9 +14,9 @@ function field(label: string, value: string | null): React.ReactNode {
   );
 }
 
-// Company page (§4.8d, visitor variant): case data block + public documents.
-// Unauthenticated visitors see no filter and no action buttons; sending
-// documents requires login, so the button points at /login until slice 2.
+// Company page (§4.8d): case data block plus the document list. Signed-in
+// creditors get the scope filter with status on their own documents and the
+// direct upload entry; visitors keep the public variant with login as gateway.
 export default async function CompanyPage({
   params,
 }: {
@@ -23,19 +24,15 @@ export default async function CompanyPage({
 }): Promise<React.ReactNode> {
   const { id } = await params;
   let company: CompanyDetails | null = null;
-  let documents: PublicDocument[] | null = null;
   try {
-    const [companyUpstream, documentsUpstream] = await Promise.all([
-      backendFetch(`/companies/${encodeURIComponent(id)}`),
-      backendFetch(`/companies/${encodeURIComponent(id)}/documents`),
-    ]);
-    if (companyUpstream.status === 404) notFound();
-    if (companyUpstream.ok) company = (await companyUpstream.json()) as CompanyDetails;
-    if (documentsUpstream.ok) documents = (await documentsUpstream.json()) as PublicDocument[];
+    const upstream = await backendFetch(`/companies/${encodeURIComponent(id)}`);
+    if (upstream.status === 404) notFound();
+    if (upstream.ok) company = (await upstream.json()) as CompanyDetails;
   } catch {
     company = null;
   }
   if (!company) notFound();
+  const session = await getSession();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -58,31 +55,14 @@ export default async function CompanyPage({
             </p>
           </div>
           <Link
-            href="/login"
+            href={session ? `/empresas/${company.id}/enviar` : '/login'}
             className="mt-5 block rounded-lg bg-navy-950 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-navy-800"
           >
             ENVIAR DOCUMENTOS
           </Link>
         </aside>
 
-        <section aria-label="Documentos públicos">
-          <h2 className="font-display text-xl font-semibold text-navy-950">Documentos públicos</h2>
-          {documents === null ? (
-            <p role="alert" className="mt-4 rounded-xl border border-navy-950/10 bg-white p-6 text-navy-950/70">
-              Não foi possível carregar os documentos agora. Tente novamente em instantes.
-            </p>
-          ) : documents.length > 0 ? (
-            <ul className="mt-4 space-y-2">
-              {documents.map((document) => (
-                <PublicDocumentRow key={document.id} document={document} />
-              ))}
-            </ul>
-          ) : (
-            <p role="status" className="mt-4 rounded-xl border border-dashed border-navy-950/20 bg-white p-6 text-center text-navy-950/60">
-              Nenhum documento encontrado para essa empresa.
-            </p>
-          )}
-        </section>
+        <CompanyDocuments companyId={company.id} authed={session !== null} />
       </div>
     </div>
   );
