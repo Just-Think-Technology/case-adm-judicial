@@ -30,7 +30,11 @@ export class InvalidDocumentTypeError extends Error {
  *
  * @param input - The raw type from the upload form
  */
-export function normalizeDocumentType(input: string): DocumentType {
+export function normalizeDocumentType(input: unknown): DocumentType {
+  if (typeof input !== 'string') {
+    throw new InvalidDocumentTypeError();
+  }
+
   const key = input
     .trim()
     .toLowerCase()

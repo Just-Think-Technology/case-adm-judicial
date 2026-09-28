@@ -37,7 +37,11 @@ export const NATURE_LABELS = {
  *
  * @param input - The raw nature from the request body or query string
  */
-export function normalizeNature(input: string): CaseNature {
+export function normalizeNature(input: unknown): CaseNature {
+  if (typeof input !== 'string') {
+    throw new InvalidNatureError();
+  }
+
   const key = input
     .trim()
     .toLowerCase()

@@ -18,6 +18,7 @@ describe('normalizeDocumentType', () => {
   it('rejects anything outside the closed set', () => {
     expect(() => normalizeDocumentType('Procuração')).toThrow(InvalidDocumentTypeError);
     expect(() => normalizeDocumentType('')).toThrow(InvalidDocumentTypeError);
+    expect(() => normalizeDocumentType(['x'] as unknown as string)).toThrow(InvalidDocumentTypeError);
   });
 
   it('labels round-trip the enum', () => {

@@ -12,5 +12,8 @@ export class LoginDto {
   @ApiProperty()
   @IsString({ message: 'A senha deve ser um texto.' })
   @IsNotEmpty({ message: 'A senha é obrigatória.' })
+  // Registration caps passwords at 255 characters, so anything longer can
+  // never be valid — reject it before spending argon2 time on it.
+  @MaxLength(255, { message: 'Credenciais inválidas.' })
   password!: string;
 }

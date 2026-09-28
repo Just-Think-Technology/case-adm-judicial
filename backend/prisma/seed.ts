@@ -12,7 +12,10 @@ async function main(): Promise<void> {
     return;
   }
 
-  const passwordHash = await argon2.hash('Admin@123', { type: argon2.argon2id });
+  // Local development default — overridable without touching code. The value
+  // never reaches logs: credentials in stdout end up in collectors.
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? 'Admin@123';
+  const passwordHash = await argon2.hash(adminPassword, { type: argon2.argon2id });
 
   await prisma.user.create({
     data: {
@@ -25,7 +28,7 @@ async function main(): Promise<void> {
     },
   });
 
-  console.log(`Seed: admin created — ${adminEmail} / Admin@123`);
+  console.log(`Seed: admin ready — ${adminEmail}`);
 }
 
 main()

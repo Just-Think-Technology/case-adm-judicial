@@ -17,6 +17,7 @@ describe('normalizeNature', () => {
   it('rejects anything outside the closed set', () => {
     expect(() => normalizeNature('Concordata')).toThrow(InvalidNatureError);
     expect(() => normalizeNature('')).toThrow(InvalidNatureError);
+    expect(() => normalizeNature(['x'] as unknown as string)).toThrow(InvalidNatureError);
   });
 
   it('labels the pair in PT-BR', () => {

@@ -10,12 +10,20 @@
 :80 {
   # Health — answers directly on the backend, outside /api
   handle /health* {
-    reverse_proxy backend:3000
+    reverse_proxy backend:3000 {
+      # The backend trusts X-Forwarded-For for throttles and the account cap:
+      # a client-supplied value must never survive. Caddy re-adds the real
+      # client IP after the removal below.
+      header_up -X-Forwarded-For
+    }
   }
 
   # API — unversioned by decision; controllers own their full paths
   handle /api/* {
-    reverse_proxy backend:3000
+    reverse_proxy backend:3000 {
+      # See above: strip spoofed caller addresses before proxying.
+      header_up -X-Forwarded-For
+    }
   }
 
   # S3 presigned delivery — strip prefix, preserve Host
@@ -23,6 +31,7 @@
     uri strip_prefix /api/storage
     reverse_proxy seaweedfs:8333 {
       header_up Host {host}
+      header_up -X-Forwarded-For
     }
   }
 

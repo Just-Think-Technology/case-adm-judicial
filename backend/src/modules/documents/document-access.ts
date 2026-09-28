@@ -42,7 +42,10 @@ export class InvalidVisibilityError extends Error {
  *
  * @param input - The raw visibility from the request
  */
-export function normalizeVisibility(input: string): DocumentVisibilityValue {
+export function normalizeVisibility(input: unknown): DocumentVisibilityValue {
+  if (typeof input !== 'string') {
+    throw new InvalidVisibilityError();
+  }
   const key = input
     .trim()
     .toLowerCase()
