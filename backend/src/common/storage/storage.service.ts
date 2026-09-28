@@ -12,7 +12,7 @@ import {
   S3Client,
   UploadPartCommand,
 } from '@aws-sdk/client-s3';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { Readable } from 'node:stream';
 
 const LIST_PAGE_SIZE = 1000;
@@ -28,6 +28,8 @@ const MULTIPART_PART_SIZE = 5 * 1024 * 1024;
  */
 @Injectable()
 export class StorageService {
+  private readonly logger = new Logger(StorageService.name);
+
   constructor(
     private readonly client: S3Client,
     private readonly bucket: string,
@@ -43,30 +45,41 @@ export class StorageService {
   async deletePrefix(prefix: string): Promise<void> {
     let continuationToken: string | undefined;
 
-    do {
-      const listed = await this.client.send(
-        new ListObjectsV2Command({
-          Bucket: this.bucket,
-          Prefix: prefix,
-          MaxKeys: LIST_PAGE_SIZE,
-          ContinuationToken: continuationToken,
-        }),
-      );
-      const keys = (listed.Contents ?? [])
-        .map((object) => object.Key)
-        .filter((key): key is string => typeof key === 'string');
-
-      if (keys.length > 0) {
-        await this.client.send(
-          new DeleteObjectsCommand({
+    try {
+      do {
+        const listed = await this.client.send(
+          new ListObjectsV2Command({
             Bucket: this.bucket,
-            Delete: { Objects: keys.map((Key) => ({ Key })) },
+            Prefix: prefix,
+            MaxKeys: LIST_PAGE_SIZE,
+            ContinuationToken: continuationToken,
           }),
         );
-      }
+        const keys = (listed.Contents ?? [])
+          .map((object) => object.Key)
+          .filter((key): key is string => typeof key === 'string');
 
-      continuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined;
-    } while (continuationToken);
+        if (keys.length > 0) {
+          await this.client.send(
+            new DeleteObjectsCommand({
+              Bucket: this.bucket,
+              Delete: { Objects: keys.map((Key) => ({ Key })) },
+            }),
+          );
+        }
+
+        continuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined;
+      } while (continuationToken);
+    } catch (error) {
+      // Deleting from a bucket that was never created is a no-op, not a
+      // failure: there is nothing to delete. Logged, never silent — and any
+      // other failure (unreachable storage included) still throws.
+      if (isNoSuchBucket(error)) {
+        this.logger.warn(`Bucket ${this.bucket} does not exist; nothing to delete under ${prefix}.`);
+        return;
+      }
+      throw error;
+    }
   }
 
   /**
@@ -177,4 +190,9 @@ export class StorageService {
   async deleteObject(key: string): Promise<void> {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
+}
+
+/** The S3 shape for a missing bucket, across SDK versions. */
+function isNoSuchBucket(error: unknown): boolean {
+  return error instanceof Error && error.name === 'NoSuchBucket';
 }
