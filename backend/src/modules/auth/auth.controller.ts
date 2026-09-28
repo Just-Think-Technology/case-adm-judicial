@@ -26,6 +26,7 @@ import { getThrottleTracker } from '../../common/throttling/throttler.config';
 import { resolveClientIp } from '../../common/throttling/client-ip';
 import {
   AuthService,
+  InvalidResetLinkError,
   InvalidSessionError,
   InvalidVerificationLinkError,
 } from './auth.service';
@@ -202,6 +203,15 @@ export class AuthController {
         ? 'E-mail de redefinição enviado!'
         : 'Não foi encontrado usuário com esse endereço.',
     };
+  }
+
+  /** §4.5 — reveals the address behind a valid link for the readonly field. */
+  @Get('reset-password')
+  async resetEmail(@Query('token') token: string): Promise<{ email: string }> {
+    if (typeof token !== 'string' || token === '') {
+      throw new InvalidResetLinkError();
+    }
+    return { email: await this.auth.resetEmailAddress(token) };
   }
 
   /** §4.5 — applies the new password through the mailed link. */
