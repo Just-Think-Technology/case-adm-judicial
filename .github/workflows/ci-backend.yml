@@ -181,6 +181,33 @@ jobs:
           DIRECT_URL: postgresql://postgres:postgres@localhost:5432/case_adm_test_e2e?schema=public
         run: pnpm --filter backend exec prisma migrate deploy
 
+      # Same engine as production (see deploy/docker-compose.yml): deletion
+      # paths talk S3 for real instead of passing against a refused socket.
+      # The suite never requires a bucket — deletion treats a missing bucket
+      # as nothing to delete — so no provisioning step is needed.
+      - name: Start SeaweedFS for E2E
+        run: |
+          docker run -d --name seaweedfs -p 8333:8333 chrislusf/seaweedfs:3.97 server -dir=/data -s3 -filer -volume.max=0
+          code="000"
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8333/ || true)
+            [ "$code" != "000" ] && break
+            sleep 2
+          done
+          [ "$code" != "000" ] || (docker logs seaweedfs && exit 1)
+
+      # Uploads need the bucket to exist (deletion tolerates a missing one,
+      # uploads do not). Created with the repo's own SDK, idempotently; node
+      # -e resolves modules from the package dir, unlike a /tmp script.
+      - name: Create documents bucket
+        env:
+          SEAWEEDFS_ENDPOINT: http://localhost:8333
+          SEAWEEDFS_BUCKET_DOCUMENTS: documents
+          SEAWEEDFS_ACCESS_KEY: e2e
+          SEAWEEDFS_SECRET_KEY: e2e
+        run: >
+          pnpm --filter backend exec node -e "const { S3Client, CreateBucketCommand } = require('@aws-sdk/client-s3'); (async () => { const client = new S3Client({ endpoint: process.env.SEAWEEDFS_ENDPOINT, region: 'us-east-1', credentials: { accessKeyId: process.env.SEAWEEDFS_ACCESS_KEY, secretAccessKey: process.env.SEAWEEDFS_SECRET_KEY }, forcePathStyle: true }); try { await client.send(new CreateBucketCommand({ Bucket: process.env.SEAWEEDFS_BUCKET_DOCUMENTS })); } catch (error) { if (error.name !== 'BucketAlreadyOwnedByYou' && error.name !== 'BucketAlreadyExists') throw error; } await client.destroy(); })();"
+
       - name: Build backend
         run: pnpm --filter backend build
 
