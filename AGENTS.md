@@ -73,6 +73,7 @@ PR.
 | pnpm | 11.25.0 | pinned via `packageManager` + corepack |
 | NestJS | 12.1.0 | current major (decided 2026-09-25); companion packages must support v12 — `@nestjs/throttler` 6.x, `@nestjs/swagger` 12.x |
 | Next.js | 16.3.6 | App Router |
+| Tailwind CSS | 4.3.3 | CSS-first (`@import "tailwindcss"`); PostCSS via `@tailwindcss/postcss` 4.3.3, same version lockstep |
 | Prisma | 7.10.0 | **never install `prisma@latest`**: the `latest` dist-tag currently points to `8.0.0-rc.17`; always install the stable major explicitly |
 | PostgreSQL | 17 | single instance in compose |
 | SeaweedFS | `chrislusf/seaweedfs:3.97` | S3 gateway on `:8333`; the tag is recorded with the compose files |
@@ -346,6 +347,9 @@ in visibility rules, new email): [.agents/rules/task-checklists.md](.agents/rule
   verification, per-IP account limit, admin provisioning, login throttling
 * [Database](.agents/decisions/database.md) — least-privilege role, migrations
   with a privileged connection
+* [Frontend BFF](.agents/decisions/frontend-bff.md) — browser talks only to
+  same-origin `/bff/*`, never to `/api` directly; open point on IP-keyed
+  throttles behind the BFF (auth slice)
 
 ## Deploy
 
