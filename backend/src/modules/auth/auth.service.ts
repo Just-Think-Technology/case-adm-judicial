@@ -97,6 +97,15 @@ export class InvalidSessionError extends Error {
   }
 }
 
+/**
+ * Well-formed argon2id hash (same parameters as real passwords) used only to
+ * spend verification time on unknown e-mails. Never matches anything — its
+ * only job is making the unknown-address rejection cost what a wrong-password
+ * rejection costs.
+ */
+const UNKNOWN_ACCOUNT_HASH =
+  '$argon2id$v=19$m=65536,t=3,p=4$MdxfJ+8eTQtfgU4FBijCAw$Q1YGi8hIH1L1IHFjP3BPLrO46UMHJO14xIPVc2EKskU';
+
 export interface RegisterInput {
   name: string;
   email: string;
@@ -214,12 +223,18 @@ export class AuthService {
   /**
    * Authenticates a verified account and opens a session. The e-mail is
    * normalized before lookup; a wrong password and an unknown e-mail produce
-   * the same answer so neither can be probed.
+   * the same answer so neither can be probed — including by timing: an unknown
+   * address still pays a full argon2 verification against a dummy hash, so the
+   * two rejections take the same time.
    */
   async login(input: LoginInput): Promise<SessionTokens> {
     const user = await this.users.findByEmail(input.email.trim().toLowerCase());
 
-    if (!user || !(await this.passwords.verify(user.passwordHash, input.password))) {
+    if (!user) {
+      await this.passwords.verify(UNKNOWN_ACCOUNT_HASH, input.password);
+      throw new InvalidCredentialsError();
+    }
+    if (!(await this.passwords.verify(user.passwordHash, input.password))) {
       throw new InvalidCredentialsError();
     }
     if (!user.emailVerified) {

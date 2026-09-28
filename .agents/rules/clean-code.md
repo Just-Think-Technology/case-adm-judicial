@@ -648,7 +648,7 @@ Do not hard-code environment-specific configuration into source code.
 
 Configuration belongs in the appropriate environment configuration.
 
-Secrets must never be committed to the repository. Real `.env.staging` and `.env.production` files remain outside git, with secrets managed through GitHub Environments.
+Secrets must never be committed to the repository. Real `.env` and `.env.production` files remain outside git, with secrets managed through GitHub Environments.
 Do not duplicate configuration logic across services when it belongs to shared infrastructure.
 
 ---
