@@ -73,6 +73,22 @@ export class PasswordMismatchError extends Error {
   }
 }
 
+/** The current password does not check out — a form error, not a 401. */
+export class IncorrectCurrentPasswordError extends Error {
+  constructor() {
+    super('Senha atual incorreta.');
+    this.name = 'IncorrectCurrentPasswordError';
+  }
+}
+
+/** The new password repeats the current one. */
+export class PasswordUnchangedError extends Error {
+  constructor() {
+    super('A nova senha deve ser diferente da atual.');
+    this.name = 'PasswordUnchangedError';
+  }
+}
+
 /** The session is unknown, expired or revoked — log in again. */
 export class InvalidSessionError extends Error {
   constructor() {
@@ -267,6 +283,42 @@ export class AuthService {
       await this.users.updatePassword(record.userId, passwordHash, tx);
       await this.sessions.revokeAll(record.userId, tx);
     });
+  }
+
+  /**
+   * Changes the password from inside a session: proves presence with the
+   * current one, then ends every other session while the current one survives.
+   * The new password travels the same contract rules as registration.
+   */
+  async changePassword(
+    userId: string,
+    sessionId: string,
+    currentPassword: string,
+    password: string,
+    passwordConfirmation: string,
+  ): Promise<{ message: string }> {
+    const user = await this.users.findById(userId);
+    if (!user) {
+      throw new InvalidSessionError();
+    }
+    if (password !== passwordConfirmation) {
+      throw new PasswordMismatchError();
+    }
+    if (!(await this.passwords.verify(user.passwordHash, currentPassword))) {
+      throw new IncorrectCurrentPasswordError();
+    }
+    if (password === currentPassword) {
+      throw new PasswordUnchangedError();
+    }
+
+    const passwordHash = await this.passwords.hash(password);
+
+    await this.prisma.$transaction(async (tx) => {
+      await this.users.updatePassword(userId, passwordHash, tx);
+      await this.sessions.revokeAllExcept(userId, sessionId, tx);
+    });
+
+    return { message: 'Senha alterada com sucesso!' };
   }
 
   /**

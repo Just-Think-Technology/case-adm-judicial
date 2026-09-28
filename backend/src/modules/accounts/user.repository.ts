@@ -51,6 +51,14 @@ export class UserRepository {
     await client.user.update({ where: { id }, data: { passwordHash } });
   }
 
+  async updateProfile(
+    id: string,
+    data: { name?: string; email?: string },
+    client: QueryClient = this.prisma,
+  ): Promise<UserRow> {
+    return client.user.update({ where: { id }, data });
+  }
+
   async deleteById(id: string, client: QueryClient = this.prisma): Promise<void> {
     await client.user.delete({ where: { id } });
   }

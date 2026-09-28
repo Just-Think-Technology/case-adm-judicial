@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AccountsModule } from '../accounts/accounts.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { requiredEnv } from '../../common/env';
+import { AccountController } from './account.controller';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthenticatedGuard } from './session.guard';
@@ -18,7 +19,7 @@ import { TokenService } from './token.service';
   // User data stays owned by the accounts module — auth reads through its
   // repository and enforces the cap through its service, never Prisma directly.
   imports: [AccountsModule, NotificationsModule],
-  controllers: [AuthController],
+  controllers: [AuthController, AccountController],
   providers: [
     SessionRepository,
     EmailTokenRepository,
