@@ -23,12 +23,14 @@ ENV NODE_ENV=production
 WORKDIR /app/frontend
 # Workspace manifests must match the installed tree, otherwise `pnpm run` treats
 # deps as stale and re-installs at container start
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ../
-COPY --from=deps /app/node_modules ../node_modules
-COPY --from=deps /app/frontend/node_modules ./node_modules
-COPY --from=build /app/frontend/.next ./.next
-COPY --from=build /app/frontend/public ./public
-COPY frontend/package.json ./package.json
-COPY frontend/next.config.ts ./next.config.ts
+COPY --chown=node:node package.json pnpm-workspace.yaml pnpm-lock.yaml* ../
+COPY --from=deps --chown=node:node /app/node_modules ../node_modules
+COPY --from=deps --chown=node:node /app/frontend/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/frontend/.next ./.next
+COPY --from=build --chown=node:node /app/frontend/public ./public
+COPY --chown=node:node frontend/package.json ./package.json
+COPY --chown=node:node frontend/next.config.ts ./next.config.ts
+# Next writes its runtime cache under .next at serve time.
+USER node
 EXPOSE 3001
 CMD ["pnpm", "start"]

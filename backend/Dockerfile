@@ -31,5 +31,8 @@ COPY backend/package.json ./package.json
 # The generated client lives inside the pnpm virtual store, which the runner takes
 # from the pre-generate deps stage — regenerate it in place or the app cannot import it
 RUN pnpm prisma:generate
+# The process never runs as root: it reads its files, streams uploads and logs
+# to stdout — nothing at runtime needs a write to the image filesystem.
+USER node
 EXPOSE 3000
 CMD ["sh", "-c", "pnpm prisma:deploy && node dist/main.js"]
