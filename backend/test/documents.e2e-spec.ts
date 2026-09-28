@@ -834,6 +834,12 @@ describe('GET /clients', () => {
       ip: '203.0.113.282',
     });
     expect((missing.body as { items: unknown[] }).items).toHaveLength(0);
+
+    const arrayed = await api('GET', '/clients?search=a&search=b', {
+      cookies: admin,
+      ip: '203.0.113.282',
+    });
+    expect(arrayed.status).toBe(400);
   });
 
   it('paginates past ten users', async () => {

@@ -34,7 +34,11 @@ export class InvalidDocumentStatusError extends Error {
  *
  * @param input - The raw status from the request
  */
-export function normalizeDocumentStatus(input: string): DocumentStatus {
+export function normalizeDocumentStatus(input: unknown): DocumentStatus {
+  if (typeof input !== 'string') {
+    throw new InvalidDocumentStatusError();
+  }
+
   const key = input
     .trim()
     .toLowerCase()

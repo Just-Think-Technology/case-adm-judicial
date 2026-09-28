@@ -17,6 +17,7 @@ describe('normalizeDocumentStatus', () => {
   it('rejects anything outside the trio', () => {
     expect(() => normalizeDocumentStatus('Aprovado')).toThrow(InvalidDocumentStatusError);
     expect(() => normalizeDocumentStatus('')).toThrow(InvalidDocumentStatusError);
+    expect(() => normalizeDocumentStatus(['x'] as unknown as string)).toThrow(InvalidDocumentStatusError);
   });
 
   it('labels the trio in PT-BR', () => {

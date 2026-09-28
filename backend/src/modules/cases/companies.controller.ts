@@ -28,7 +28,12 @@ export class CompaniesController {
   constructor(private readonly companies: CompaniesService) {}
 
   @Get()
-  list(@Query('nature') nature?: string, @Query('search') search?: string): Promise<CompanyCard[]> {
+  // string | string[] on purpose: the global pipe would otherwise stringify a
+  // repeated param into "a,b" before the service ever sees the ambiguity.
+  list(
+    @Query('nature') nature?: string | string[],
+    @Query('search') search?: string | string[],
+  ): Promise<CompanyCard[]> {
     return this.companies.list(nature, search);
   }
 

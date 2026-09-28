@@ -52,6 +52,7 @@ describe('normalizeVisibility', () => {
   it('rejects anything outside the pair', () => {
     expect(() => normalizeVisibility('secreto')).toThrow(InvalidVisibilityError);
     expect(() => normalizeVisibility('')).toThrow(InvalidVisibilityError);
+    expect(() => normalizeVisibility(['x'] as unknown as string)).toThrow(InvalidVisibilityError);
   });
 
   it('labels the pair in PT-BR', () => {

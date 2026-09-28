@@ -114,6 +114,18 @@ describe('GET /companies', () => {
       'Outra Falida Ltda',
     ]);
   });
+
+  // Multi-valued query params must not reach the query builder: Express parses
+  // ?nature[]=x into an array, and an array is never a valid filter.
+  it('rejects multi-valued filters with 400 instead of crashing', async () => {
+    const nature = await api('GET', '/companies?nature=rj&nature=falencia', {
+      ip: '203.0.113.184',
+    });
+    expect(nature.status).toBe(400);
+
+    const search = await api('GET', '/companies?search=a&search=b', { ip: '203.0.113.184' });
+    expect(search.status).toBe(400);
+  });
 });
 
 describe('GET /companies/:id', () => {

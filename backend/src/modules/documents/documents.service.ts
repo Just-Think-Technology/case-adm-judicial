@@ -449,10 +449,16 @@ export class DocumentsService {
 
   /** The admin clients tab: every account alphabetical, with company tags. */
   async listClients(
-    search: string | undefined,
-    company: string | undefined,
+    search: string | string[] | undefined,
+    company: string | string[] | undefined,
     rawPage: string | undefined,
   ): Promise<ClientList> {
+    if (search !== undefined && typeof search !== 'string') {
+      throw new BadRequestException('Parâmetro de busca inválido.');
+    }
+    if (company !== undefined && typeof company !== 'string') {
+      throw new BadRequestException('Parâmetro de busca inválido.');
+    }
     const { page, take, skip } = this.parsePage(rawPage);
     const filters = {
       ...(search ? { search } : {}),

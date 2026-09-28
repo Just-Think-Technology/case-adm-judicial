@@ -30,9 +30,11 @@ export class ClientsController {
   constructor(private readonly documents: DocumentsService) {}
 
   @Get()
+  // string | string[] on purpose: the global pipe would otherwise stringify a
+  // repeated param into "a,b" before the service ever sees the ambiguity.
   list(
-    @Query('search') search: string | undefined,
-    @Query('company') company: string | undefined,
+    @Query('search') search: string | string[] | undefined,
+    @Query('company') company: string | string[] | undefined,
     @Query('page') page: string | undefined,
   ): Promise<ClientList> {
     return this.documents.listClients(search, company, page);

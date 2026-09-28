@@ -57,7 +57,10 @@ export class CompaniesService {
     private readonly storage: StorageService,
   ) {}
 
-  async list(nature?: string, search?: string): Promise<CompanyCard[]> {
+  async list(nature?: string | string[], search?: string | string[]): Promise<CompanyCard[]> {
+    if (search !== undefined && typeof search !== 'string') {
+      throw new BadRequestException('Parâmetro de busca inválido.');
+    }
     const rows = await this.companies.findAll({
       ...(nature ? { nature: this.parseNature(nature) } : {}),
       ...(search ? { search } : {}),
@@ -128,7 +131,7 @@ export class CompaniesService {
    * stays Nest-free so it can be unit-tested; the service owns the boundary
    * between domain errors and status codes.
    */
-  private parseNature(input: string): 'RECUPERACAO_JUDICIAL' | 'FALENCIA' {
+  private parseNature(input: unknown): 'RECUPERACAO_JUDICIAL' | 'FALENCIA' {
     try {
       return normalizeNature(input);
     } catch (error) {
