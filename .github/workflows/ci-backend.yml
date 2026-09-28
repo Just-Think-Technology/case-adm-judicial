@@ -196,6 +196,18 @@ jobs:
           done
           [ "$code" != "000" ] || (docker logs seaweedfs && exit 1)
 
+      # Uploads need the bucket to exist (deletion tolerates a missing one,
+      # uploads do not). Created with the repo's own SDK, idempotently; node
+      # -e resolves modules from the package dir, unlike a /tmp script.
+      - name: Create documents bucket
+        env:
+          SEAWEEDFS_ENDPOINT: http://localhost:8333
+          SEAWEEDFS_BUCKET_DOCUMENTS: documents
+          SEAWEEDFS_ACCESS_KEY: e2e
+          SEAWEEDFS_SECRET_KEY: e2e
+        run: >
+          pnpm --filter backend exec node -e "const { S3Client, CreateBucketCommand } = require('@aws-sdk/client-s3'); (async () => { const client = new S3Client({ endpoint: process.env.SEAWEEDFS_ENDPOINT, region: 'us-east-1', credentials: { accessKeyId: process.env.SEAWEEDFS_ACCESS_KEY, secretAccessKey: process.env.SEAWEEDFS_SECRET_KEY }, forcePathStyle: true }); try { await client.send(new CreateBucketCommand({ Bucket: process.env.SEAWEEDFS_BUCKET_DOCUMENTS })); } catch (error) { if (error.name !== 'BucketAlreadyOwnedByYou' && error.name !== 'BucketAlreadyExists') throw error; } await client.destroy(); })();"
+
       - name: Build backend
         run: pnpm --filter backend build
 
@@ -208,6 +220,7 @@ jobs:
           CORS_ORIGIN: http://localhost:3399
           SMTP_HOST: localhost
           SMTP_PORT: 1025
+          JUDICIAL_NOTIFICATION_EMAIL: documentos@case.local
           SEAWEEDFS_ENDPOINT: http://localhost:8333
           SEAWEEDFS_BUCKET_DOCUMENTS: documents
           SEAWEEDFS_ACCESS_KEY: e2e

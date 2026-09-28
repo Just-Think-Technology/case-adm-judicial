@@ -23,6 +23,12 @@ export class InvalidNatureError extends Error {
   }
 }
 
+/** The single home for the two nature labels shown to the user. */
+export const NATURE_LABELS = {
+  RECUPERACAO_JUDICIAL: 'Recuperação Judicial',
+  FALENCIA: 'Falência',
+} as const;
+
 /**
  * Maps a user-supplied nature to the closed enum. Accents, case, spaces and
  * hyphens are all ignored, so "Recuperação Judicial", "recuperacao-judicial"

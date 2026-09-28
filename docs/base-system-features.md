@@ -329,7 +329,7 @@ Aberta pelo botão **ACESSAR** do cartão.
 - A tela não exibe o indicador de carregamento global durante o envio (há um indicador próprio de progresso).  
 **Validações aplicadas:**  
 - **Formatos aceitos:** PDF, JPEG, JPG, PNG, DOCX e XLSX. Arquivos de outro tipo são recusados antes do envio, com a lista de formatos aceitos.  
-- **Tamanho máximo por arquivo:** 40 MB (verificação feita antes do envio).  
+- **Tamanho máximo por arquivo:** 60 MB (verificação feita pelo servidor durante o envio).  
 - Nome do documento: obrigatório, até 255 caracteres.  
 - Descrição: até 1000 caracteres.  
 - Tipo: obrigatório.  
@@ -391,7 +391,7 @@ Aberta pelo botão **ACESSAR** do cartão.
 - A exclusão exige **confirmação** com o aviso:  **“Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.”**  
 - Após a confirmação, o sistema confirma o resultado e a lista é atualizada.  
 - A exclusão remove **o documento e o arquivo enviado** — o conteúdo deixa de existir no sistema.  
-- Em caso de recusa por falta de permissão, o usuário recebe a mensagem **“Você não tem permissão para excluir este documento!”**  
+- Documento inexistente ou fora do alcance do usuário responde **Não Encontrado (404)**, sem revelar sua existência.  
 - Documento inexistente gera o aviso de que o documento não foi encontrado.  
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAANklEQVR4nO3OMQ2AABAAsSNBCkLfFR7wwIgHRiywEZJWQZeZ2ao9AAD+4lyruzq+ngAA8Nr1AOIEBeX8aGZPAAAAAElFTkSuQmCC)  
 **4.14 Documentos de um cliente (visão do administrador)**  
@@ -404,6 +404,7 @@ Aberta pelo botão **ACESSAR** do cartão.
 - Documentos **Em Análise**;  
 - Documentos **Deferidos**;  
 - Documentos **Indeferidos**.  
+Os indicadores refletem o total histórico do cliente, não apenas a página exibida.  
 **Tabela de documentos**, do mais recente para o mais antigo, com as colunas:  
 | | |  
 |-|-|  
@@ -416,7 +417,7 @@ Aberta pelo botão **ACESSAR** do cartão.
    
 **Paginação:** os documentos são exibidos  **10 por página**, com controles de navegação.  
 **Comportamento especial:** se o cliente  **não tiver nenhum documento**, o sistema exibe um aviso  **“Nenhuma informação para esse usuário.”** e devolve o administrador ao painel.  
-**Observação de comportamento:** os indicadores e a tabela refletem  **a página de resultados que está sendo exibida** no momento, e não o total histórico do cliente.  
+**Observação de comportamento:** a tabela reflete a página de resultados exibida no momento; os indicadores acima refletem o total histórico do cliente.  
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAANklEQVR4nO3OMQ2AABAAsSNBACPykMH4NpGACyywEZJWQZeZ2aszAAD+4l6rrTo+jgAA8N71AL/CBEiG5xPoAAAAAElFTkSuQmCC)  
 **4.15 Clientes (aba do painel)**  
 **Quem usa:** apenas administradores. A aba  **“Clientes”** aparece no painel somente para eles.  
@@ -426,6 +427,7 @@ Aberta pelo botão **ACESSAR** do cartão.
 - Busca por nome/e-mail do cliente e **busca separada por nome da empresa**, que permite localizar rapidamente os clientes que têm documentos em determinado processo.  
 - Botão **ACESSAR**, que abre a lista de documentos do cliente ([4.14).](#anchor-18 "#anchor-18")  
 - Menu **REMOVER** para excluir o cliente (não aparece sobre o próprio cartão).  
+- A lista de clientes é paginada de 10 em 10, como a tabela de documentos do cliente.  
 **Remoção de cliente:**  
 1. O administrador aciona **REMOVER** e confirma a mensagem  **“Tem certeza que deseja remover o cliente ‘nome’?”**  
 2. Em caso de sucesso, o cartão desaparece e surge a notificação **“Cliente ‘nome’ foi removido com sucesso!”**  
@@ -470,7 +472,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 |-|-|  
 | **Erro** | **O que o usuário vê** |   
 | **404 — Página não Encontrada** | Endereço inexistente ou registro que não existe mais (empresa, documento ou usuário removido) |   
-| **403 — Acesso Proibido** | Tentativa de acessar algo restrito a administradores, ou documento privado de outra pessoa |   
+| **403 — Acesso Proibido** | Tentativa de acessar algo restrito a administradores |   
 | Demais erros (400, 401, 402, 405, 408, 419, 429, 500, 503) | Telas de erro padronizadas do sistema, sempre com a marca e com a opção de retornar ao painel |   
    
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAANklEQVR4nO3OQQmAABRAsSeYxZw/lVeDGMACBrCCNxG2BFtmZquOAAD4i3Ot7mr/egIAwGvXA6fOBdd+dKAKAAAAAElFTkSuQmCC)  
@@ -528,7 +530,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 - Na página de uma empresa, o **administrador visualiza apenas os documentos enviados por administradores**.  
 - Na página de uma empresa, o **credor** visualiza os documentos públicos, os enviados por administradores e os seus próprios.  
 - O **visitante** visualiza apenas os documentos públicos.  
-- Abrir um documento restrito diretamente pelo link apresenta **Acesso Proibido (403)** a quem não tem permissão.  
+- Abrir um documento restrito diretamente pelo link apresenta **Não Encontrado (404)** a quem não tem permissão — a existência do documento não é revelada.  
 - Documento sem arquivo disponível apresenta **Página não Encontrada (404)**.  
 **6.2 Ciclo de vida do documento**  
 [envio pelo credor]  →  Em análise (privado)  →  Deferido / Indeferido  →  [exclusão]  
@@ -569,7 +571,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 | Contas criadas por endereço de rede | **2** |   
 | Intervalo para reenviar a verificação de e-mail | **5 minutos** por usuário |   
 | Pedidos de reenvio de verificação | **6 por minuto** |   
-| Tamanho máximo de documento enviado | **40 MB** (verificado antes do envio) |   
+| Tamanho máximo de documento enviado | **60 MB** (verificado pelo servidor durante o envio) |   
 | Envios simultâneos | **3 arquivos por vez** |   
 | Documentos por página na lista de um cliente | **10** |   
 | Validade do link de confirmação de e-mail | Temporária (o link expira) |   
@@ -620,7 +622,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 **Empresas**  
 - **Todos os campos obrigatórios**; textos até 300 caracteres;  **número do processo** até 50 caracteres, apenas letras, números, ponto, hífen e barra;  **protocolo** é uma data;  **natureza** limitada a Recuperação Judicial ou Falência.  
 **Documentos**  
-- **Arquivo:** PDF, JPEG, JPG, PNG, DOCX ou XLSX; até 40 MB.  
+- **Arquivo:** PDF, JPEG, JPG, PNG, DOCX ou XLSX; até 60 MB.  
 - **Nome do documento:** obrigatório; até 255 caracteres.  
 - **Descrição:** até 1000 caracteres.  
 - **Tipo:** obrigatório; quando “Outros”, a especificação é obrigatória.  
@@ -636,7 +638,7 @@ Registrados aqui para evitar surpresas e orientar melhorias futuras:
 5. **A exclusão de empresa remove em cascata todos os documentos vinculados.**  
 6. **Não há histórico de alterações de status**, nem trilha de auditoria visível ao usuário: o status é sobrescrito e o valor anterior só aparece momentaneamente na tela, antes de salvar.  
 7. **O campo “Autor” do processo é obrigatório no cadastro, mas não é exibido na página da empresa.**  
-8. **As estatísticas da tela de documentos do cliente refletem a página de resultados exibida**, e não o total histórico do cliente.  
+8. **As estatísticas da tela de documentos do cliente refletem o total histórico do cliente**, não apenas a página exibida.  
 9. **Trocar o e-mail no perfil dispensa nova verificação de e-mail.**  
 10. **Não há autoexclusão de conta nem interface de gestão de contas** (editar o perfil de outro usuário, redefinir a senha de terceiros, promover alguém a administrador).  
 11. **Não há mecanismo de notificação ao credor sobre a decisão (deferimento/indeferimento)** — o credor precisa consultar periodicamente a empresa para ver o novo status.  

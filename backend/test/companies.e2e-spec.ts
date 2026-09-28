@@ -5,10 +5,8 @@
 // exists by design, so the suite provisions its admin the way production does —
 // outside the product, straight into the database.
 
-import { randomUUID } from 'node:crypto';
 import type { ChildProcess } from 'node:child_process';
-import { PasswordService } from '../src/modules/auth/password.service';
-import { api, bootTestApp, db, findMail, mailQueue, postWithCsrf, stopTestApp, tokenFromLink } from './test-app';
+import { api, bootTestApp, db, findMail, mailQueue, postWithCsrf, provisionAdmin, stopTestApp, tokenFromLink } from './test-app';
 
 let app: ChildProcess | undefined;
 
@@ -39,13 +37,7 @@ beforeEach(async () => {
   // without CASCADE.
   await db.query('TRUNCATE TABLE email_tokens, sessions, documents, users, companies');
   mailQueue.length = 0;
-
-  const passwords = new PasswordService();
-  await db.query(
-    `INSERT INTO users (id, name, email, password_hash, role, email_verified, email_verified_at, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, 'ADMIN', true, now(), now(), now())`,
-    [randomUUID(), 'Administrador', ADMIN.email, await passwords.hash(ADMIN.password)],
-  );
+  await provisionAdmin();
 });
 
 async function adminCookies(ip: string): Promise<Record<string, string>> {

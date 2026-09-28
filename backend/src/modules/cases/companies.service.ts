@@ -4,7 +4,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, Logger, 
 import type { Company } from '@prisma/client';
 import { StorageService } from '../../common/storage/storage.service';
 import { CompanyDto } from './dto/company.dto';
-import { InvalidNatureError, normalizeNature } from './company-nature';
+import { InvalidNatureError, NATURE_LABELS, normalizeNature } from './company-nature';
 import { CompanyRepository } from './company.repository';
 
 /** A company the panel renders: no internal fields, nature in PT-BR. */
@@ -26,11 +26,6 @@ export interface CompanyDetails extends CompanyCard {
   observations: string | null;
   updatedAt: Date;
 }
-
-const NATURE_LABELS = {
-  RECUPERACAO_JUDICIAL: 'Recuperação Judicial',
-  FALENCIA: 'Falência',
-} as const;
 
 /** Thrown when no company answers to the id. */
 export class CompanyNotFoundError extends NotFoundException {
