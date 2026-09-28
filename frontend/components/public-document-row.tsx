@@ -2,10 +2,17 @@ import type { PublicDocument } from '@/lib/types';
 
 // Visitor document row: name only, no status or actions (§4.8d). Download
 // goes through the BFF content proxy so the browser never hits the backend.
-export function PublicDocumentRow({ document }: { document: PublicDocument }): React.ReactNode {
+// In bare mode it renders only the inner content for embedding in richer rows.
+export function PublicDocumentRow({
+  document,
+  bare = false,
+}: {
+  document: PublicDocument;
+  bare?: boolean;
+}): React.ReactNode {
   const label = document.customType ?? document.type;
-  return (
-    <li data-testid="public-document" className="flex items-center gap-3 rounded-lg border border-navy-950/10 bg-white px-4 py-3">
+  const inner = (
+    <>
       <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-mist-50 text-navy-950">
         <FileIcon />
       </span>
@@ -19,6 +26,12 @@ export function PublicDocumentRow({ document }: { document: PublicDocument }): R
         </a>
         <p className="truncate text-xs text-navy-950/60">{label}</p>
       </div>
+    </>
+  );
+  if (bare) return inner;
+  return (
+    <li data-testid="public-document" className="flex items-center gap-3 rounded-lg border border-navy-950/10 bg-white px-4 py-3">
+      {inner}
     </li>
   );
 }

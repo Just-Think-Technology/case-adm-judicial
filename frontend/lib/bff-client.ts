@@ -8,11 +8,20 @@ export interface BffResult {
 // POSTs through the BFF with the double-submit CSRF header. Backend messages
 // are shown verbatim — they are already written for users in pt-BR.
 export async function bffPost(path: string, body: unknown): Promise<BffResult> {
+  return bffWrite('POST', path, body);
+}
+
+// PATCH through the BFF with the double-submit CSRF header (account, password).
+export async function bffPatch(path: string, body: unknown): Promise<BffResult> {
+  return bffWrite('PATCH', path, body);
+}
+
+async function bffWrite(method: 'POST' | 'PATCH', path: string, body: unknown): Promise<BffResult> {
   let response: Response;
   try {
     const csrf = await ensureCsrfToken();
     response = await fetch(path, {
-      method: 'POST',
+      method,
       headers: { 'content-type': 'application/json', 'x-csrf-token': csrf },
       body: JSON.stringify(body),
     });
