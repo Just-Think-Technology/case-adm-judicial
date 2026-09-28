@@ -44,7 +44,44 @@ describe('proxyBackend', () => {
       new Request('http://test/bff/companies', { headers: { cookie: 'session=abc' } }),
     );
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect((init.headers as Record<string, string>).cookie).toBe('session=abc');
+    const forwarded = init.headers instanceof Headers ? init.headers.get('cookie') : undefined;
+    expect(forwarded).toBe('session=abc');
+  });
+
+  it('forwards the CSRF token and the client IP', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}'));
+    vi.stubGlobal('fetch', fetchMock);
+    await proxyBackend(
+      '/auth/login',
+      new Request('http://test/bff/auth/login', {
+        method: 'POST',
+        headers: { 'x-csrf-token': 'csrf-123', 'x-forwarded-for': '203.0.113.7' },
+      }),
+    );
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('http://localhost:3000/api/auth/login');
+    const forwarded = init.headers as Headers;
+    expect(forwarded.get('x-csrf-token')).toBe('csrf-123');
+    expect(forwarded.get('x-forwarded-for')).toBe('203.0.113.7');
+  });
+
+  it('translates the refresh-cookie scope back to /bff/*', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('{}', {
+          headers: [
+            ['set-cookie', 'access_token=aaa; Path=/'],
+            ['set-cookie', 'refresh_token=rrr; Path=/auth/refresh'],
+          ],
+        }),
+      ),
+    );
+    const response = await proxyBackend('/auth/login', new Request('http://test/bff/auth/login'));
+    expect(response.headers.getSetCookie()).toEqual([
+      'access_token=aaa; Path=/',
+      'refresh_token=rrr; Path=/bff/auth/refresh',
+    ]);
   });
 
   it('answers 502 in Portuguese when the backend is down', async () => {

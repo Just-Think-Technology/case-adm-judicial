@@ -60,7 +60,31 @@ function json(res, status, payload) {
   res.end(JSON.stringify(payload));
 }
 
-const server = http.createServer((req, res) => {
+// Fixed accounts for the auth journeys: verified, unverified and taken.
+const KNOWN_PASSWORD = 'Segura@123';
+
+function authJson(res, status, payload, cookies) {
+  const headers = { 'content-type': 'application/json' };
+  if (cookies) headers['set-cookie'] = cookies;
+  res.writeHead(status, headers);
+  res.end(JSON.stringify(payload));
+}
+
+function readBody(req) {
+  return new Promise((resolve) => {
+    let raw = '';
+    req.on('data', (chunk) => (raw += chunk));
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(raw || '{}'));
+      } catch {
+        resolve({});
+      }
+    });
+  });
+}
+
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://stub');
 
   if (req.method === 'POST' && url.pathname === '/__control') {
@@ -77,6 +101,93 @@ const server = http.createServer((req, res) => {
       json(res, 200, state);
     });
     return;
+  }
+
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    json(res, 405, { message: 'Método não permitido.' });
+    return;
+  }
+
+  if (url.pathname === '/api/auth/csrf-token') {
+    return authJson(res, 200, { token: 'stub-csrf' }, ['csrf_token=stub-csrf; Path=/']);
+  }
+
+  if (url.pathname === '/api/auth/register' && req.method === 'POST') {
+    const body = await readBody(req);
+    if (body.email === 'usada@case.com') {
+      return authJson(res, 409, { message: 'Este e-mail já está cadastrado no sistema.' });
+    }
+    return authJson(res, 201, {
+      message: 'Cadastro realizado com sucesso! Verifique seu e-mail para ativar a conta, inclusive a caixa de spam.',
+    });
+  }
+
+  if (url.pathname === '/api/auth/login' && req.method === 'POST') {
+    const body = await readBody(req);
+    if (body.email === 'novo@case.com') {
+      return authJson(res, 401, { message: 'Necessário validar o e-mail.' });
+    }
+    if (body.email === 'credor@case.com' && body.password === KNOWN_PASSWORD) {
+      return authJson(
+        res,
+        200,
+        { message: 'Login realizado com sucesso.' },
+        ['access_token=sess-valid; Path=/; HttpOnly', 'refresh_token=sess-refresh; Path=/auth/refresh; HttpOnly'],
+      );
+    }
+    return authJson(res, 401, { message: 'Credenciais inválidas.' });
+  }
+
+  if (url.pathname === '/api/auth/verification-notification' && req.method === 'POST') {
+    return authJson(res, 200, { message: 'E-mail de verificação reenviado! Verifique também a caixa de spam.' });
+  }
+
+  if (url.pathname === '/api/auth/verify-email') {
+    if (url.searchParams.get('token') === 'valido') {
+      return authJson(res, 200, { message: 'E-mail verificado com sucesso!' });
+    }
+    return authJson(res, 400, { message: 'O link de verificação não é válido.' });
+  }
+
+  if (url.pathname === '/api/auth/forgot-password' && req.method === 'POST') {
+    const body = await readBody(req);
+    if (body.email === 'credor@case.com') {
+      return authJson(res, 200, { message: 'E-mail de redefinição enviado!' });
+    }
+    return authJson(res, 200, { message: 'Não foi encontrado usuário com esse endereço.' });
+  }
+
+  if (url.pathname === '/api/auth/reset-password' && req.method === 'GET') {
+    if (url.searchParams.get('token') === 'valido') {
+      return authJson(res, 200, { email: 'credor@case.com' });
+    }
+    return authJson(res, 400, { message: 'O link de redefinição não é válido ou já foi utilizado.' });
+  }
+
+  if (url.pathname === '/api/auth/reset-password' && req.method === 'POST') {
+    return authJson(res, 200, { message: 'Senha redefinida com sucesso!' });
+  }
+
+  if (url.pathname === '/api/auth/logout' && req.method === 'POST') {
+    return authJson(res, 200, { message: 'Você saiu da conta.' }, [
+      'access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+      'refresh_token=; Path=/auth/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+    ]);
+  }
+
+  if (url.pathname === '/api/account') {
+    const cookie = req.headers.cookie ?? '';
+    if (cookie.includes('sess-valid')) {
+      return authJson(res, 200, {
+        id: 'u1',
+        name: 'Credor Teste',
+        email: 'credor@case.com',
+        role: 'CREDITOR',
+        emailVerified: true,
+        createdAt: '2026-09-20T12:00:00.000Z',
+      });
+    }
+    return authJson(res, 401, { message: 'Não autenticado.' });
   }
 
   if (req.method !== 'GET') {

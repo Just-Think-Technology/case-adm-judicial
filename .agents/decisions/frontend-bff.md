@@ -19,10 +19,12 @@ backend (status + body preserved) and pass the session cookie through.
 - Backend outages surface as Portuguese 502s from the BFF and friendly
   in-page messages — never stacks or empty shells.
 
-## Open point (auth slice)
+## Client IP and throttles
 
-IP-keyed throttles (e.g. login attempts) see the frontend container's IP, not
-the visitor's, once the browser goes through the BFF. The auth slice must
-decide how the real client IP reaches the backend throttle key (forwarded
-header in the internal trust domain, or per-IP limiting at the BFF) before
-wiring login through `/bff/*`.
+The BFF forwards the incoming `X-Forwarded-For` verbatim (Caddy supplies the
+real client IP; in direct dev access it is absent and the backend sees
+`unknown`). This keeps the per-IP account limit working through the proxy.
+Login needs nothing extra: its budget is already per account + tracker
+(`buildLoginThrottleKey`), a design that assumed NAT and covers the BFF's
+single egress IP the same way. CSRF rides along as the `x-csrf-token` header
+next to the cookies — the double-submit check never leaves the backend.
