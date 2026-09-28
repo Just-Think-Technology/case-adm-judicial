@@ -48,6 +48,13 @@ describe('proxyBackend', () => {
     expect(forwarded).toBe('session=abc');
   });
 
+  it('answers 204 with an empty body instead of crashing', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 204 })));
+    const response = await proxyBackend('/companies/c1', new Request('http://test/bff/companies/c1', { method: 'DELETE' }));
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe('');
+  });
+
   it('forwards the CSRF token and the client IP', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('{}'));
     vi.stubGlobal('fetch', fetchMock);

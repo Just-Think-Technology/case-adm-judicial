@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { AdminDocuments } from '@/components/admin-documents';
 import { CompanyDocuments } from '@/components/company-documents';
 import { backendFetch } from '@/lib/backend';
 import { getSession } from '@/lib/session';
@@ -33,6 +34,7 @@ export default async function CompanyPage({
   }
   if (!company) notFound();
   const session = await getSession();
+  const isAdmin = session?.role === 'ADMIN';
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -62,7 +64,11 @@ export default async function CompanyPage({
           </Link>
         </aside>
 
-        <CompanyDocuments companyId={company.id} authed={session !== null} />
+        {isAdmin ? (
+          <AdminDocuments companyId={company.id} />
+        ) : (
+          <CompanyDocuments companyId={company.id} authed={session !== null} />
+        )}
       </div>
     </div>
   );

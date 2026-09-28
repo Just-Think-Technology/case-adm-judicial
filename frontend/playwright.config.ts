@@ -10,7 +10,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Single worker on purpose: the stub API carries mutable failure flags
+  // (failCompanies/failUpload) shared by every test, and parallel workers leak
+  // one test's outage into another's happy path — the same flake serial mode
+  // in painel.spec fixed per-file. CI already ran this way; local matches it.
+  workers: 1,
   reporter: [['html', { open: 'never' }], ['list']],
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001',

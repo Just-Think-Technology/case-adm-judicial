@@ -1,12 +1,16 @@
 import { CompanyPanel } from '@/components/company-panel';
 import { backendFetch } from '@/lib/backend';
+import { getSession } from '@/lib/session';
 import type { CompanyCard } from '@/lib/types';
 
 export const metadata = { title: 'Painel corporativo — Portal do Credor' };
 
-// Corporate panel (§4.7, visitor variant): RJ/Falência tabs, no Clients tab.
-// Data loads server-side; an outage renders a friendly message, never a stack.
+// Corporate panel (§4.7): RJ/Falência tabs for everyone, the Clientes tab and
+// the card management menu for administrators. Data loads server-side; an
+// outage renders a friendly message, never a stack.
 export default async function PanelPage(): Promise<React.ReactNode> {
+  const session = await getSession();
+  const isAdmin = session?.role === 'ADMIN';
   let companies: CompanyCard[] | null = null;
   try {
     const upstream = await backendFetch('/companies');
@@ -27,7 +31,7 @@ export default async function PanelPage(): Promise<React.ReactNode> {
             Não foi possível carregar as empresas agora. Tente novamente em instantes.
           </p>
         ) : (
-          <CompanyPanel companies={companies} />
+          <CompanyPanel companies={companies} isAdmin={isAdmin} ownId={session?.id ?? ''} />
         )}
       </div>
     </div>

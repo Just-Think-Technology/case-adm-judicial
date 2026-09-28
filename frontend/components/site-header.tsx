@@ -16,6 +16,11 @@ export async function SiteHeader(): Promise<React.ReactNode> {
           <Link href="/painel" className="rounded px-3 py-2 text-sm font-semibold text-navy-950 hover:bg-mist-50">
             Painel de documentos
           </Link>
+          {session?.role === 'ADMIN' ? (
+            <Link href="/empresas/nova" className="rounded px-3 py-2 text-sm font-semibold text-navy-950 hover:bg-mist-50">
+              Empresas
+            </Link>
+          ) : null}
           {session ? (
             <details className="relative">
               <summary className="cursor-pointer list-none rounded bg-navy-950 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-800">

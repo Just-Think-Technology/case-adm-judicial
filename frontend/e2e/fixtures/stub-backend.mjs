@@ -6,7 +6,8 @@ import http from 'node:http';
 const PORT = 3000;
 
 const state = { failCompanies: false, failDocuments: false, failUpload: false };
-const accountState = { name: 'Credor Teste', email: 'credor@case.com' };
+const accountState = { id: 'u1', name: 'Credor Teste', email: 'credor@case.com' };
+const adminState = { id: 'u-admin', name: 'Admin Teste', email: 'admin@case.com' };
 
 const companies = [
   {
@@ -50,10 +51,55 @@ const details = {
 
 const documents = {
   c1: [
-    { id: 'd1', name: 'Petição inicial.pdf', type: 'Outros', customType: 'Petição', status: 'Em análise', mine: true },
-    { id: 'd2', name: 'Lista de credores.xlsx', type: 'Habilitação de crédito', customType: null, status: 'Deferido', mine: false },
+    { id: 'd1', name: 'Petição inicial.pdf', type: 'Outros', customType: 'Petição', status: 'Em análise', visibility: 'PUBLICO', uploadedBy: 'Credor Teste', mine: true },
+    { id: 'd2', name: 'Lista de credores.xlsx', type: 'Habilitação de crédito', customType: null, status: 'Deferido', visibility: 'PRIVADO', uploadedBy: 'Admin Teste', mine: false },
   ],
   c2: [],
+};
+
+const stubClients = [
+  {
+    id: 'u1',
+    name: 'Credor Teste',
+    email: 'credor@case.com',
+    createdAt: '2026-09-20T12:00:00.000Z',
+    role: 'CREDITOR',
+    companies: [{ id: 'c1', name: 'Alvorada Alimentos Ltda', nature: 'Recuperação Judicial' }],
+    totalCompanies: 1,
+  },
+  {
+    id: 'u-admin',
+    name: 'Admin Teste',
+    email: 'admin@case.com',
+    createdAt: '2026-09-01T12:00:00.000Z',
+    role: 'ADMIN',
+    companies: [],
+    totalCompanies: 0,
+  },
+  {
+    id: 'u3',
+    name: 'Outro Credor',
+    email: 'outro@case.com',
+    createdAt: '2026-09-22T12:00:00.000Z',
+    role: 'CREDITOR',
+    companies: [
+      { id: 'c1', name: 'Alvorada Alimentos Ltda', nature: 'Recuperação Judicial' },
+      { id: 'c2', name: 'Pantanal Transportes SA', nature: 'Falência' },
+    ],
+    totalCompanies: 2,
+  },
+];
+
+const clientDocs = {
+  u1: {
+    user: { id: 'u1', name: 'Credor Teste', email: 'credor@case.com' },
+    stats: { total: 1, emAnalise: 1, deferidos: 0, indeferidos: 0 },
+    items: [
+      { id: 'd1', name: 'Petição inicial.pdf', type: 'Outros', customType: 'Petição', company: { id: 'c1', name: 'Alvorada Alimentos Ltda' }, status: 'Em análise', createdAt: '2026-09-20T12:00:00.000Z' },
+    ],
+    page: 1,
+    totalPages: 1,
+  },
 };
 
 function json(res, status, payload) {
@@ -105,7 +151,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method !== 'GET' && req.method !== 'POST' && req.method !== 'PATCH') {
+  if (req.method !== 'GET' && req.method !== 'POST' && req.method !== 'PATCH' && req.method !== 'PUT' && req.method !== 'DELETE') {
     json(res, 405, { message: 'Método não permitido.' });
     return;
   }
@@ -135,6 +181,14 @@ const server = http.createServer(async (req, res) => {
         200,
         { message: 'Login realizado com sucesso.' },
         ['access_token=sess-valid; Path=/; HttpOnly', 'refresh_token=sess-refresh; Path=/auth/refresh; HttpOnly'],
+      );
+    }
+    if (body.email === 'admin@case.com' && body.password === KNOWN_PASSWORD) {
+      return authJson(
+        res,
+        200,
+        { message: 'Login realizado com sucesso.' },
+        ['access_token=sess-admin; Path=/; HttpOnly', 'refresh_token=sess-admin-refresh; Path=/auth/refresh; HttpOnly'],
       );
     }
     return authJson(res, 401, { message: 'Credenciais inválidas.' });
@@ -179,7 +233,8 @@ const server = http.createServer(async (req, res) => {
 
   if (url.pathname === '/api/account') {
     const cookie = req.headers.cookie ?? '';
-    if (!cookie.includes('sess-valid')) {
+    const active = cookie.includes('sess-admin') ? adminState : cookie.includes('sess-valid') ? accountState : null;
+    if (!active) {
       return authJson(res, 401, { message: 'Não autenticado.' });
     }
     if (req.method === 'PATCH') {
@@ -187,15 +242,15 @@ const server = http.createServer(async (req, res) => {
       if (body.email === 'usada@case.com') {
         return authJson(res, 409, { message: 'Este e-mail já está em uso.' });
       }
-      if (body.name) accountState.name = body.name;
-      if (body.email) accountState.email = body.email;
-      return authJson(res, 200, { ...accountState });
+      if (body.name) active.name = body.name;
+      if (body.email) active.email = body.email;
+      return authJson(res, 200, { ...active });
     }
     return authJson(res, 200, {
-      id: 'u1',
-      name: accountState.name,
-      email: accountState.email,
-      role: 'CREDITOR',
+      id: active.id,
+      name: active.name,
+      email: active.email,
+      role: cookie.includes('sess-admin') ? 'ADMIN' : 'CREDITOR',
       emailVerified: true,
       createdAt: '2026-09-20T12:00:00.000Z',
     });
@@ -209,7 +264,77 @@ const server = http.createServer(async (req, res) => {
     return authJson(res, 200, { message: 'Senha alterada com sucesso!' });
   }
 
+  const companyIdMatch = url.pathname.match(/^\/api\/companies\/([^/]+)$/);
+  if (companyIdMatch && req.method === 'PUT') {
+    const body = await readBody(req);
+    if (!body.name) return authJson(res, 400, { message: 'O nome da empresa é obrigatório.' });
+    return authJson(res, 200, { ...details.c1, ...body, id: companyIdMatch[1] });
+  }
+
+  if (companyIdMatch && req.method === 'DELETE') {
+    res.writeHead(204);
+      res.end();
+      return;
+  }
+
+  if (url.pathname === '/api/clients') {
+    const search = (url.searchParams.get('search') ?? '').toLowerCase();
+    const company = (url.searchParams.get('company') ?? '').toLowerCase();
+    const page = Number(url.searchParams.get('page') ?? '1');
+    const filtered = stubClients.filter((client) => {
+      if (search && !client.name.toLowerCase().includes(search) && !client.email.toLowerCase().includes(search)) {
+        return false;
+      }
+      if (company && !client.companies.some((entry) => entry.name.toLowerCase().includes(company))) {
+        return false;
+      }
+      return true;
+    });
+    const perPage = 2;
+    const slice = filtered.slice((page - 1) * perPage, page * perPage);
+    return authJson(res, 200, {
+      items: slice,
+      page,
+      totalPages: Math.max(1, Math.ceil(filtered.length / perPage)),
+      total: filtered.length,
+    });
+  }
+
+  const clientDocsMatch = url.pathname.match(/^\/api\/clients\/([^/]+)\/documents$/);
+  if (clientDocsMatch) {
+    const docs = clientDocs[clientDocsMatch[1]];
+    if (!docs) return authJson(res, 404, { message: 'Cliente não encontrado.' });
+    return authJson(res, 200, docs);
+  }
+
+  const clientMatch = url.pathname.match(/^\/api\/clients\/([^/]+)$/);
+  if (clientMatch && req.method === 'DELETE') {
+    if (clientMatch[1] === 'u-admin') {
+      return authJson(res, 403, { message: 'Não é permitido excluir um administrador.' });
+    }
+    res.writeHead(204);
+      res.end();
+      return;
+  }
+
+  const docStatusMatch = url.pathname.match(/^\/api\/documents\/([^/]+)\/(status|visibility)$/);
+  if (docStatusMatch && req.method === 'PATCH') {
+    return authJson(res, 200, { id: docStatusMatch[1], name: 'Documento' });
+  }
+
+  const docMatch = url.pathname.match(/^\/api\/documents\/([^/]+)$/);
+  if (docMatch && req.method === 'DELETE') {
+    res.writeHead(204);
+      res.end();
+      return;
+  }
+
   if (url.pathname === '/api/companies') {
+    if (req.method === 'POST') {
+      const body = await readBody(req);
+      if (!body.name) return authJson(res, 400, { message: 'O nome da empresa é obrigatório.' });
+      return authJson(res, 201, { ...details.c1, ...body, id: 'c9' });
+    }
     if (state.failCompanies) return json(res, 500, { message: 'Erro interno.' });
     return json(res, 200, companies);
   }

@@ -16,6 +16,33 @@ export async function bffPatch(path: string, body: unknown): Promise<BffResult> 
   return bffWrite('PATCH', path, body);
 }
 
+// Admin mutations (companies, clients, documents): the backend guards them
+// with session + role instead of CSRF, so no double-submit header is needed.
+export async function bffSend(
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  path: string,
+  body?: unknown,
+): Promise<BffResult> {
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      method,
+      headers: body === undefined ? undefined : { 'content-type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    return { status: 0, message: 'Serviço indisponível. Tente novamente.' };
+  }
+  let payload: unknown = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+  if (response.status === 204) return { status: 204, message: 'ok' };
+  return { status: response.status, message: readMessage(payload) };
+}
+
 async function bffWrite(method: 'POST' | 'PATCH', path: string, body: unknown): Promise<BffResult> {
   let response: Response;
   try {
