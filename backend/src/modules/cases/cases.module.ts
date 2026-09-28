@@ -11,5 +11,6 @@ import { CompanyRepository } from './company.repository';
   imports: [AuthModule, StorageModule],
   controllers: [CompaniesController],
   providers: [CompaniesService, CompanyRepository],
+  exports: [CompanyRepository],
 })
 export class CasesModule {}

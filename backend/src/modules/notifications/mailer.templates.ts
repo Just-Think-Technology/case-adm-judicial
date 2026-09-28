@@ -73,3 +73,37 @@ export function buildPasswordResetEmail(name: string, link: string): OutgoingMai
     link,
   );
 }
+
+export interface NewDocumentNotice {
+  documentName: string;
+  companyName: string;
+  addedBy: string;
+  typeLabel: string;
+  description: string | null;
+  sentAt: Date;
+}
+
+/**
+ * New-document notice to the fixed office address. Deliberately link-free —
+ * there is nothing to click, and the test harness asserts the captured mail
+ * carries no link.
+ *
+ * @param notice - The stored document facts, every user string escaped
+ */
+export function buildNewDocumentEmail(notice: NewDocumentNotice): OutgoingMail {
+  const lines = [
+    `Documento: ${escapeHtml(notice.documentName)}`,
+    `Empresa: ${escapeHtml(notice.companyName)}`,
+    `Adicionado por: ${escapeHtml(notice.addedBy)}`,
+    `Tipo: ${escapeHtml(notice.typeLabel)}`,
+    ...(notice.description ? [`Descrição: ${escapeHtml(notice.description)}`] : []),
+    `Data/hora do envio: ${notice.sentAt.toLocaleString('pt-BR', { timeZone: 'America/Cuiaba' })}`,
+  ];
+  return {
+    subject: `Novo documento adicionado por ${notice.addedBy}`,
+    html: [`<p>Olá!</p>`, ...lines.map((line) => `<p>${line}</p>`), '<p>Case Administração Judicial</p>'].join(
+      '',
+    ),
+    text: ['Olá!', ...lines, 'Case Administração Judicial'].join('\n\n'),
+  };
+}

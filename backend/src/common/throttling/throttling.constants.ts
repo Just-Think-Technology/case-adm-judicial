@@ -18,7 +18,7 @@ export const VERIFICATION_LIMIT_PER_MINUTE = 6;
 /** `POST /auth/forgot-password` — e-mail bombing. */
 export const FORGOT_PASSWORD_LIMIT_PER_MINUTE = 5;
 
-/** `POST /documents` — bandwidth abuse and object-storage cost. */
+/** `POST /companies/:id/documents` — bandwidth abuse and object-storage cost. */
 export const UPLOAD_LIMIT_PER_MINUTE = 20;
 
 /** `GET /documents/:id/content` — scraping of public documents. */

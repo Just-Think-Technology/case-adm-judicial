@@ -22,6 +22,20 @@ export class ListObjectsV2Command extends FakeCommand {}
 
 export class DeleteObjectsCommand extends FakeCommand {}
 
+export class PutObjectCommand extends FakeCommand {}
+
+export class GetObjectCommand extends FakeCommand {}
+
+export class DeleteObjectCommand extends FakeCommand {}
+
+export class CreateMultipartUploadCommand extends FakeCommand {}
+
+export class UploadPartCommand extends FakeCommand {}
+
+export class CompleteMultipartUploadCommand extends FakeCommand {}
+
+export class AbortMultipartUploadCommand extends FakeCommand {}
+
 export class NotFound extends Error {
   constructor(options?: { message?: string }) {
     super(options?.message ?? 'Not Found');
