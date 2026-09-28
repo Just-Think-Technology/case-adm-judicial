@@ -5,6 +5,10 @@ import { TokenService } from './token.service';
 describe('TokenService', () => {
   const tokens = new TokenService('test-access-secret-change-me-32chars');
 
+  it('refuses a short secret instead of signing weak tokens', () => {
+    expect(() => new TokenService('short')).toThrow(/at least 32 characters/);
+  });
+
   it('signs an access token carrying sub, role, verification and session', () => {
     const raw = tokens.signAccess({
       sub: 'user-1',

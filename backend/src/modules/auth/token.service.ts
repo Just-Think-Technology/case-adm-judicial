@@ -24,7 +24,13 @@ export interface AccessTokenClaims {
 
 /** Signs access tokens and mints the opaque tokens the database stores hashed. */
 export class TokenService {
-  constructor(private readonly accessSecret: string) {}
+  constructor(private readonly accessSecret: string) {
+    // HS256 strength is the secret: fail fast on a short one instead of
+    // signing weak tokens because of a misconfigured environment.
+    if (accessSecret.length < 32) {
+      throw new Error('JWT_ACCESS_SECRET must be at least 32 characters.');
+    }
+  }
 
   signAccess(claims: AccessTokenClaims): string {
     return jwt.sign(claims, this.accessSecret, {
