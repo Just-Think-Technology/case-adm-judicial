@@ -2,6 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  // Journeys run against a deterministic stub API (e2e/fixtures), never a
+  // live backend — CI has no database, and fixtures keep results stable.
+  globalSetup: './e2e/global-setup.ts',
+  globalTeardown: './e2e/global-teardown.ts',
   timeout: 30_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

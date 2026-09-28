@@ -27,6 +27,11 @@ frontend/out/
 *.jpeg
 *.png
 
+# Exception: the office brand assets are public by nature, not judicial
+# documents — copied once from the legacy portal, never uploaded content.
+!frontend/public/img/logo-*.png
+!frontend/public/img/favicon.png
+
 # OS / editors
 .DS_Store
 Thumbs.db

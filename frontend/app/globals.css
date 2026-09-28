@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+
+/* Brand tokens carried over from the legacy portal: navy + gold on light. */
+@theme {
+  --color-navy-950: #0a112b;
+  --color-navy-800: #25345d;
+  --color-gold-600: #c08a1c;
+  --color-gold-500: #dca729;
+  --color-gold-100: #fdf3dd;
+  --color-mist-50: #f5f8fa;
+
+  --font-display: 'Jost', 'Open Sans', system-ui, sans-serif;
+  --font-sans: 'Open Sans', system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-mist-50);
+}
