@@ -268,6 +268,22 @@ export class AuthService {
     return { sent: true };
   }
 
+  /** Resolves the address behind a valid reset link — readonly field only. */
+  async resetEmailAddress(rawToken: string): Promise<string> {
+    const record = await this.emailTokens.findValidByHash(
+      this.tokens.hashToken(rawToken),
+      'PASSWORD_RESET',
+    );
+    if (!record) {
+      throw new InvalidResetLinkError();
+    }
+    const user = await this.users.findById(record.userId);
+    if (!user) {
+      throw new InvalidResetLinkError();
+    }
+    return user.email;
+  }
+
   /**
    * Applies a new password through a single-use link and ends every session —
    * a reset arrives with no session of its own, so there is no current one to

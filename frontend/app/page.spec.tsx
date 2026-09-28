@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import LandingPage from './page';
+import { LandingPage } from '@/components/landing-page';
 
 describe('LandingPage', () => {
   it('welcomes to the Portal do Credor', () => {

@@ -1,23 +1,48 @@
 import { NextResponse } from 'next/server';
-import { backendFetch } from '@/lib/backend';
+import { backendUrl } from '@/lib/backend';
+
+// Refresh cookie is scoped by the backend to /auth/refresh; through the BFF
+// the browser only visits /bff/*, so the scope is translated on the way out.
+// Without this the browser would never send the refresh cookie back.
+const BACKEND_REFRESH_PATH = 'Path=/auth/refresh';
+const BFF_REFRESH_PATH = 'Path=/bff/auth/refresh';
+
+function translateSetCookie(value: string): string {
+  return value.replace(BACKEND_REFRESH_PATH, BFF_REFRESH_PATH);
+}
 
 // Thin same-origin proxy: the browser calls /bff/*, we forward to the NestJS
-// API (status + body preserved) and pass the session cookie through so auth
-// keeps working once the login slice lands.
+// API (method + body + status preserved), pass the session cookie, the CSRF
+// double-submit header and the real client IP through, and translate
+// Set-Cookie scopes back to /bff/* on the way out.
 export async function proxyBackend(path: string, request: Request): Promise<NextResponse> {
   const incoming = new URL(request.url);
+  const headers = new Headers();
+  for (const name of ['cookie', 'x-csrf-token', 'x-forwarded-for', 'content-type']) {
+    const value = request.headers.get(name);
+    if (value) headers.set(name, value);
+  }
+  const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
   let upstream: Response;
   try {
-    upstream = await backendFetch(path, {
-      searchParams: incoming.searchParams,
-      cookie: request.headers.get('cookie'),
-    });
+    upstream = await fetch(
+      backendUrl(path) + (incoming.search ? incoming.search : ''),
+      {
+        method: request.method,
+        headers,
+        body: hasBody ? await request.text() : undefined,
+        cache: 'no-store',
+      },
+    );
   } catch {
     return NextResponse.json({ message: 'Serviço indisponível. Tente novamente.' }, { status: 502 });
   }
   const body = await upstream.text();
-  return new NextResponse(body, {
-    status: upstream.status,
-    headers: { 'content-type': upstream.headers.get('content-type') ?? 'application/json' },
-  });
+  const outgoing = new NextResponse(body, { status: upstream.status });
+  const contentType = upstream.headers.get('content-type');
+  if (contentType) outgoing.headers.set('content-type', contentType);
+  for (const setCookie of upstream.headers.getSetCookie()) {
+    outgoing.headers.append('set-cookie', translateSetCookie(setCookie));
+  }
+  return outgoing;
 }

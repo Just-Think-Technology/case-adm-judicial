@@ -309,6 +309,21 @@ describe('POST /auth/forgot-password + /auth/reset-password', () => {
     expect(mail.link).toContain('token=');
   });
 
+  it('reveals the address behind a valid reset link and rejects a forged one', async () => {
+    await registeredVerified('203.0.113.144');
+    await postWithCsrf('/auth/forgot-password', { email: 'maria@case.com' }, '203.0.113.144');
+    const { link } = await findMail('maria@case.com');
+
+    const valid = await api('GET', `/auth/reset-password?token=${tokenFromLink(link)}`, {
+      ip: '203.0.113.144',
+    });
+    expect(valid.status).toBe(200);
+    expect((valid.body as { email: string }).email).toBe('maria@case.com');
+
+    const forged = await api('GET', '/auth/reset-password?token=forjado', { ip: '203.0.113.144' });
+    expect(forged.status).toBe(400);
+  });
+
   it('resets through the mailed link and invalidates the old password', async () => {
     await registeredVerified('203.0.113.142');
     await postWithCsrf('/auth/forgot-password', { email: 'maria@case.com' }, '203.0.113.142');
