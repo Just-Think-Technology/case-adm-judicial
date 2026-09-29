@@ -59,8 +59,12 @@ for the whole frontend. Revisit if the frontend ever needs to be fully static
 
 - A new page, route or third-party script (fonts, analytics, CDN) is added only
   with an update to this file in the same PR.
-- `unsafe-eval` is **not accepted anywhere** — it is never needed, and it is not
-  the same trade-off as `unsafe-inline`.
+- `unsafe-eval` is accepted **only in `next dev`**, never in production: React's
+  development build reconstructs call stacks with `eval()`, and without it every
+  page logs a console error. The production build never evaluates, so the shipped
+  policy stays without it — localhost dev is not a security boundary, and the
+  flag is keyed on `NODE_ENV === 'production'` in `next.config.ts` (verified:
+  dev header carries it with zero console errors, prod header does not).
 - `unsafe-inline` in `script-src` is accepted **only** on the frontend, and only
   for the Next.js hydration payload, per the settled exception above. The backend
   never gets it. Adding a second reason means either dropping the exception or
