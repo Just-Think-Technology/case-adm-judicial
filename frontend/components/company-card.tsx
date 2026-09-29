@@ -40,15 +40,18 @@ export function CompanyCard({
       <div className="flex items-start gap-3">
         <span
           aria-hidden
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isRJ ? 'bg-navy-950 text-gold-500' : 'bg-gold-100 text-gold-600'}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isRJ ? 'bg-navy-950 text-gold-500' : 'bg-gold-100 text-gold-700'}`}
         >
           {isRJ ? <BuildingIcon /> : <AlertIcon />}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="font-display truncate text-lg font-semibold text-navy-950" title={company.name}>
+          <p className="text-[11px] font-bold tracking-[0.14em] text-gold-700 uppercase">
+            {company.nature}
+          </p>
+          <h3 className="font-display truncate text-lg leading-snug font-semibold text-navy-950" title={company.name}>
             {company.name}
           </h3>
-          <p className="text-sm text-navy-950/60">{company.processNumber}</p>
+          <p className="text-sm text-navy-950/60 tabular-nums">{company.processNumber}</p>
         </div>
         {isAdmin ? (
           <details className="relative shrink-0">

@@ -21,7 +21,7 @@ export default async function PanelPage(): Promise<React.ReactNode> {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="font-display text-3xl font-semibold text-navy-950">Painel corporativo</h1>
+      <h1 className="font-display text-4xl font-semibold tracking-tight text-navy-950">Painel corporativo</h1>
       <p className="mt-2 text-navy-950/60">
         Processos de Recuperação Judicial e Falência, com os documentos públicos de cada empresa.
       </p>

@@ -1,12 +1,15 @@
 @import 'tailwindcss';
 
-/* Brand tokens carried over from the legacy portal: navy + gold on light. */
+/* Brand tokens: the office desk — warm paper, navy ink, restrained gold. */
 @theme {
   --color-navy-950: #0a112b;
   --color-navy-800: #25345d;
+  --color-gold-700: #a87b14;
   --color-gold-600: #c08a1c;
   --color-gold-500: #dca729;
   --color-gold-100: #fdf3dd;
+  --color-paper-50: #faf7ef;
+  --color-paper-100: #f3eee0;
   --color-mist-50: #f5f8fa;
 
   --font-display: 'Jost', 'Open Sans', system-ui, sans-serif;
@@ -14,5 +17,5 @@
 }
 
 body {
-  background-color: var(--color-mist-50);
+  background-color: var(--color-paper-50);
 }

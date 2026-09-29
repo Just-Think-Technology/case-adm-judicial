@@ -118,11 +118,16 @@ export function CompanyPanel({
           <ClientsPanel ownId={ownId} />
         </div>
       ) : visible.length > 0 ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((company) => (
-            <CompanyCard key={company.id} company={company} isAdmin={isAdmin} onRemoved={removed} />
-          ))}
-        </div>
+        <>
+          <p className="mt-5 text-sm text-navy-950/55" role="status">
+            {visible.length} {visible.length === 1 ? 'processo' : 'processos'} em {tab}
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((company) => (
+              <CompanyCard key={company.id} company={company} isAdmin={isAdmin} onRemoved={removed} />
+            ))}
+          </div>
+        </>
       ) : (
         <p role="status" className="mt-6 rounded-xl border border-dashed border-navy-950/20 bg-white p-8 text-center text-navy-950/60">
           {query.trim()

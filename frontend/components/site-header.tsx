@@ -7,17 +7,17 @@ import { getSession } from '@/lib/session';
 export async function SiteHeader(): Promise<React.ReactNode> {
   const session = await getSession();
   return (
-    <header className="sticky top-0 z-10 border-b border-navy-950/10 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-10 border-b border-navy-950/15 bg-paper-50/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center" aria-label="Portal do Credor — início">
           <img src="/img/logo-header.png" alt="Case Administração Judicial" width={180} height={40} />
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4" aria-label="Navegação principal">
-          <Link href="/painel" className="rounded px-3 py-2 text-sm font-semibold text-navy-950 hover:bg-mist-50">
+          <Link href="/painel" className="rounded px-3 py-2 text-sm font-semibold text-navy-950 hover:bg-paper-100">
             Painel de documentos
           </Link>
           {session?.role === 'ADMIN' ? (
-            <Link href="/empresas/nova" className="rounded px-3 py-2 text-sm font-semibold text-navy-950 hover:bg-mist-50">
+            <Link href="/empresas/nova" className="rounded px-3 py-2 text-sm font-semibold text-navy-950 hover:bg-paper-100">
               Empresas
             </Link>
           ) : null}
