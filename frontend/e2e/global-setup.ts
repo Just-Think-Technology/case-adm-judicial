@@ -17,7 +17,7 @@ export default async function globalSetup(): Promise<void> {
   const deadline = Date.now() + 15_000;
   for (;;) {
     try {
-      const response = await fetch('http://127.0.0.1:3000/api/companies');
+      const response = await fetch('http://127.0.0.1:3000/companies');
       if (response.ok) return;
     } catch {
       // Not up yet — keep polling until the deadline.

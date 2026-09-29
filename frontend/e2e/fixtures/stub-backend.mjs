@@ -163,11 +163,11 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (url.pathname === '/api/auth/csrf-token') {
+  if (url.pathname === '/auth/csrf-token') {
     return authJson(res, 200, { token: 'stub-csrf' }, ['csrf_token=stub-csrf; Path=/']);
   }
 
-  if (url.pathname === '/api/auth/register' && req.method === 'POST') {
+  if (url.pathname === '/auth/register' && req.method === 'POST') {
     const body = await readBody(req);
     if (body.email === 'usada@case.com') {
       return authJson(res, 409, { message: 'Este e-mail já está cadastrado no sistema.' });
@@ -177,7 +177,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (url.pathname === '/api/auth/login' && req.method === 'POST') {
+  if (url.pathname === '/auth/login' && req.method === 'POST') {
     const body = await readBody(req);
     if (body.email === 'novo@case.com') {
       return authJson(res, 401, { message: 'Necessário validar o e-mail.' });
@@ -201,18 +201,18 @@ const server = http.createServer(async (req, res) => {
     return authJson(res, 401, { message: 'Credenciais inválidas.' });
   }
 
-  if (url.pathname === '/api/auth/verification-notification' && req.method === 'POST') {
+  if (url.pathname === '/auth/verification-notification' && req.method === 'POST') {
     return authJson(res, 200, { message: 'E-mail de verificação reenviado! Verifique também a caixa de spam.' });
   }
 
-  if (url.pathname === '/api/auth/verify-email') {
+  if (url.pathname === '/auth/verify-email') {
     if (url.searchParams.get('token') === 'valido') {
       return authJson(res, 200, { message: 'E-mail verificado com sucesso!' });
     }
     return authJson(res, 400, { message: 'O link de verificação não é válido.' });
   }
 
-  if (url.pathname === '/api/auth/forgot-password' && req.method === 'POST') {
+  if (url.pathname === '/auth/forgot-password' && req.method === 'POST') {
     const body = await readBody(req);
     if (body.email === 'credor@case.com') {
       return authJson(res, 200, { message: 'E-mail de redefinição enviado!' });
@@ -220,25 +220,25 @@ const server = http.createServer(async (req, res) => {
     return authJson(res, 200, { message: 'Não foi encontrado usuário com esse endereço.' });
   }
 
-  if (url.pathname === '/api/auth/reset-password' && req.method === 'GET') {
+  if (url.pathname === '/auth/reset-password' && req.method === 'GET') {
     if (url.searchParams.get('token') === 'valido') {
       return authJson(res, 200, { email: 'credor@case.com' });
     }
     return authJson(res, 400, { message: 'O link de redefinição não é válido ou já foi utilizado.' });
   }
 
-  if (url.pathname === '/api/auth/reset-password' && req.method === 'POST') {
+  if (url.pathname === '/auth/reset-password' && req.method === 'POST') {
     return authJson(res, 200, { message: 'Senha redefinida com sucesso!' });
   }
 
-  if (url.pathname === '/api/auth/logout' && req.method === 'POST') {
+  if (url.pathname === '/auth/logout' && req.method === 'POST') {
     return authJson(res, 200, { message: 'Você saiu da conta.' }, [
       'access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
       'refresh_token=; Path=/auth/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
     ]);
   }
 
-  if (url.pathname === '/api/account') {
+  if (url.pathname === '/account') {
     const cookie = req.headers.cookie ?? '';
     const active = cookie.includes('sess-admin') ? adminState : cookie.includes('sess-valid') ? accountState : null;
     if (!active) {
@@ -263,7 +263,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (url.pathname === '/api/account/password' && req.method === 'PATCH') {
+  if (url.pathname === '/account/password' && req.method === 'PATCH') {
     const body = await readBody(req);
     if (body.currentPassword === 'errada') {
       return authJson(res, 400, { message: 'Senha atual incorreta.' });
@@ -271,7 +271,7 @@ const server = http.createServer(async (req, res) => {
     return authJson(res, 200, { message: 'Senha alterada com sucesso!' });
   }
 
-  const companyIdMatch = url.pathname.match(/^\/api\/companies\/([^/]+)$/);
+  const companyIdMatch = url.pathname.match(/^\/companies\/([^/]+)$/);
   if (companyIdMatch && req.method === 'PUT') {
     const body = await readBody(req);
     if (!body.name) return authJson(res, 400, { message: 'O nome da empresa é obrigatório.' });
@@ -284,7 +284,7 @@ const server = http.createServer(async (req, res) => {
       return;
   }
 
-  if (url.pathname === '/api/clients') {
+  if (url.pathname === '/clients') {
     const search = (url.searchParams.get('search') ?? '').toLowerCase();
     const company = (url.searchParams.get('company') ?? '').toLowerCase();
     const page = Number(url.searchParams.get('page') ?? '1');
@@ -307,14 +307,14 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  const clientDocsMatch = url.pathname.match(/^\/api\/clients\/([^/]+)\/documents$/);
+  const clientDocsMatch = url.pathname.match(/^\/clients\/([^/]+)\/documents$/);
   if (clientDocsMatch) {
     const docs = clientDocs[clientDocsMatch[1]];
     if (!docs) return authJson(res, 404, { message: 'Cliente não encontrado.' });
     return authJson(res, 200, docs);
   }
 
-  const clientMatch = url.pathname.match(/^\/api\/clients\/([^/]+)$/);
+  const clientMatch = url.pathname.match(/^\/clients\/([^/]+)$/);
   if (clientMatch && req.method === 'DELETE') {
     if (clientMatch[1] === 'u-admin') {
       return authJson(res, 403, { message: 'Não é permitido excluir um administrador.' });
@@ -324,19 +324,19 @@ const server = http.createServer(async (req, res) => {
       return;
   }
 
-  const docStatusMatch = url.pathname.match(/^\/api\/documents\/([^/]+)\/(status|visibility)$/);
+  const docStatusMatch = url.pathname.match(/^\/documents\/([^/]+)\/(status|visibility)$/);
   if (docStatusMatch && req.method === 'PATCH') {
     return authJson(res, 200, { id: docStatusMatch[1], name: 'Documento' });
   }
 
-  const docMatch = url.pathname.match(/^\/api\/documents\/([^/]+)$/);
+  const docMatch = url.pathname.match(/^\/documents\/([^/]+)$/);
   if (docMatch && req.method === 'DELETE') {
     res.writeHead(204);
       res.end();
       return;
   }
 
-  if (url.pathname === '/api/companies') {
+  if (url.pathname === '/companies') {
     if (req.method === 'POST') {
       const body = await readBody(req);
       if (!body.name) return authJson(res, 400, { message: 'O nome da empresa é obrigatório.' });
@@ -346,14 +346,14 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, companies);
   }
 
-  const detailMatch = url.pathname.match(/^\/api\/companies\/([^/]+)$/);
+  const detailMatch = url.pathname.match(/^\/companies\/([^/]+)$/);
   if (detailMatch) {
     const company = details[detailMatch[1]];
     if (!company) return json(res, 404, { message: 'Empresa não encontrada.' });
     return json(res, 200, company);
   }
 
-  const docsMatch = url.pathname.match(/^\/api\/companies\/([^/]+)\/documents$/);
+  const docsMatch = url.pathname.match(/^\/companies\/([^/]+)\/documents$/);
   if (docsMatch) {
     if (req.method === 'POST') {
       const cookie = req.headers.cookie ?? '';
@@ -372,7 +372,7 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, filtered);
   }
 
-  const contentMatch = url.pathname.match(/^\/api\/documents\/([^/]+)\/content$/);
+  const contentMatch = url.pathname.match(/^\/documents\/([^/]+)\/content$/);
   if (req.method !== 'GET') {
     json(res, 405, { message: 'Método não permitido.' });
     return;
