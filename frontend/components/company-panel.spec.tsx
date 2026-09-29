@@ -28,12 +28,12 @@ const COMPANIES: CompanyCardData[] = [
 ];
 
 describe('CompanyPanel', () => {
-  it('starts on Todas, sorted A-Z across natures', () => {
+  it('starts on Todas, sorted by most recent first', () => {
     render(<CompanyPanel companies={COMPANIES} />);
     expect(screen.getAllByRole('heading', { level: 3 }).map((node) => node.textContent)).toEqual([
+      'Pantanal Transportes SA',
       'Alvorada Alimentos Ltda',
       'Beta Construtora RJ Ltda',
-      'Pantanal Transportes SA',
     ]);
   });
 
@@ -79,11 +79,14 @@ describe('CompanyPanel', () => {
     expect(names()[0]).toBe('Pantanal Transportes SA');
   });
 
-  it('touching one sort moves the other back to its caption', () => {
+  it('combines both sorts with the last touch as primary', () => {
     render(<CompanyPanel companies={COMPANIES} />);
+    const names = () => screen.getAllByRole('heading', { level: 3 }).map((node) => node.textContent);
     fireEvent.change(screen.getByLabelText('Ordenar por nome'), { target: { value: 'za' } });
-    fireEvent.change(screen.getByLabelText('Ordenar por data de criação'), { target: { value: 'new' } });
-    expect((screen.getByLabelText('Ordenar por nome') as HTMLSelectElement).value).toBe('');
+    expect(names()[0]).toBe('Pantanal Transportes SA');
+    fireEvent.change(screen.getByLabelText('Ordenar por data de criação'), { target: { value: 'old' } });
+    expect(names()[0]).toBe('Beta Construtora RJ Ltda');
+    expect((screen.getByLabelText('Ordenar por nome') as HTMLSelectElement).value).toBe('za');
   });
 
   it('shows the short empty state per tab without search', () => {

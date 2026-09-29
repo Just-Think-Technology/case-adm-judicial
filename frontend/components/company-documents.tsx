@@ -92,12 +92,12 @@ export function CompanyDocuments({
           Carregando documentos…
         </p>
       ) : documents.length > 0 ? (
-        <ul className="mt-4 space-y-2">
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {documents.map((document) => (
             <li
               key={document.id}
               data-testid="company-document"
-              className="flex items-center gap-3 rounded-lg border border-navy-950/10 bg-white px-4 py-3"
+              className="flex items-center gap-3 rounded-lg border border-navy-950/10 bg-paper-50 px-4 py-3"
             >
               <div className="min-w-0 flex-1">
                 <PublicDocumentRow document={document} bare />

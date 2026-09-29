@@ -38,12 +38,8 @@ export function SignupForm(): React.ReactNode {
     });
     setSending(false);
     if (result.status === 201) {
-      // Back to login carrying the confirmation warning (§4.2): the account
-      // starts unverified and nobody is logged in.
-      notifyToast(
-        'success',
-        'Cadastro realizado com sucesso! Verifique seu e-mail para ativar a conta, inclusive a caixa de spam.',
-      );
+      // Back to login carrying the flag: the login screen toasts the
+      // confirmation warning, so this screen stays silent (no double toast).
       router.push('/login?cadastrado=1');
     } else {
       notifyToast('error', result.message);

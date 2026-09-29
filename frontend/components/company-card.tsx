@@ -77,12 +77,14 @@ export function CompanyCard({
         ) : null}
       </div>
       <p className="mt-3 text-xs text-navy-950/50">Cadastrada em {formatDate(company.createdAt)}</p>
-      <Link
-        href={`/empresas/${company.id}`}
-        className="mt-4 rounded-lg bg-navy-950 px-4 py-2.5 text-center text-sm font-semibold tracking-wide text-white hover:bg-navy-800"
-      >
-        ACESSAR
-      </Link>
+      <div className="mt-auto pt-4">
+        <Link
+          href={`/empresas/${company.id}`}
+          className="block rounded-lg bg-navy-950 px-4 py-2.5 text-center text-sm font-semibold tracking-wide text-white hover:bg-navy-800"
+        >
+          ACESSAR
+        </Link>
+      </div>
       {confirming ? (
         <ConfirmDialog
           title="Remover empresa"

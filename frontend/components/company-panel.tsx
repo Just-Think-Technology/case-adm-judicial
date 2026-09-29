@@ -13,13 +13,9 @@ const EMPTY_BY_NATURE: Record<CompanyNature | 'Todas', string> = {
   Falência: 'Nenhuma empresa em Falência cadastrada ainda',
 };
 
-type Sort =
-  | { by: 'name'; dir: 'az' | 'za' }
-  | { by: 'date'; dir: 'new' | 'old' };
-
 // Company panel: nature tabs (including all), instant search, and two sort
-// controls sharing one active criterion — touching one moves the other back
-// to its caption, so they never fight over the order.
+// controls that combine — the most recently touched is primary, the other
+// breaks ties, so name and date can filter together.
 export function CompanyPanel({
   companies,
   isAdmin = false,
@@ -30,7 +26,9 @@ export function CompanyPanel({
   const [tab, setTab] = useState<CompanyNature | 'Todas'>('Todas');
   const [query, setQuery] = useState('');
   const [items, setItems] = useState(companies);
-  const [sort, setSort] = useState<Sort>({ by: 'name', dir: 'az' });
+  const [priority, setPriority] = useState<Array<'name' | 'date'>>(['date']);
+  const [nameDir, setNameDir] = useState<'az' | 'za'>('az');
+  const [dateDir, setDateDir] = useState<'new' | 'old'>('new');
 
   const visible = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -41,20 +39,28 @@ export function CompanyPanel({
         company.name.toLowerCase().includes(term) || company.processNumber.toLowerCase().includes(term)
       );
     });
+    // Stable sorts applied least-recent first: the last touch wins overall.
     const sorted = [...filtered];
-    if (sort.by === 'name') {
-      sorted.sort((a, b) =>
-        sort.dir === 'az' ? a.name.localeCompare(b.name, 'pt-BR') : b.name.localeCompare(a.name, 'pt-BR'),
-      );
-    } else {
-      sorted.sort((a, b) =>
-        sort.dir === 'new'
-          ? Date.parse(b.createdAt) - Date.parse(a.createdAt)
-          : Date.parse(a.createdAt) - Date.parse(b.createdAt),
-      );
-    }
+    const apply = (criterion: 'name' | 'date'): void => {
+      if (criterion === 'name') {
+        sorted.sort((a, b) =>
+          nameDir === 'az' ? a.name.localeCompare(b.name, 'pt-BR') : b.name.localeCompare(a.name, 'pt-BR'),
+        );
+      } else {
+        sorted.sort((a, b) =>
+          dateDir === 'new'
+            ? Date.parse(b.createdAt) - Date.parse(a.createdAt)
+            : Date.parse(a.createdAt) - Date.parse(b.createdAt),
+        );
+      }
+    };
+    [...priority].reverse().forEach(apply);
     return sorted;
-  }, [items, tab, query, sort]);
+  }, [items, tab, query, priority, nameDir, dateDir]);
+
+  function touch(criterion: 'name' | 'date'): void {
+    setPriority((current) => [criterion, ...current.filter((entry) => entry !== criterion)]);
+  }
 
   function removed(id: string, name: string): void {
     setItems((current) => current.filter((company) => company.id !== id));
@@ -84,8 +90,11 @@ export function CompanyPanel({
             Nome
             <select
               aria-label="Ordenar por nome"
-              value={sort.by === 'name' ? sort.dir : ''}
-              onChange={(event) => setSort({ by: 'name', dir: event.target.value as 'az' | 'za' })}
+              value={priority.includes('name') ? nameDir : ''}
+              onChange={(event) => {
+                setNameDir(event.target.value as 'az' | 'za');
+                touch('name');
+              }}
               className="rounded-lg border border-navy-950/15 bg-white px-2 py-2 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
             >
               <option value="" disabled>
@@ -99,8 +108,11 @@ export function CompanyPanel({
             Data
             <select
               aria-label="Ordenar por data de criação"
-              value={sort.by === 'date' ? sort.dir : ''}
-              onChange={(event) => setSort({ by: 'date', dir: event.target.value as 'new' | 'old' })}
+              value={priority.includes('date') ? dateDir : ''}
+              onChange={(event) => {
+                setDateDir(event.target.value as 'new' | 'old');
+                touch('date');
+              }}
               className="rounded-lg border border-navy-950/15 bg-white px-2 py-2 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
             >
               <option value="" disabled>

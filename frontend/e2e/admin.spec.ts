@@ -77,15 +77,12 @@ test.describe('admin clients', () => {
     await expect(page.getByRole('link', { name: 'Petição inicial.pdf' })).toBeVisible();
   });
 
-  test('changes statuses in batch and saves once', async ({ page }) => {
+  test('shows stats and document cards without a table', async ({ page }) => {
     await loginAs(page, 'admin@case.com');
     await page.goto('/clientes/u1');
-    const save = page.getByRole('button', { name: 'SALVAR ALTERAÇÕES' });
-    await expect(save).toBeDisabled();
-    await page.getByLabel('Status de Petição inicial.pdf').selectOption('Deferido');
-    await expect(save).toBeEnabled();
-    await save.click();
-    await expect(page.getByRole('status')).toContainText('Alterações salvas com sucesso!');
+    await expect(page.getByText('Total')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Petição inicial.pdf' })).toBeVisible();
+    await expect(page.getByText('Em análise').first()).toBeVisible();
   });
 
   test('removes a client with confirmation, sparing its own card', async ({ page }) => {
@@ -107,11 +104,13 @@ test.describe('admin clients', () => {
 });
 
 test.describe('admin company documents', () => {
-  test('manages visibility and deletion with confirmation', async ({ page }) => {
+  test('manages status, visibility and deletion with confirmation', async ({ page }) => {
     await loginAs(page, 'admin@case.com');
     await page.goto('/empresas/c1');
     await expect(page.getByText('Adicionado por Credor Teste')).toBeVisible();
     await expect(page.getByText('Público').first()).toBeVisible();
+    await page.getByLabel('Status de Petição inicial.pdf').selectOption('Deferido');
+    await expect(page.getByText(/marcado como Deferido/i)).toBeVisible();
     await page.getByRole('button', { name: /tornar privado/i }).click();
     await expect(page.getByRole('alertdialog')).toContainText('restringir');
     await page.getByRole('button', { name: 'Confirmar' }).click();

@@ -1,22 +1,15 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { StatusSeal } from '@/components/status-seal';
 import { formatDate } from '@/lib/format';
-import { bffSend } from '@/lib/bff-client';
-import { notifyToast } from '@/lib/toast';
 import type { ClientDocuments } from '@/lib/types';
 
-const STATUSES = ['Em análise', 'Deferido', 'Indeferido'] as const;
-
-// One client's documents (§4.14, Fluxo 2): real totals on top, a status picker
-// per row, and a single SALVAR ALTERAÇÕES that persists every change at once.
-// Rows arrive server-rendered for page one; paging continues through the BFF.
+// One client's documents (§4.14): real totals on top and the uploads as
+// plain cards — no table, no status editing here. Rows arrive server-rendered
+// for page one; paging continues through the BFF.
 export function ClientDocumentsManager({ initial, userId }: { initial: ClientDocuments; userId: string }): React.ReactNode {
   const [data, setData] = useState<ClientDocuments>(initial);
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
 
   const loadPage = useCallback(
     async (page: number) => {
@@ -24,10 +17,9 @@ export function ClientDocumentsManager({ initial, userId }: { initial: ClientDoc
         const response = await fetch(`/bff/clients/${encodeURIComponent(userId)}/documents?page=${page}`);
         if (!response.ok) return;
         setData((await response.json()) as ClientDocuments);
-        setDrafts({});
         window.scrollTo({ top: 0 });
       } catch {
-        // Pagination keeps the current page on failure — the table stays.
+        // Pagination keeps the current page on failure — the list stays.
       }
     },
     [userId],
@@ -35,30 +27,7 @@ export function ClientDocumentsManager({ initial, userId }: { initial: ClientDoc
 
   useEffect(() => {
     setData(initial);
-    setDrafts({});
   }, [initial]);
-
-  const changed = Object.entries(drafts).filter(
-    ([id, status]) => data.items.find((item) => item.id === id)?.status !== status,
-  );
-
-  async function save(): Promise<void> {
-    if (changed.length === 0 || saving) return;
-    setSaving(true);
-    let failures = 0;
-    for (const [id, status] of changed) {
-      const result = await bffSend('PATCH', `/bff/documents/${id}/status`, { status });
-      if (result.status !== 200) failures += 1;
-    }
-    setSaving(false);
-    if (failures === 0) {
-      notifyToast('success', 'Alterações salvas com sucesso!');
-      setDrafts({});
-      void loadPage(data.page);
-    } else {
-      notifyToast('error', `${failures} documento(s) não puderam ser atualizados. Tente novamente.`);
-    }
-  }
 
   return (
     <div>
@@ -76,91 +45,52 @@ export function ClientDocumentsManager({ initial, userId }: { initial: ClientDoc
         ))}
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-xl border border-navy-950/10 bg-white shadow-sm">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead>
-            <tr className="border-b border-navy-950/10 text-xs tracking-wide text-navy-950/60 uppercase">
-              <th className="px-4 py-3">Documento</th>
-              <th className="px-4 py-3">Empresa</th>
-              <th className="px-4 py-3">Tipo</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Enviado em</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.items.map((item) => (
-              <tr key={item.id} className="border-b border-navy-950/5 last:border-0">
-                <td className="px-4 py-3">
-                  <a href={`/bff/documents/${item.id}/content`} className="font-semibold text-navy-950 hover:text-gold-600 hover:underline">
-                    {item.name}
-                  </a>
-                </td>
-                <td className="px-4 py-3">
-                  <Link href={`/empresas/${item.company.id}`} className="text-navy-950/70 hover:text-gold-600 hover:underline">
-                    {item.company.name}
-                  </Link>
-                </td>
-                <td className="px-4 py-3 text-navy-950/70">{item.customType ?? item.type}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <StatusSeal status={drafts[item.id] ?? item.status} />
-                    <label className="sr-only" htmlFor={`status-${item.id}`}>
-                      Status de {item.name}
-                    </label>
-                    <select
-                      id={`status-${item.id}`}
-                      value={drafts[item.id] ?? item.status}
-                      onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: event.target.value }))}
-                      className="rounded-lg border border-navy-950/15 bg-white px-2 py-1.5 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
-                    >
-                      {STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-navy-950/60">{formatDate(item.createdAt)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+        {data.items.map((item) => (
+          <li
+            key={item.id}
+            className="flex items-center gap-3 rounded-xl border border-navy-950/10 bg-white px-4 py-3 shadow-sm"
+          >
+            <div className="min-w-0 flex-1">
+              <a
+                href={`/bff/documents/${item.id}/content`}
+                className="block truncate font-semibold text-navy-950 hover:text-gold-700 hover:underline"
+                title={item.name}
+              >
+                {item.name}
+              </a>
+              <p className="truncate text-xs text-navy-950/60">
+                {item.customType ?? item.type} · {item.company.name} · {formatDate(item.createdAt)}
+              </p>
+            </div>
+            <StatusSeal status={item.status} />
+          </li>
+        ))}
+      </ul>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={save}
-          disabled={changed.length === 0 || saving}
-          className="rounded-lg bg-navy-950 px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {saving ? 'Salvando…' : 'SALVAR ALTERAÇÕES'}
-        </button>
-        {data.totalPages > 1 ? (
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              disabled={data.page <= 1}
-              onClick={() => void loadPage(data.page - 1)}
-              className="rounded-lg border border-navy-950/20 px-4 py-2 text-sm font-semibold text-navy-950 hover:border-gold-500 disabled:opacity-40"
-            >
-              Anterior
-            </button>
-            <span className="text-sm text-navy-950/60">
-              Página {data.page} de {data.totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={data.page >= data.totalPages}
-              onClick={() => void loadPage(data.page + 1)}
-              className="rounded-lg border border-navy-950/20 px-4 py-2 text-sm font-semibold text-navy-950 hover:border-gold-500 disabled:opacity-40"
-            >
-              Próxima
-            </button>
-          </div>
-        ) : null}
-      </div>
+      {data.totalPages > 1 ? (
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <button
+            type="button"
+            disabled={data.page <= 1}
+            onClick={() => void loadPage(data.page - 1)}
+            className="rounded-lg border border-navy-950/20 px-4 py-2 text-sm font-semibold text-navy-950 hover:border-gold-600 disabled:opacity-40"
+          >
+            Anterior
+          </button>
+          <span className="text-sm text-navy-950/60">
+            Página {data.page} de {data.totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={data.page >= data.totalPages}
+            onClick={() => void loadPage(data.page + 1)}
+            className="rounded-lg border border-navy-950/20 px-4 py-2 text-sm font-semibold text-navy-950 hover:border-gold-600 disabled:opacity-40"
+          >
+            Próxima
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

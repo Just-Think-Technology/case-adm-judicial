@@ -4,7 +4,7 @@ import type { PasswordCheck } from '@/lib/password-rules';
 // and the submit button stays disabled until every rule passes (§4.2).
 export function PasswordChecklist({ checks }: { checks: PasswordCheck[] }): React.ReactNode {
   return (
-    <ul aria-label="Requisitos da senha" className="mt-3 space-y-1.5 text-sm">
+    <ul aria-label="Requisitos da senha" className="mt-3 grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-2">
       {checks.map((check) => (
         <li key={check.id} className={check.passes ? 'text-navy-950' : 'text-navy-950/50'}>
           <span

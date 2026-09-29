@@ -30,10 +30,9 @@ export async function SiteHeader(): Promise<React.ReactNode> {
             <details className="relative">
               <summary
                 title="Abrir o menu da conta"
-                className="flex cursor-pointer list-none items-center gap-1.5 rounded-lg bg-navy-950 px-4 py-2 text-sm font-semibold text-white ring-gold-500 hover:bg-navy-800 hover:ring-2"
+                className="cursor-pointer list-none rounded-lg bg-navy-950 px-4 py-2 text-sm font-semibold text-white underline decoration-gold-500 decoration-2 underline-offset-4 hover:bg-navy-800 hover:ring-2 hover:ring-gold-500"
               >
                 {session.name}
-                <span aria-hidden className="text-xs text-gold-500">▾</span>
               </summary>
               <div className="absolute right-0 mt-2 w-44 rounded-lg border border-navy-950/10 bg-white p-1 shadow-lg">
                 <Link

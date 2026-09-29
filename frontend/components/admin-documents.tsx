@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { StatusSeal } from '@/components/status-seal';
 import { bffSend } from '@/lib/bff-client';
 import { notifyToast } from '@/lib/toast';
 import type { AdminDocument } from '@/lib/types';
+
+const STATUSES = ['Em análise', 'Deferido', 'Indeferido'] as const;
 
 // Admin document management on the company page (§4.8d): status, author, type
 // and visibility per row, with eye-toggle and delete — both confirmed, the
@@ -37,6 +38,17 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function setStatus(document: AdminDocument, status: string): Promise<void> {
+    const result = await bffSend('PATCH', `/bff/documents/${document.id}/status`, { status });
+    if (result.status === 200) {
+      notifyToast('success', `Documento '${document.name}' marcado como ${status}.`);
+      void load();
+    } else {
+      notifyToast('error', result.message);
+      void load();
+    }
+  }
 
   async function flipVisibility(): Promise<void> {
     if (!confirmingVisibility) return;
@@ -78,7 +90,7 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
     <section aria-label="Documentos" className="rounded-2xl border border-navy-950/10 bg-white p-5 shadow-sm sm:p-6">
       <h2 className="font-display text-xl font-semibold text-navy-950">Documentos</h2>
       <p className="mt-1 text-sm text-navy-950/60">
-        O status de cada documento é alterado em Documentos do cliente, na aba Clientes.
+        Troque o status ou a visibilidade direto aqui. A visão em lote fica em Documentos do cliente.
       </p>
       {failed ? (
         <p role="alert" className="mt-4 rounded-xl border border-navy-950/10 bg-white p-6 text-navy-950/70">
@@ -109,7 +121,27 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
                     {document.customType ?? document.type} · Adicionado por {document.uploadedBy}
                   </p>
                 </div>
-                <StatusSeal status={document.status} />
+                <label className="sr-only" htmlFor={`company-status-${document.id}`}>
+                  Status de {document.name}
+                </label>
+                <select
+                  id={`company-status-${document.id}`}
+                  value={document.status}
+                  onChange={(event) => void setStatus(document, event.target.value)}
+                  className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ring-1 focus:outline-none ${
+                    document.status === 'Deferido'
+                      ? 'bg-green-100 text-green-800 ring-green-200'
+                      : document.status === 'Indeferido'
+                        ? 'bg-red-100 text-red-800 ring-red-200'
+                        : 'bg-amber-100 text-amber-800 ring-amber-200'
+                  }`}
+                >
+                  {STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
                 <span
                   className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${
                     document.visibility === 'PUBLICO'

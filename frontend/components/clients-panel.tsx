@@ -145,12 +145,14 @@ export function ClientsPanel({ ownId }: { ownId: string }): React.ReactNode {
                     ) : null}
                   </div>
                 ) : null}
-                <Link
-                  href={`/clientes/${client.id}`}
-                  className="mt-4 rounded-lg bg-navy-950 px-4 py-2 text-center text-sm font-semibold tracking-wide text-white hover:bg-navy-800"
-                >
-                  ACESSAR
-                </Link>
+                <div className="mt-auto pt-4">
+                  <Link
+                    href={`/clientes/${client.id}`}
+                    className="block rounded-lg bg-navy-950 px-4 py-2 text-center text-sm font-semibold tracking-wide text-white hover:bg-navy-800"
+                  >
+                    ACESSAR
+                  </Link>
+                </div>
               </article>
             ))}
           </div>
