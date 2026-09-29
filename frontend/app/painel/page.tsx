@@ -1,9 +1,9 @@
 import { CompanyPanel } from '@/components/company-panel';
+import { BackButton } from '@/components/back-button';
 import { backendFetch } from '@/lib/backend';
 import { getSession } from '@/lib/session';
 import type { CompanyCard } from '@/lib/types';
 
-export const metadata = { title: 'Painel corporativo | Portal do Credor' };
 
 // Corporate panel (§4.7): RJ/Falência tabs for everyone, the Clientes tab and
 // the card management menu for administrators. Data loads server-side; an
@@ -21,7 +21,8 @@ export default async function PanelPage(): Promise<React.ReactNode> {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="font-display text-4xl font-semibold tracking-tight text-navy-950">Painel corporativo</h1>
+      <BackButton href="/" label="INÍCIO" />
+      <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight text-navy-950">Painel corporativo</h1>
       <p className="mt-2 text-navy-950/60">
         Processos de Recuperação Judicial e Falência, com os documentos públicos de cada empresa.
       </p>
@@ -31,7 +32,7 @@ export default async function PanelPage(): Promise<React.ReactNode> {
             Não foi possível carregar as empresas agora. Tente novamente em instantes.
           </p>
         ) : (
-          <CompanyPanel companies={companies} isAdmin={isAdmin} ownId={session?.id ?? ''} />
+          <CompanyPanel companies={companies} isAdmin={isAdmin} />
         )}
       </div>
     </div>

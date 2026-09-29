@@ -75,8 +75,11 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
   }
 
   return (
-    <section aria-label="Documentos">
+    <section aria-label="Documentos" className="rounded-2xl border border-navy-950/10 bg-white p-5 shadow-sm sm:p-6">
       <h2 className="font-display text-xl font-semibold text-navy-950">Documentos</h2>
+      <p className="mt-1 text-sm text-navy-950/60">
+        O status de cada documento é alterado em Documentos do cliente, na aba Clientes.
+      </p>
       {failed ? (
         <p role="alert" className="mt-4 rounded-xl border border-navy-950/10 bg-white p-6 text-navy-950/70">
           Não foi possível carregar os documentos agora. Tente novamente em instantes.

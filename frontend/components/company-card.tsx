@@ -35,12 +35,12 @@ export function CompanyCard({
   return (
     <article
       data-testid="company-card"
-      className="relative flex flex-col rounded-xl border border-navy-950/10 bg-white p-5 shadow-sm transition hover:shadow-md"
+      className="relative flex flex-col rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm transition hover:shadow-md"
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-4">
         <span
           aria-hidden
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isRJ ? 'bg-navy-950 text-gold-500' : 'bg-gold-100 text-gold-700'}`}
+          className={`mt-0.5 shrink-0 ${isRJ ? 'text-gold-700' : 'text-navy-800'}`}
         >
           {isRJ ? <BuildingIcon /> : <AlertIcon />}
         </span>
@@ -48,10 +48,10 @@ export function CompanyCard({
           <p className="text-[11px] font-bold tracking-[0.14em] text-gold-700 uppercase">
             {company.nature}
           </p>
-          <h3 className="font-display truncate text-lg leading-snug font-semibold text-navy-950" title={company.name}>
+          <h3 className="font-display mt-1 line-clamp-2 text-xl leading-snug font-semibold text-navy-950" title={company.name}>
             {company.name}
           </h3>
-          <p className="text-sm text-navy-950/60 tabular-nums">{company.processNumber}</p>
+          <p className="mt-1 text-sm text-navy-950/60 tabular-nums">{company.processNumber}</p>
         </div>
         {isAdmin ? (
           <details className="relative shrink-0">
@@ -79,7 +79,7 @@ export function CompanyCard({
       <p className="mt-3 text-xs text-navy-950/50">Cadastrada em {formatDate(company.createdAt)}</p>
       <Link
         href={`/empresas/${company.id}`}
-        className="mt-4 rounded-lg bg-navy-950 px-4 py-2 text-center text-sm font-semibold tracking-wide text-white hover:bg-navy-800"
+        className="mt-4 rounded-lg bg-navy-950 px-4 py-2.5 text-center text-sm font-semibold tracking-wide text-white hover:bg-navy-800"
       >
         ACESSAR
       </Link>
@@ -99,7 +99,7 @@ export function CompanyCard({
 
 function BuildingIcon(): React.ReactNode {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+    <svg width="30" height="30" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
       <rect x="4" y="3" width="12" height="14" rx="1" />
       <path d="M7.5 6.5h1.5M11 6.5h1.5M7.5 9.5h1.5M11 9.5h1.5M7.5 12.5h1.5M11 12.5h1.5M9 17v-2h2v2" />
     </svg>
@@ -108,7 +108,7 @@ function BuildingIcon(): React.ReactNode {
 
 function AlertIcon(): React.ReactNode {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+    <svg width="30" height="30" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
       <path d="M10 2.5 17.5 15.5h-15L10 2.5Z" strokeLinejoin="round" />
       <path d="M10 7.5v3.5M10 13.2v.1" strokeLinecap="round" />
     </svg>

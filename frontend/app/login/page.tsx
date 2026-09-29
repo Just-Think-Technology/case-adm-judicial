@@ -1,6 +1,5 @@
 import { LoginForm } from '@/components/login-form';
 
-export const metadata = { title: 'Entrar | Portal do Credor' };
 
 // Carries arrival confirmations: post-signup (§4.2) and post-reset (§4.5) land
 // here with the message waiting as a toast.

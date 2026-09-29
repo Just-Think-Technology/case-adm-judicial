@@ -28,13 +28,16 @@ const COMPANIES: CompanyCardData[] = [
 ];
 
 describe('CompanyPanel', () => {
-  it('starts on Recuperação Judicial showing only RJ companies', () => {
+  it('starts on Todas, sorted A-Z across natures', () => {
     render(<CompanyPanel companies={COMPANIES} />);
-    expect(screen.getByText('Alvorada Alimentos Ltda')).toBeInTheDocument();
-    expect(screen.queryByText('Pantanal Transportes SA')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 3 }).map((node) => node.textContent)).toEqual([
+      'Alvorada Alimentos Ltda',
+      'Beta Construtora RJ Ltda',
+      'Pantanal Transportes SA',
+    ]);
   });
 
-  it('switches tabs to Falência', () => {
+  it('filters by nature tab', () => {
     render(<CompanyPanel companies={COMPANIES} />);
     fireEvent.click(screen.getByRole('tab', { name: 'Falência' }));
     expect(screen.getByText('Pantanal Transportes SA')).toBeInTheDocument();
@@ -47,10 +50,6 @@ describe('CompanyPanel', () => {
       target: { value: 'alvorada' },
     });
     expect(screen.getByText('Alvorada Alimentos Ltda')).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText(/buscar por empresa ou processo/i), {
-      target: { value: '1001234' },
-    });
-    expect(screen.getByText('Alvorada Alimentos Ltda')).toBeInTheDocument();
   });
 
   it('shows the retry hint when the search matches nothing', () => {
@@ -61,45 +60,36 @@ describe('CompanyPanel', () => {
     expect(screen.getByText(/tente buscar por outro termo/i)).toBeInTheDocument();
   });
 
-  it('sorts by name A-Z and Z-A', () => {
+  it('sorts by name Z-A', () => {
     render(<CompanyPanel companies={COMPANIES} />);
-    const names = () => screen.getAllByRole('heading', { level: 3 }).map((node) => node.textContent);
-    expect(names()).toEqual(['Alvorada Alimentos Ltda', 'Beta Construtora RJ Ltda']);
     fireEvent.change(screen.getByLabelText('Ordenar por nome'), { target: { value: 'za' } });
-    expect(names()).toEqual(['Beta Construtora RJ Ltda', 'Alvorada Alimentos Ltda']);
+    expect(screen.getAllByRole('heading', { level: 3 }).map((node) => node.textContent)).toEqual([
+      'Pantanal Transportes SA',
+      'Beta Construtora RJ Ltda',
+      'Alvorada Alimentos Ltda',
+    ]);
   });
 
   it('sorts by newest and oldest creation date', () => {
     render(<CompanyPanel companies={COMPANIES} />);
     const names = () => screen.getAllByRole('heading', { level: 3 }).map((node) => node.textContent);
     fireEvent.change(screen.getByLabelText('Ordenar por data de criação'), { target: { value: 'old' } });
-    expect(names()).toEqual(['Beta Construtora RJ Ltda', 'Alvorada Alimentos Ltda']);
+    expect(names()[0]).toBe('Beta Construtora RJ Ltda');
     fireEvent.change(screen.getByLabelText('Ordenar por data de criação'), { target: { value: 'new' } });
-    expect(names()).toEqual(['Alvorada Alimentos Ltda', 'Beta Construtora RJ Ltda']);
+    expect(names()[0]).toBe('Pantanal Transportes SA');
   });
 
-  it('touching one sort resets the other', () => {
+  it('touching one sort moves the other back to its caption', () => {
     render(<CompanyPanel companies={COMPANIES} />);
     fireEvent.change(screen.getByLabelText('Ordenar por nome'), { target: { value: 'za' } });
     fireEvent.change(screen.getByLabelText('Ordenar por data de criação'), { target: { value: 'new' } });
-    expect((screen.getByLabelText('Ordenar por nome') as HTMLSelectElement).value).toBe('all');
+    expect((screen.getByLabelText('Ordenar por nome') as HTMLSelectElement).value).toBe('');
   });
 
-  it('shows the per-tab empty state without search', () => {
+  it('shows the short empty state per tab without search', () => {
     render(<CompanyPanel companies={[]} />);
-    expect(screen.getByText(/nenhuma empresa de recuperação judicial/i)).toBeInTheDocument();
+    expect(screen.getByText(/nenhuma empresa cadastrada ainda/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'Falência' }));
     expect(screen.getByText(/nenhuma empresa em falência/i)).toBeInTheDocument();
-  });
-
-  it('offers the Clientes tab to administrators', async () => {
-    render(<CompanyPanel companies={COMPANIES} isAdmin ownId="u-admin" />);
-    fireEvent.click(screen.getByRole('tab', { name: 'Clientes' }));
-    expect(await screen.findByText(/não foi possível carregar os clientes/i)).toBeInTheDocument();
-  });
-
-  it('hides the Clientes tab from visitors', () => {
-    render(<CompanyPanel companies={COMPANIES} />);
-    expect(screen.queryByRole('tab', { name: 'Clientes' })).not.toBeInTheDocument();
   });
 });

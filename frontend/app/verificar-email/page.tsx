@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { AuthCard } from '@/components/auth-card';
 import { backendFetch } from '@/lib/backend';
 
-export const metadata = { title: 'Verificar e-mail | Portal do Credor' };
 
 // Landing of the mailed confirmation link (§4.3): valid links confirm the
 // account and point at login, anything else explains the link is not valid.

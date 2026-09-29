@@ -10,7 +10,7 @@ const display = Jost({ subsets: ['latin'], weight: ['500', '600', '700'], variab
 const body = Open_Sans({ subsets: ['latin'], weight: ['400', '600', '700'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'Portal do Credor | Case Administração Judicial',
+  title: 'Portal do Credor',
   description:
     'Envio e acompanhamento de documentos para processos de Recuperação Judicial e Falência.',
   icons: { icon: '/img/favicon.png' },

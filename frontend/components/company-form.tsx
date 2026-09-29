@@ -67,51 +67,70 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
   }
 
   return (
-    <form onSubmit={submit} className="mt-6 rounded-xl border border-navy-950/10 bg-white p-6 shadow-sm">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-semibold text-navy-950">
-          Nome da empresa
-          <input value={values.name} maxLength={300} onChange={(event) => set('name', event.target.value)} className={inputClass} />
-        </label>
-        <label className="block text-sm font-semibold text-navy-950">
-          Administrador Judicial
-          <input value={values.judicialAdmin} maxLength={300} onChange={(event) => set('judicialAdmin', event.target.value)} className={inputClass} />
-        </label>
-        <label className="block text-sm font-semibold text-navy-950">
-          Juiz de direito
-          <input value={values.judge} maxLength={300} onChange={(event) => set('judge', event.target.value)} className={inputClass} />
-        </label>
-        <label className="block text-sm font-semibold text-navy-950">
-          Natureza
-          <select value={values.nature} onChange={(event) => set('nature', event.target.value)} className={inputClass}>
-            {NATURES.map((nature) => (
-              <option key={nature} value={nature}>
-                {nature}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm font-semibold text-navy-950">
-          Número do processo
-          <input value={values.processNumber} maxLength={50} onChange={(event) => set('processNumber', event.target.value)} className={inputClass} />
-        </label>
-        <label className="block text-sm font-semibold text-navy-950">
-          Protocolo
-          <input type="date" value={values.protocolDate} onChange={(event) => set('protocolDate', event.target.value)} className={inputClass} />
-        </label>
-        <label className="block text-sm font-semibold text-navy-950">
-          Autor
-          <input value={values.author} maxLength={300} onChange={(event) => set('author', event.target.value)} className={inputClass} />
-        </label>
-        <label className="block text-sm font-semibold text-navy-950">
-          Comarca / Escrivania
-          <input value={values.comarca} maxLength={300} onChange={(event) => set('comarca', event.target.value)} className={inputClass} />
-        </label>
-        <label className="block text-sm font-semibold text-navy-950 sm:col-span-2">
-          Observações
-          <textarea value={values.observations} maxLength={300} rows={3} onChange={(event) => set('observations', event.target.value)} className={inputClass} />
-        </label>
-      </div>
+    <form onSubmit={submit} className="mt-6 space-y-6">
+      <fieldset className="rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm sm:p-8">
+        <legend className="px-2 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
+          Do processo
+        </legend>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="block text-sm font-semibold text-navy-950 sm:col-span-2">
+            Nome da empresa
+            <input value={values.name} maxLength={300} onChange={(event) => set('name', event.target.value)} className={inputClass} />
+          </label>
+          <label className="block text-sm font-semibold text-navy-950">
+            Natureza
+            <select value={values.nature} onChange={(event) => set('nature', event.target.value)} className={inputClass}>
+              {NATURES.map((nature) => (
+                <option key={nature} value={nature}>
+                  {nature}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm font-semibold text-navy-950">
+            Número do processo
+            <input value={values.processNumber} maxLength={50} onChange={(event) => set('processNumber', event.target.value)} className={inputClass} />
+          </label>
+          <label className="block text-sm font-semibold text-navy-950">
+            Protocolo
+            <input type="date" value={values.protocolDate} onChange={(event) => set('protocolDate', event.target.value)} className={inputClass} />
+          </label>
+          <label className="block text-sm font-semibold text-navy-950">
+            Autor
+            <input value={values.author} maxLength={300} onChange={(event) => set('author', event.target.value)} className={inputClass} />
+          </label>
+        </div>
+      </fieldset>
+      <fieldset className="rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm sm:p-8">
+        <legend className="px-2 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
+          Das partes
+        </legend>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="block text-sm font-semibold text-navy-950">
+            Administrador Judicial
+            <input value={values.judicialAdmin} maxLength={300} onChange={(event) => set('judicialAdmin', event.target.value)} className={inputClass} />
+          </label>
+          <label className="block text-sm font-semibold text-navy-950">
+            Juiz de direito
+            <input value={values.judge} maxLength={300} onChange={(event) => set('judge', event.target.value)} className={inputClass} />
+          </label>
+        </div>
+      </fieldset>
+      <fieldset className="rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm sm:p-8">
+        <legend className="px-2 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
+          Do juízo
+        </legend>
+        <div className="grid gap-5">
+          <label className="block text-sm font-semibold text-navy-950">
+            Comarca / Escrivania
+            <input value={values.comarca} maxLength={300} onChange={(event) => set('comarca', event.target.value)} className={inputClass} />
+          </label>
+          <label className="block text-sm font-semibold text-navy-950">
+            Observações
+            <textarea value={values.observations} maxLength={300} rows={4} onChange={(event) => set('observations', event.target.value)} className={inputClass} />
+          </label>
+        </div>
+      </fieldset>
       {saved ? (
         <p className="mt-4 text-sm">
           <Link href="/painel" className="font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-700">

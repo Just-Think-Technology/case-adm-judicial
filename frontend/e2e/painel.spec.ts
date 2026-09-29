@@ -12,14 +12,17 @@ test.describe('corporate panel', () => {
     await setStubFailure(request, { failCompanies: false });
   });
 
-  test('lists RJ companies first and switches to Falência', async ({ page }) => {
+  test('lists every company first and filters by nature', async ({ page }) => {
     await page.goto('/painel');
     await expect(page.getByRole('heading', { name: /painel corporativo/i })).toBeVisible();
     await expect(page.getByText('Alvorada Alimentos Ltda')).toBeVisible();
-    await expect(page.getByText('Pantanal Transportes SA')).not.toBeVisible();
+    await expect(page.getByText('Pantanal Transportes SA')).toBeVisible();
     await page.getByRole('tab', { name: 'Falência' }).click();
     await expect(page.getByText('Pantanal Transportes SA')).toBeVisible();
     await expect(page.getByText('Alvorada Alimentos Ltda')).not.toBeVisible();
+    await page.getByRole('tab', { name: 'Recuperação Judicial' }).click();
+    await expect(page.getByText('Alvorada Alimentos Ltda')).toBeVisible();
+    await expect(page.getByText('Pantanal Transportes SA')).not.toBeVisible();
   });
 
   test('searches instantly by name and process number', async ({ page }) => {
@@ -48,6 +51,7 @@ test.describe('corporate panel', () => {
 
   test('opens the company page from ACESSAR', async ({ page }) => {
     await page.goto('/painel');
+    await page.getByRole('tab', { name: 'Recuperação Judicial' }).click();
     await page.getByRole('link', { name: 'ACESSAR' }).first().click();
     await expect(page).toHaveURL(/\/empresas\/c1$/);
     await expect(page.getByRole('heading', { name: 'Alvorada Alimentos Ltda' })).toBeVisible();
