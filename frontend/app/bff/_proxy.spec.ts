@@ -66,7 +66,7 @@ describe('proxyBackend', () => {
       }),
     );
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('http://localhost:3000/api/auth/login');
+    expect(url).toBe('http://localhost:3000/auth/login');
     const forwarded = init.headers as Headers;
     expect(forwarded.get('x-csrf-token')).toBe('csrf-123');
     expect(forwarded.get('x-forwarded-for')).toBe('203.0.113.7');

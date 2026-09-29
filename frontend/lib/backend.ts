@@ -6,8 +6,10 @@ import 'server-only';
 const BACKEND_URL = process.env.BACKEND_INTERNAL_URL ?? 'http://localhost:3000';
 
 export function backendUrl(path: string): string {
+  // Server-to-server: no gateway in between, so no /api prefix — controllers
+  // own their full paths and the edge strips the prefix where it applies.
   const normalized = path.startsWith('/') ? path : `/${path}`;
-  return `${BACKEND_URL}/api${normalized}`;
+  return `${BACKEND_URL}${normalized}`;
 }
 
 interface ForwardOptions {

@@ -50,10 +50,11 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      // In local dev without Caddy, proxy /api to backend directly
+      // In local dev without Caddy, proxy /api to backend directly — the
+      // prefix is stripped like the gateway does, controllers are prefix-less.
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*',
+        destination: 'http://localhost:3000/:path*',
       },
     ];
   },
