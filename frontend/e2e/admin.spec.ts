@@ -114,7 +114,7 @@ test.describe('admin company documents', () => {
     await page.getByRole('button', { name: /tornar privado/i }).click();
     await expect(page.getByRole('alertdialog')).toContainText('restringir');
     await page.getByRole('button', { name: 'Confirmar' }).click();
-    await expect(page.getByRole('status')).toContainText('agora é privado');
+    await expect(page.getByRole('status').filter({ hasText: 'agora é privado' })).toBeVisible();
     await expect(page.getByRole('button', { name: /tornar público: petição inicial/i })).toBeVisible();
     await page.getByRole('button', { name: /excluir lista de credores/i }).click();
     await expect(page.getByRole('alertdialog')).toContainText('não pode ser desfeita');

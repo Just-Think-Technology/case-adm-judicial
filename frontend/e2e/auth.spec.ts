@@ -83,10 +83,10 @@ test.describe('recovery', () => {
     await page.goto('/esqueci-senha');
     await page.getByLabel('E-mail').fill('credor@case.com');
     await page.getByRole('button', { name: /enviar link/i }).click();
-    await expect(page.getByRole('status')).toContainText(/redefinição enviado/i);
+    await expect(page.getByRole('status').filter({ hasText: /redefinição enviado/i })).toBeVisible();
     await page.getByLabel('E-mail').fill('ninguem@case.com');
     await page.getByRole('button', { name: /enviar link/i }).click();
-    await expect(page.getByRole('status')).toContainText(/não foi encontrado usuário/i);
+    await expect(page.getByRole('status').filter({ hasText: /não foi encontrado usuário/i })).toBeVisible();
   });
 
   test('valid reset links show the readonly address and finish at login', async ({ page }) => {

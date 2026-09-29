@@ -67,6 +67,17 @@ const documents = {
   c2: [],
 };
 
+// PATCH /documents/:id/(status|visibility) persists like the real backend,
+// so each test starts from this snapshot — cross-test leakage would fake
+// passes in later files (the suite shares one stub process).
+const PRISTINE_DOCUMENTS = structuredClone(documents);
+
+function resetDocuments() {
+  for (const key of Object.keys(documents)) {
+    documents[key] = structuredClone(PRISTINE_DOCUMENTS[key]);
+  }
+}
+
 const stubClients = [
   {
     id: 'u1',
@@ -158,6 +169,7 @@ const server = http.createServer(async (req, res) => {
         if (typeof body.failCompanies === 'boolean') state.failCompanies = body.failCompanies;
         if (typeof body.failDocuments === 'boolean') state.failDocuments = body.failDocuments;
         if (typeof body.failUpload === 'boolean') state.failUpload = body.failUpload;
+        if (body.resetDocuments === true) resetDocuments();
       } catch {
         // Malformed control payloads keep the previous state on purpose.
       }

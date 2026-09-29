@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { notifyToast } from '@/lib/toast';
 
 const DOCUMENT_TYPES = [
@@ -43,31 +44,22 @@ const fieldClass =
   'mt-1.5 w-full rounded-lg border border-navy-950/15 bg-white px-3 py-2.5 text-navy-950 focus:border-gold-600 focus:outline-none';
 
 // Multi-document upload (§4.9): the company arrives fixed from the page of
-// origin. Quantity adds forms, Enviar Todos ships them three at a time with
-// per-document status, failures stay on screen for a new attempt, and full
-// success clears the forms.
+// origin. One form is always present, Novo documento adds more, Enviar Todos
+// ships them three at a time with per-document status. Failures stay on
+// screen for a new attempt; full success returns to the company page.
 export function UploadWizard({ companyId, companyName }: { companyId: string; companyName: string }): React.ReactNode {
-  const [quantity, setQuantity] = useState('1');
-  const [forms, setForms] = useState<UploadForm[]>([]);
+  const router = useRouter();
+  const keyCounter = useRef(1);
+  const [forms, setForms] = useState<UploadForm[]>(() => [BLANK(1)]);
   const [sendingAll, setSendingAll] = useState(false);
-  const [finished, setFinished] = useState(false);
-  const keyCounter = useRef(0);
 
   const patch = (key: number, update: Partial<UploadForm>): void => {
     setForms((current) => current.map((form) => (form.key === key ? { ...form, ...update } : form)));
   };
 
-  function addForms(): void {
-    const count = Math.max(1, Math.floor(Number(quantity) || 1));
-    setForms((current) => {
-      const next = [...current];
-      for (let index = 0; index < count; index += 1) {
-        keyCounter.current += 1;
-        next.push(BLANK(keyCounter.current));
-      }
-      return next;
-    });
-    setFinished(false);
+  function addForm(): void {
+    keyCounter.current += 1;
+    setForms((current) => [...current, BLANK(keyCounter.current)]);
   }
 
   function formError(form: UploadForm): string {
@@ -143,9 +135,8 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
     await Promise.all(workers);
     setSendingAll(false);
     if (succeeded === total) {
-      setForms([]);
-      setFinished(true);
       notifyToast('success', `Concluído: ${succeeded} de ${total} documentos enviados com sucesso!`);
+      router.push(`/empresas/${encodeURIComponent(companyId)}`);
     } else {
       notifyToast(
         'error',
@@ -166,38 +157,18 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
         Empresa: <strong className="text-navy-950">{companyName}</strong>
       </p>
 
-      <section aria-label="Quantidade" className="mt-8 rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm">
-        <h2 className="font-display text-lg font-semibold text-navy-950">
-          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-navy-950 text-xs font-bold text-gold-500">1</span>
-          Quantos documentos vai enviar?
-        </h2>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <input
-            id="upload-quantity"
-            aria-label="Quantidade de documentos"
-            type="number"
-            min={1}
-            value={quantity}
-            onChange={(event) => setQuantity(event.target.value)}
-            className="w-24 rounded-lg border border-navy-950/15 px-3 py-2.5 text-center text-navy-950 focus:border-gold-600 focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={addForms}
-            className="rounded-lg border border-navy-950/20 px-5 py-2.5 text-sm font-semibold text-navy-950 hover:border-gold-600"
-          >
-            Adicionar
-          </button>
-        </div>
-      </section>
+      <div className="mt-8 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={addForm}
+          className="rounded-lg border border-navy-950/20 px-5 py-2.5 text-sm font-semibold text-navy-950 hover:border-gold-600"
+        >
+          Novo documento
+        </button>
+      </div>
 
-      {forms.length > 0 ? (
-        <section aria-label="Documentos" className="mt-6">
-          <h2 className="font-display text-lg font-semibold text-navy-950">
-            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-navy-950 text-xs font-bold text-gold-500">2</span>
-            Preencha cada documento
-          </h2>
-          <div className="mt-4 space-y-5">
+      <section aria-label="Documentos" className="mt-6">
+        <div className="mt-4 space-y-5">
             {forms.map((form, index) => (
               <article
                 key={form.key}
@@ -344,30 +315,15 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
             ))}
           </div>
 
-          <div className="mt-6 rounded-2xl bg-navy-950 p-6 sm:p-7">
-            <h2 className="font-display text-lg font-semibold text-white">
-              <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-navy-950">3</span>
-              Conferiu tudo? Envie
-            </h2>
-            <button
-              type="button"
-              onClick={sendAll}
-              disabled={sendingAll}
-              className="mt-4 w-full rounded-lg bg-gold-500 px-4 py-3 text-sm font-bold tracking-wide text-navy-950 hover:bg-gold-600 disabled:opacity-40 sm:w-auto sm:px-10"
-            >
-              {sendingAll ? 'Enviando…' : 'ENVIAR TODOS'}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={sendAll}
+            disabled={sendingAll}
+            className="mt-6 w-full rounded-lg bg-navy-950 px-4 py-3 text-sm font-bold tracking-wide text-white hover:bg-navy-800 disabled:opacity-40 sm:w-auto sm:px-10"
+          >
+            {sendingAll ? 'Enviando…' : 'ENVIAR TODOS'}
+          </button>
         </section>
-      ) : null}
-
-      {finished ? (
-        <p className="mt-6 text-center text-sm">
-          <Link href={`/empresas/${companyId}`} className="font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-700">
-            Voltar à empresa
-          </Link>
-        </p>
-      ) : null}
     </div>
   );
 }

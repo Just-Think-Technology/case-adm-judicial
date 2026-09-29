@@ -47,11 +47,6 @@ export function CompanyCard({
       data-testid="company-card"
       className="group relative flex flex-col rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm transition hover:border-gold-500/40 hover:shadow-lg"
     >
-      <Link
-        href={`/empresas/${company.id}`}
-        aria-label={`Acessar processo de ${company.name}`}
-        className="absolute inset-0 rounded-2xl"
-      />
       <div className="relative flex items-start gap-4">
         <span
           aria-hidden
@@ -106,10 +101,16 @@ export function CompanyCard({
         <p className="min-w-0 truncate text-xs text-navy-950/50" title={`Cadastrada em ${formatDate(company.createdAt)}`}>
           Atualizado {formatRelative(company.updatedAt)}
         </p>
-        <span aria-hidden className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-navy-950 transition group-hover:text-gold-700">
-          Acessar processo
-          <span className="inline-block transition group-hover:translate-x-1">→</span>
-        </span>
+        <Link
+          href={`/empresas/${company.id}`}
+          aria-label={`Acessar processo de ${company.name}`}
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-navy-950 transition after:absolute after:inset-0 after:rounded-2xl after:content-[''] group-hover:text-gold-700"
+        >
+          <span aria-hidden className="inline-flex items-center gap-1">
+            Acessar processo
+            <span className="inline-block transition group-hover:translate-x-1">→</span>
+          </span>
+        </Link>
       </div>
       {confirming ? (
         <ConfirmDialog

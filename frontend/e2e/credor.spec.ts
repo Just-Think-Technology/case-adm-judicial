@@ -14,7 +14,7 @@ async function control(request: APIRequestContext, body: unknown): Promise<void>
 
 test.describe('creditor documents', () => {
   test.beforeEach(async ({ request }) => {
-    await control(request, { failUpload: false });
+    await control(request, { failUpload: false, resetDocuments: true });
   });
 
   test('filters by scope with status on the creditor documents', async ({ page }) => {
