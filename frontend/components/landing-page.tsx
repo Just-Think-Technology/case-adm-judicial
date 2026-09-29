@@ -12,7 +12,7 @@ const CREDITOR_TASKS = [
   'Enviar documentos de forma rápida e segura',
   'Acompanhar o andamento das suas solicitações',
   'Manter seus dados atualizados junto à Administração Judicial',
-  'Habilitar-se para participar da Assembleia Geral de Credores (AGC)',
+  'Habilitar-se para a Assembleia Geral de Credores (AGC)',
 ] as const;
 
 // Visitor variant of the presentation page (§4.1): thesis first — the cases
@@ -102,7 +102,7 @@ export function LandingPage({ featured }: { featured?: FeaturedCase }): React.Re
               >
                 ✓
               </span>
-              <span className="text-[17px] leading-relaxed font-medium text-navy-950/85">{task}</span>
+              <span className="text-base leading-relaxed font-medium text-navy-950/85">{task}</span>
             </li>
           ))}
         </ul>

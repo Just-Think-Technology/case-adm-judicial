@@ -24,6 +24,13 @@ const companies = [
     processNumber: '1009876-11.2025.8.11.0002',
     createdAt: '2026-09-21T12:00:00.000Z',
   },
+  {
+    id: 'c3',
+    name: 'Aruana Logística Ltda',
+    nature: 'Falência',
+    processNumber: '1003333-44.2024.8.11.0003',
+    createdAt: '2024-02-11T12:00:00.000Z',
+  },
 ];
 
 const details = {

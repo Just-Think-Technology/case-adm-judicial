@@ -18,6 +18,13 @@ const COMPANIES: CompanyCardData[] = [
     processNumber: '1009876-11.2025.8.11.0002',
     createdAt: '2026-09-21T12:00:00.000Z',
   },
+  {
+    id: 'c3',
+    name: 'Beta Construtora RJ Ltda',
+    nature: 'Recuperação Judicial',
+    processNumber: '1005555-11.2024.8.11.0003',
+    createdAt: '2024-03-10T12:00:00.000Z',
+  },
 ];
 
 describe('CompanyPanel', () => {
@@ -52,6 +59,30 @@ describe('CompanyPanel', () => {
       target: { value: 'inexistente' },
     });
     expect(screen.getByText(/tente buscar por outro termo/i)).toBeInTheDocument();
+  });
+
+  it('sorts by name A-Z and Z-A', () => {
+    render(<CompanyPanel companies={COMPANIES} />);
+    const names = () => screen.getAllByRole('heading', { level: 3 }).map((node) => node.textContent);
+    expect(names()).toEqual(['Alvorada Alimentos Ltda', 'Beta Construtora RJ Ltda']);
+    fireEvent.change(screen.getByLabelText('Ordenar por nome'), { target: { value: 'za' } });
+    expect(names()).toEqual(['Beta Construtora RJ Ltda', 'Alvorada Alimentos Ltda']);
+  });
+
+  it('sorts by newest and oldest creation date', () => {
+    render(<CompanyPanel companies={COMPANIES} />);
+    const names = () => screen.getAllByRole('heading', { level: 3 }).map((node) => node.textContent);
+    fireEvent.change(screen.getByLabelText('Ordenar por data de criação'), { target: { value: 'old' } });
+    expect(names()).toEqual(['Beta Construtora RJ Ltda', 'Alvorada Alimentos Ltda']);
+    fireEvent.change(screen.getByLabelText('Ordenar por data de criação'), { target: { value: 'new' } });
+    expect(names()).toEqual(['Alvorada Alimentos Ltda', 'Beta Construtora RJ Ltda']);
+  });
+
+  it('touching one sort resets the other', () => {
+    render(<CompanyPanel companies={COMPANIES} />);
+    fireEvent.change(screen.getByLabelText('Ordenar por nome'), { target: { value: 'za' } });
+    fireEvent.change(screen.getByLabelText('Ordenar por data de criação'), { target: { value: 'new' } });
+    expect((screen.getByLabelText('Ordenar por nome') as HTMLSelectElement).value).toBe('all');
   });
 
   it('shows the per-tab empty state without search', () => {

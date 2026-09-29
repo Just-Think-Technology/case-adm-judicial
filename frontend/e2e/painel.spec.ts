@@ -33,6 +33,19 @@ test.describe('corporate panel', () => {
     await expect(page.getByText(/tente buscar por outro termo/i)).toBeVisible();
   });
 
+  test('sorts by name and by creation date', async ({ page }) => {
+    await page.goto('/painel');
+    await page.getByRole('tab', { name: 'Falência' }).click();
+    const cards = page.getByTestId('company-card');
+    await expect(cards.nth(0)).toContainText('Pantanal Transportes SA');
+    await page.getByLabel('Ordenar por nome').selectOption('az');
+    await expect(cards.nth(0)).toContainText('Aruana Logística Ltda');
+    await page.getByLabel('Ordenar por data de criação').selectOption('old');
+    await expect(cards.nth(0)).toContainText('Aruana Logística Ltda');
+    await page.getByLabel('Ordenar por data de criação').selectOption('new');
+    await expect(cards.nth(0)).toContainText('Pantanal Transportes SA');
+  });
+
   test('opens the company page from ACESSAR', async ({ page }) => {
     await page.goto('/painel');
     await page.getByRole('link', { name: 'ACESSAR' }).first().click();
