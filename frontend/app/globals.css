@@ -19,3 +19,24 @@
 body {
   background-color: var(--color-paper-50);
 }
+
+/* One smooth hover language for every link and button — quiet, 200ms, and
+   fully off for reduced-motion users. */
+a,
+button,
+summary {
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    opacity 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a,
+  button,
+  summary {
+    transition: none;
+  }
+}
