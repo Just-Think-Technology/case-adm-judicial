@@ -63,7 +63,7 @@ test.describe('login', () => {
     await expect(page).toHaveURL(/\/painel$/);
     await page.getByRole('banner').getByText('Credor Teste').click();
     await page.getByRole('button', { name: 'Sair' }).click();
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
   });
 

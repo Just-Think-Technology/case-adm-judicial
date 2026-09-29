@@ -90,16 +90,13 @@ export function CompanyPanel({
             Nome
             <select
               aria-label="Ordenar por nome"
-              value={priority.includes('name') ? nameDir : ''}
+              value={nameDir}
               onChange={(event) => {
                 setNameDir(event.target.value as 'az' | 'za');
                 touch('name');
               }}
               className="rounded-lg border border-navy-950/15 bg-white px-2 py-2 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
             >
-              <option value="" disabled>
-                Nome…
-              </option>
               <option value="az">A–Z</option>
               <option value="za">Z–A</option>
             </select>

@@ -72,7 +72,7 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section aria-label="Nome e e-mail" className="h-fit rounded-xl border border-navy-950/10 bg-white p-6 shadow-sm">
+      <section aria-label="Nome e e-mail" className="h-fit rounded-xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm">
         <h2 className="font-display text-xl font-semibold text-navy-950">Nome e e-mail</h2>
         <form onSubmit={saveProfile} className="mt-4 space-y-4">
           <div>
@@ -110,7 +110,7 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
         </form>
       </section>
 
-      <section aria-label="Senha" className="h-fit rounded-xl border border-navy-950/10 bg-white p-6 shadow-sm">
+      <section aria-label="Senha" className="h-fit rounded-xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm">
         <div className="flex items-center gap-2">
           <h2 className="font-display text-xl font-semibold text-navy-950">Senha</h2>
           <details className="relative">

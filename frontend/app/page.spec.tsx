@@ -31,20 +31,4 @@ describe('LandingPage', () => {
     render(<LandingPage />);
     expect(screen.queryByText('(65) 3358-4126')).not.toBeInTheDocument();
   });
-
-  it('features a live case when one exists', () => {
-    render(
-      <LandingPage
-        featured={{
-          id: 'c1',
-          name: 'Alvorada Alimentos Ltda',
-          processNumber: '1001234-56.2026.8.11.0001',
-          nature: 'Recuperação Judicial',
-          documentCount: 2,
-        }}
-      />,
-    );
-    expect(screen.getByText('Processo em destaque')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /abrir o processo/i })).toHaveAttribute('href', '/empresas/c1');
-  });
 });

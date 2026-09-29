@@ -16,15 +16,6 @@ test.describe('landing page', () => {
     await expect(main.getByRole('link', { name: /criar cadastro/i })).toHaveAttribute('href', '/cadastro');
   });
 
-  test('features a live case beside the headline', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByText('Processo em destaque')).toBeVisible();
-    await expect(page.getByRole('link', { name: /abrir o processo/i })).toHaveAttribute(
-      'href',
-      '/empresas/c1',
-    );
-  });
-
   test('keeps contact only in the footer', async ({ page }) => {
     await page.goto('/');
     const footer = page.locator('footer');

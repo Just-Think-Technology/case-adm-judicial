@@ -68,7 +68,7 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
 
   return (
     <form onSubmit={submit} className="mt-6 space-y-6">
-      <fieldset className="rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm sm:p-8">
+      <fieldset className="rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm sm:p-8">
         <legend className="px-2 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
           Do processo
         </legend>
@@ -101,7 +101,7 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
           </label>
         </div>
       </fieldset>
-      <fieldset className="rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm sm:p-8">
+      <fieldset className="rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm sm:p-8">
         <legend className="px-2 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
           Das partes
         </legend>
@@ -116,7 +116,7 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
           </label>
         </div>
       </fieldset>
-      <fieldset className="rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm sm:p-8">
+      <fieldset className="rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm sm:p-8">
         <legend className="px-2 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
           Do juízo
         </legend>

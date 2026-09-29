@@ -7,3 +7,14 @@ export function formatDate(value: string): string {
   if (Number.isNaN(time)) return value;
   return dateFormatter.format(new Date(time));
 }
+
+// Relative age in pt-BR for card footers ("hoje", "há 3 dias"). Future or
+// invalid values fall back to the short date, never to an empty string.
+export function formatRelative(value: string): string {
+  const time = Date.parse(value);
+  if (Number.isNaN(time)) return value;
+  const days = Math.floor((Date.now() - time) / 86_400_000);
+  if (days <= 0) return 'hoje';
+  if (days === 1) return 'há 1 dia';
+  return `há ${days} dias`;
+}

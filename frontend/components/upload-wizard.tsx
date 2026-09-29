@@ -166,7 +166,7 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
         Empresa: <strong className="text-navy-950">{companyName}</strong>
       </p>
 
-      <section aria-label="Quantidade" className="mt-8 rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm">
+      <section aria-label="Quantidade" className="mt-8 rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm">
         <h2 className="font-display text-lg font-semibold text-navy-950">
           <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-navy-950 text-xs font-bold text-gold-500">1</span>
           Quantos documentos vai enviar?
@@ -202,7 +202,7 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
               <article
                 key={form.key}
                 aria-label={`Documento ${index + 1}`}
-                className={`rounded-2xl border bg-white p-6 shadow-sm sm:p-7 ${
+                className={`rounded-2xl border bg-paper-50 p-6 shadow-sm sm:p-7 ${
                   form.status === 'done'
                     ? 'border-green-200'
                     : form.status === 'error'

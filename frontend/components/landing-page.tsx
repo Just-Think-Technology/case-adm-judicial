@@ -1,13 +1,5 @@
 import Link from 'next/link';
 
-export interface FeaturedCase {
-  id: string;
-  name: string;
-  processNumber: string;
-  nature: string;
-  documentCount: number;
-}
-
 const CREDITOR_TASKS = [
   'Enviar documentos de forma rápida e segura',
   'Acompanhar o andamento das suas solicitações',
@@ -15,20 +7,19 @@ const CREDITOR_TASKS = [
   'Habilitar-se para a Assembleia Geral de Credores (AGC)',
 ] as const;
 
-// Visitor variant of the presentation page (§4.1): thesis first — the cases
-// themselves, with a live featured file beside the headline — then what the
-// creditor can do. Contact lives only in the footer; this stays a pure
+// Visitor variant of the presentation page (§4.1): thesis first — then what
+// the creditor can do. Contact lives only in the footer; this stays a pure
 // component so unit tests never cross next/headers.
-export function LandingPage({ featured }: { featured?: FeaturedCase }): React.ReactNode {
+export function LandingPage(): React.ReactNode {
   return (
     <>
       <section>
-        <div className="mx-auto grid max-w-6xl gap-10 border-b border-navy-950/15 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+        <div className="mx-auto max-w-6xl border-b border-navy-950/15 px-4 py-14 sm:px-6 sm:py-20">
           <div>
             <p className="text-xs font-bold tracking-[0.2em] text-gold-700 uppercase">
               Case Administração Judicial
             </p>
-            <h1 className="font-display mt-4 text-5xl leading-[1.02] font-semibold tracking-tight text-navy-950 sm:text-6xl">
+            <h1 className="font-display mt-4 max-w-3xl text-5xl leading-[1.02] font-semibold tracking-tight text-navy-950 sm:text-6xl">
               Portal do Credor
             </h1>
             <div aria-hidden className="mt-5 h-1 w-24 bg-gold-500" />
@@ -58,30 +49,6 @@ export function LandingPage({ featured }: { featured?: FeaturedCase }): React.Re
               </Link>
             </div>
           </div>
-          {featured ? (
-            <aside
-              aria-label="Processo em destaque"
-              className="rounded-2xl bg-navy-950 p-7 text-white shadow-xl sm:p-8"
-            >
-              <p className="text-xs font-bold tracking-[0.2em] text-gold-500 uppercase">
-                Processo em destaque
-              </p>
-              <p className="font-display mt-3 text-2xl leading-snug font-semibold">{featured.name}</p>
-              <p className="mt-2 text-sm text-white/60">{featured.processNumber}</p>
-              <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold">
-                <span className="rounded-full bg-white/10 px-3 py-1">{featured.nature}</span>
-                <span className="rounded-full bg-white/10 px-3 py-1">
-                  {featured.documentCount} {featured.documentCount === 1 ? 'documento público' : 'documentos públicos'}
-                </span>
-              </div>
-              <Link
-                href={`/empresas/${featured.id}`}
-                className="mt-6 block rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm font-bold tracking-wide text-navy-950 hover:bg-gold-600"
-              >
-                ABRIR O PROCESSO
-              </Link>
-            </aside>
-          ) : null}
         </div>
       </section>
 

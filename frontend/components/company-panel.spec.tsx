@@ -10,6 +10,7 @@ const COMPANIES: CompanyCardData[] = [
     nature: 'Recuperação Judicial',
     processNumber: '1001234-56.2026.8.11.0001',
     createdAt: '2026-09-20T12:00:00.000Z',
+    updatedAt: '2026-09-20T12:00:00.000Z',
   },
   {
     id: 'c2',
@@ -17,6 +18,7 @@ const COMPANIES: CompanyCardData[] = [
     nature: 'Falência',
     processNumber: '1009876-11.2025.8.11.0002',
     createdAt: '2026-09-21T12:00:00.000Z',
+    updatedAt: '2026-09-21T12:00:00.000Z',
   },
   {
     id: 'c3',
@@ -24,6 +26,7 @@ const COMPANIES: CompanyCardData[] = [
     nature: 'Recuperação Judicial',
     processNumber: '1005555-11.2024.8.11.0003',
     createdAt: '2024-03-10T12:00:00.000Z',
+    updatedAt: '2024-03-10T12:00:00.000Z',
   },
 ];
 

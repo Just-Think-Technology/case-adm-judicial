@@ -10,7 +10,7 @@ export async function SiteHeader(): Promise<React.ReactNode> {
     <header className="sticky top-0 z-10 border-b border-navy-950/15 bg-paper-50/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center" aria-label="Portal do Credor: início">
-          <img src="/img/logo-header.png" alt="Case Administração Judicial" width={280} height={40} />
+          <img src="/img/logo-header.png" alt="Case Administração Judicial" width={200} height={29} />
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4" aria-label="Navegação principal">
           <Link href="/painel" className="rounded-lg bg-navy-950/[0.06] px-4 py-2 text-sm font-semibold text-navy-950 hover:bg-navy-950/[0.1]">
@@ -27,12 +27,15 @@ export async function SiteHeader(): Promise<React.ReactNode> {
             </>
           ) : null}
           {session ? (
-            <details className="relative">
+            <details className="group relative">
               <summary
                 title="Abrir o menu da conta"
-                className="cursor-pointer list-none rounded-lg bg-navy-950 px-4 py-2 text-sm font-semibold text-white underline decoration-gold-500 decoration-2 underline-offset-4 hover:bg-navy-800 hover:ring-2 hover:ring-gold-500"
+                className="flex cursor-pointer list-none items-center gap-1.5 rounded-lg bg-navy-950 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-800 hover:ring-2 hover:ring-gold-500"
               >
                 {session.name}
+                <span aria-hidden className="text-gold-500 transition group-open:rotate-180">
+                  <ChevronIcon />
+                </span>
               </summary>
               <div className="absolute right-0 mt-2 w-44 rounded-lg border border-navy-950/10 bg-white p-1 shadow-lg">
                 <Link
@@ -63,5 +66,13 @@ export async function SiteHeader(): Promise<React.ReactNode> {
         </nav>
       </div>
     </header>
+  );
+}
+
+function ChevronIcon(): React.ReactNode {
+  return (
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+      <path d="m5 7.5 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }

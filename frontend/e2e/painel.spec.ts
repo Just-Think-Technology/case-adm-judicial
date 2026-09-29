@@ -49,10 +49,10 @@ test.describe('corporate panel', () => {
     await expect(cards.nth(0)).toContainText('Pantanal Transportes SA');
   });
 
-  test('opens the company page from ACESSAR', async ({ page }) => {
+  test('opens the company page from the card link', async ({ page }) => {
     await page.goto('/painel');
     await page.getByRole('tab', { name: 'Recuperação Judicial' }).click();
-    await page.getByRole('link', { name: 'ACESSAR' }).first().click();
+    await page.getByRole('link', { name: /acessar processo de/i }).first().click();
     await expect(page).toHaveURL(/\/empresas\/c1$/);
     await expect(page.getByRole('heading', { name: 'Alvorada Alimentos Ltda' })).toBeVisible();
   });
