@@ -58,8 +58,8 @@ const details = {
 
 const documents = {
   c1: [
-    { id: 'd1', name: 'Petição inicial.pdf', type: 'Outros', customType: 'Petição', status: 'Em análise', visibility: 'PUBLICO', uploadedBy: 'Credor Teste', mine: true },
-    { id: 'd2', name: 'Lista de credores.xlsx', type: 'Habilitação de crédito', customType: null, status: 'Deferido', visibility: 'PRIVADO', uploadedBy: 'Admin Teste', mine: false },
+    { id: 'd1', name: 'Petição inicial.pdf', type: 'Outros', customType: 'Petição', status: 'Em análise', visibility: 'Público', uploadedBy: 'Credor Teste', mine: true },
+    { id: 'd2', name: 'Lista de credores.xlsx', type: 'Habilitação de crédito', customType: null, status: 'Deferido', visibility: 'Privado', uploadedBy: 'Admin Teste', mine: false },
   ],
   c2: [],
 };
@@ -112,6 +112,11 @@ const clientDocs = {
 function json(res, status, payload) {
   res.writeHead(status, { 'content-type': 'application/json' });
   res.end(JSON.stringify(payload));
+}
+
+// The real API answers visibility as a display label, whatever it accepts.
+function visibilityLabel(input) {
+  return String(input).toLowerCase().includes('priv') ? 'Privado' : 'Público';
 }
 
 // Fixed accounts for the auth journeys: verified, unverified and taken.
@@ -326,6 +331,15 @@ const server = http.createServer(async (req, res) => {
 
   const docStatusMatch = url.pathname.match(/^\/documents\/([^/]+)\/(status|visibility)$/);
   if (docStatusMatch && req.method === 'PATCH') {
+    const body = await readBody(req);
+    // Mirror the real backend: the change persists and answers carry labels.
+    const field = docStatusMatch[2];
+    for (const list of Object.values(documents)) {
+      const doc = list.find((d) => d.id === docStatusMatch[1]);
+      if (doc && typeof body[field] === 'string') {
+        doc[field] = field === 'visibility' ? visibilityLabel(body[field]) : body[field];
+      }
+    }
     return authJson(res, 200, { id: docStatusMatch[1], name: 'Documento' });
   }
 

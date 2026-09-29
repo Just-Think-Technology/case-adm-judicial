@@ -8,6 +8,13 @@ import type { AdminDocument } from '@/lib/types';
 
 const STATUSES = ['Em análise', 'Deferido', 'Indeferido'] as const;
 
+// The API answers visibility as a display label ('Público' / 'Privado'),
+// the same convention as status — never the storage key. Requests may send
+// either form; the backend normalizes both.
+function isPublicValue(visibility: string): boolean {
+  return visibility === 'Público';
+}
+
 // Admin document management on the company page (§4.8d): status, author, type
 // and visibility per row, with eye-toggle and delete — both confirmed, the
 // delete explicitly irreversible. The backend decides which rows an admin may
@@ -53,7 +60,7 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
   async function flipVisibility(): Promise<void> {
     if (!confirmingVisibility) return;
     setBusy(true);
-    const next = confirmingVisibility.visibility === 'PUBLICO' ? 'PRIVADO' : 'PUBLICO';
+    const next = isPublicValue(confirmingVisibility.visibility) ? 'PRIVADO' : 'PUBLICO';
     const result = await bffSend('PATCH', `/bff/documents/${confirmingVisibility.id}/visibility`, {
       visibility: next,
     });
@@ -144,18 +151,18 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
                 </select>
                 <span
                   className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${
-                    document.visibility === 'PUBLICO'
+                    isPublicValue(document.visibility)
                       ? 'bg-navy-950 text-gold-500 ring-navy-950'
                       : 'bg-mist-50 text-navy-950/70 ring-navy-950/10'
                   }`}
                 >
-                  {document.visibility === 'PUBLICO' ? <GlobeIcon /> : <LockIcon />}
-                  {document.visibility === 'PUBLICO' ? 'Público' : 'Privado'}
+                  {isPublicValue(document.visibility) ? <GlobeIcon /> : <LockIcon />}
+                  {isPublicValue(document.visibility) ? 'Público' : 'Privado'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setConfirmingVisibility(document)}
-                  aria-label={`${document.visibility === 'PUBLICO' ? 'Tornar privado' : 'Tornar público'}: ${document.name}`}
+                  aria-label={`${isPublicValue(document.visibility) ? 'Tornar privado' : 'Tornar público'}: ${document.name}`}
                   className="rounded p-1.5 text-navy-950/60 hover:bg-mist-50 hover:text-navy-950"
                 >
                   <EyeIcon />
@@ -179,8 +186,8 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
       )}
       {confirmingVisibility ? (
         <ConfirmDialog
-          title={confirmingVisibility.visibility === 'PUBLICO' ? 'Tornar privado' : 'Tornar público'}
-          message={`Deseja ${confirmingVisibility.visibility === 'PUBLICO' ? 'restringir' : 'liberar para qualquer visitante'} o documento '${confirmingVisibility.name}'? A mudança vale imediatamente para todas as listagens.`}
+          title={isPublicValue(confirmingVisibility.visibility) ? 'Tornar privado' : 'Tornar público'}
+          message={`Deseja ${isPublicValue(confirmingVisibility.visibility) ? 'restringir' : 'liberar para qualquer visitante'} o documento '${confirmingVisibility.name}'? A mudança vale imediatamente para todas as listagens.`}
           confirmLabel="Confirmar"
           busy={busy}
           onConfirm={flipVisibility}
