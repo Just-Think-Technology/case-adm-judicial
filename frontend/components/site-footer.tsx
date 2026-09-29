@@ -6,7 +6,7 @@ export function SiteFooter(): React.ReactNode {
   return (
     <footer className="bg-navy-950 text-white">
       <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <img src="/img/logo-white.png" alt="Case Administração Judicial" width={240} height={37} />
+        <img src="/img/logo-white.png" alt="Case Administração Judicial" width={320} height={49} />
         <address className="text-sm not-italic text-white/80 sm:text-right">
           <p>
             <a className="hover:text-gold-500" href={`tel:${SITE_CONTACT.phone.replace(/\D/g, '')}`}>
@@ -22,7 +22,7 @@ export function SiteFooter(): React.ReactNode {
       </div>
       <div className="border-t border-white/10">
         <p className="mx-auto max-w-6xl px-4 py-3 text-center text-xs text-white/60 sm:px-6">
-          © {new Date().getFullYear()} Case Administração Judicial — Todos os direitos reservados.
+          © {new Date().getFullYear()} Case Administração Judicial. Todos os direitos reservados.
         </p>
       </div>
     </footer>

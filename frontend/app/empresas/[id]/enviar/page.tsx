@@ -4,7 +4,7 @@ import { backendFetch } from '@/lib/backend';
 import { getSession } from '@/lib/session';
 import type { CompanyDetails } from '@/lib/types';
 
-export const metadata = { title: 'Adicionar documento — Portal do Credor' };
+export const metadata = { title: 'Adicionar documento | Portal do Credor' };
 
 // Upload screen (§4.9): the company is fixed from the page of origin and the
 // destination requires login — visitors are sent to /login first.

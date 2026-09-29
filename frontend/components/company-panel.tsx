@@ -4,14 +4,15 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { ClientsPanel } from '@/components/clients-panel';
 import { CompanyCard } from '@/components/company-card';
+import { notifyToast } from '@/lib/toast';
 import type { CompanyCard as CompanyCardData, CompanyNature } from '@/lib/types';
 
 const COMPANY_TABS: CompanyNature[] = ['Recuperação Judicial', 'Falência'];
 
 const EMPTY_BY_NATURE: Record<CompanyNature, string> = {
   'Recuperação Judicial':
-    'Nenhuma empresa encontrada — nenhuma empresa de Recuperação Judicial foi cadastrada ainda',
-  Falência: 'Nenhuma empresa encontrada — nenhuma empresa em Falência foi cadastrada ainda',
+    'Nenhuma empresa encontrada. Nenhuma empresa de Recuperação Judicial foi cadastrada ainda',
+  Falência: 'Nenhuma empresa encontrada. Nenhuma empresa em Falência foi cadastrada ainda',
 };
 
 type Tab = CompanyNature | 'Clientes';
@@ -30,7 +31,6 @@ export function CompanyPanel({
   const [tab, setTab] = useState<Tab>('Recuperação Judicial');
   const [query, setQuery] = useState('');
   const [items, setItems] = useState(companies);
-  const [notice, setNotice] = useState('');
 
   const visible = useMemo(() => {
     if (tab === 'Clientes') return [];
@@ -46,7 +46,7 @@ export function CompanyPanel({
 
   function removed(id: string, name: string): void {
     setItems((current) => current.filter((company) => company.id !== id));
-    setNotice(`Empresa '${name}' foi removido(a) com sucesso!`);
+    notifyToast('success', `Empresa '${name}' foi removido(a) com sucesso!`);
   }
 
   return (
@@ -107,12 +107,6 @@ export function CompanyPanel({
         </div>
       ) : null}
 
-      {notice ? (
-        <p role="status" className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
-          {notice}
-        </p>
-      ) : null}
-
       {tab === 'Clientes' ? (
         <div className="mt-6">
           <ClientsPanel ownId={ownId} />
@@ -131,7 +125,7 @@ export function CompanyPanel({
       ) : (
         <p role="status" className="mt-6 rounded-xl border border-dashed border-navy-950/20 bg-white p-8 text-center text-navy-950/60">
           {query.trim()
-            ? 'Nenhum resultado encontrado — tente buscar por outro termo'
+            ? 'Nenhum resultado encontrado. Tente buscar por outro termo'
             : EMPTY_BY_NATURE[tab as CompanyNature]}
         </p>
       )}

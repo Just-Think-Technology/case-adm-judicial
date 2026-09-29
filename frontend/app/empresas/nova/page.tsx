@@ -2,7 +2,7 @@ import { forbidden, redirect } from 'next/navigation';
 import { CompanyForm } from '@/components/company-form';
 import { getSession } from '@/lib/session';
 
-export const metadata = { title: 'Adicionar empresa — Portal do Credor' };
+export const metadata = { title: 'Adicionar empresa | Portal do Credor' };
 
 // Company registration (§4.8a): administrators only, reached from the header
 // "Empresas" item. Everyone else gets the 403 page, never the form.

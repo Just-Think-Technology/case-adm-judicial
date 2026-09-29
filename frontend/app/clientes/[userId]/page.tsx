@@ -6,7 +6,7 @@ import { backendFetch } from '@/lib/backend';
 import { getSession } from '@/lib/session';
 import type { ClientDocuments } from '@/lib/types';
 
-export const metadata = { title: 'Documentos do cliente — Portal do Credor' };
+export const metadata = { title: 'Documentos do cliente | Portal do Credor' };
 
 // One client's documents (§4.14): administrators only. Non-administrators get
 // the 403 page; visitors are sent to login first.

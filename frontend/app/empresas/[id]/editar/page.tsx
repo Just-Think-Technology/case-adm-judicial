@@ -4,7 +4,7 @@ import { backendFetch } from '@/lib/backend';
 import { getSession } from '@/lib/session';
 import type { CompanyDetails } from '@/lib/types';
 
-export const metadata = { title: 'Editar empresa — Portal do Credor' };
+export const metadata = { title: 'Editar empresa | Portal do Credor' };
 
 // Company editing (§4.8b): the same form as registration, prefilled, with the
 // button turned SALVAR. Same guards as creation.

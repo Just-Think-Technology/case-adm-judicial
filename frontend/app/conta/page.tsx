@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { AccountForms } from '@/components/account-forms';
 import { getSession } from '@/lib/session';
 
-export const metadata = { title: 'Minha conta — Portal do Credor' };
+export const metadata = { title: 'Minha conta | Portal do Credor' };
 
 // Account menu (§4.6): profile and password cards for signed-in accounts.
 export default async function AccountPage(): Promise<React.ReactNode> {

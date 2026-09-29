@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { formatDate } from '@/lib/format';
 import { bffSend } from '@/lib/bff-client';
+import { notifyToast } from '@/lib/toast';
 import type { ClientItem, ClientList } from '@/lib/types';
 
 // Clients tab (§4.7, admin only): general search plus company-name search act
@@ -16,7 +17,6 @@ export function ClientsPanel({ ownId }: { ownId: string }): React.ReactNode {
   const [page, setPage] = useState(1);
   const [list, setList] = useState<ClientList | null>(null);
   const [failed, setFailed] = useState(false);
-  const [notice, setNotice] = useState('');
   const [removing, setRemoving] = useState<ClientItem | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -50,8 +50,10 @@ export function ClientsPanel({ ownId }: { ownId: string }): React.ReactNode {
     setBusy(false);
     if (result.status === 204) {
       setRemoving(null);
-      setNotice(`Cliente '${removing.name}' foi removido(a) com sucesso!`);
+      notifyToast('success', `Cliente '${removing.name}' foi removido(a) com sucesso!`);
       void load();
+    } else {
+      notifyToast('error', result.message);
     }
   }
 
@@ -85,12 +87,6 @@ export function ClientsPanel({ ownId }: { ownId: string }): React.ReactNode {
           />
         </label>
       </div>
-
-      {notice ? (
-        <p role="status" className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
-          {notice}
-        </p>
-      ) : null}
 
       {failed ? (
         <p role="alert" className="mt-4 rounded-xl border border-navy-950/10 bg-white p-8 text-center text-navy-950/70">
@@ -185,8 +181,8 @@ export function ClientsPanel({ ownId }: { ownId: string }): React.ReactNode {
       ) : (
         <p role="status" className="mt-6 rounded-xl border border-dashed border-navy-950/20 bg-white p-8 text-center text-navy-950/60">
           {query.trim() || companyQuery.trim()
-            ? 'Nenhum resultado encontrado — tente buscar por outro termo'
-            : 'Nenhum cliente encontrado — nenhum cliente foi cadastrado ainda'}
+            ? 'Nenhum resultado encontrado. Tente buscar por outro termo'
+            : 'Nenhum cliente encontrado. Nenhum cliente foi cadastrado ainda'}
         </p>
       )}
       {removing ? (

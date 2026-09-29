@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRef, useState } from 'react';
+import { notifyToast } from '@/lib/toast';
 
 const DOCUMENT_TYPES = [
   'Habilitação de crédito',
@@ -46,7 +47,7 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
   const [quantity, setQuantity] = useState('1');
   const [forms, setForms] = useState<UploadForm[]>([]);
   const [sendingAll, setSendingAll] = useState(false);
-  const [summary, setSummary] = useState('');
+  const [finished, setFinished] = useState(false);
   const keyCounter = useRef(0);
 
   const patch = (key: number, update: Partial<UploadForm>): void => {
@@ -63,7 +64,7 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
       }
       return next;
     });
-    setSummary('');
+    setFinished(false);
   }
 
   function formError(form: UploadForm): string {
@@ -123,7 +124,7 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
     const pending = forms.filter((form) => form.status !== 'done');
     if (pending.length === 0 || sendingAll) return;
     setSendingAll(true);
-    setSummary('');
+    const total = pending.length;
     let succeeded = 0;
     const queue = [...pending];
     const workers = Array.from(
@@ -138,20 +139,21 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
     );
     await Promise.all(workers);
     setSendingAll(false);
-    const total = pending.length;
     if (succeeded === total) {
       setForms([]);
-      setSummary(`Concluído: ${succeeded} de ${total} documentos enviados com sucesso!`);
+      setFinished(true);
+      notifyToast('success', `Concluído: ${succeeded} de ${total} documentos enviados com sucesso!`);
     } else {
-      setSummary(
+      notifyToast(
+        'error',
         `Concluído: ${succeeded} de ${total} documentos enviados com sucesso! ` +
-          `${total - succeeded} não puderam ser enviados — confira e tente novamente.`,
+          `${total - succeeded} não puderam ser enviados. Confira e tente novamente.`,
       );
     }
   }
 
-  const finished = forms.filter((form) => form.status === 'done').length;
-  const progress = forms.length > 0 ? Math.round((finished / forms.length) * 100) : 0;
+  const finishedCount = forms.filter((form) => form.status === 'done').length;
+  const progress = forms.length > 0 ? Math.round((finishedCount / forms.length) * 100) : 0;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
@@ -314,10 +316,9 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
         </div>
       ) : null}
 
-      {summary ? (
-        <p role="status" className="mt-6 rounded-xl border border-navy-950/10 bg-white p-5 text-center font-semibold text-navy-950">
-          {summary}{' '}
-          <Link href={`/empresas/${companyId}`} className="underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-600">
+      {finished ? (
+        <p className="mt-6 text-center text-sm">
+          <Link href={`/empresas/${companyId}`} className="font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-700">
             Voltar à empresa
           </Link>
         </p>

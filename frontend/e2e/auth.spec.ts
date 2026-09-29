@@ -11,9 +11,8 @@ test.describe('signup', () => {
     await page.getByLabel('Confirmar senha').fill('Segura@123');
     await expect(submit).toBeEnabled();
     await submit.click();
-    await expect(page.getByRole('heading', { name: /cadastro realizado/i })).toBeVisible();
-    await expect(page.getByText(/inclusive a caixa de spam/i)).toBeVisible();
-    await expect(page.getByRole('link', { name: /ir para o login/i })).toHaveAttribute('href', '/login');
+    await expect(page).toHaveURL(/\/login\?cadastrado=1$/);
+    await expect(page.getByText(/verifique seu e-mail para ativar a conta/i)).toBeVisible();
   });
 
   test('shows the taken-e-mail error without leaving the form', async ({ page }) => {

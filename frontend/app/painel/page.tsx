@@ -3,7 +3,7 @@ import { backendFetch } from '@/lib/backend';
 import { getSession } from '@/lib/session';
 import type { CompanyCard } from '@/lib/types';
 
-export const metadata = { title: 'Painel corporativo — Portal do Credor' };
+export const metadata = { title: 'Painel corporativo | Portal do Credor' };
 
 // Corporate panel (§4.7): RJ/Falência tabs for everyone, the Clientes tab and
 // the card management menu for administrators. Data loads server-side; an

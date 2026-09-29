@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { StatusSeal } from '@/components/status-seal';
 import { bffSend } from '@/lib/bff-client';
+import { notifyToast } from '@/lib/toast';
 import type { AdminDocument } from '@/lib/types';
 
 // Admin document management on the company page (§4.8d): status, author, type
@@ -13,7 +14,6 @@ import type { AdminDocument } from '@/lib/types';
 export function AdminDocuments({ companyId }: { companyId: string }): React.ReactNode {
   const [documents, setDocuments] = useState<AdminDocument[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const [notice, setNotice] = useState('');
   const [confirmingVisibility, setConfirmingVisibility] = useState<AdminDocument | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<AdminDocument | null>(null);
   const [busy, setBusy] = useState(false);
@@ -48,12 +48,15 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
     setBusy(false);
     if (result.status === 200) {
       setConfirmingVisibility(null);
-      setNotice(
+      notifyToast(
+        'success',
         next === 'PUBLICO'
           ? `Documento '${confirmingVisibility.name}' agora é público.`
           : `Documento '${confirmingVisibility.name}' agora é privado.`,
       );
       void load();
+    } else {
+      notifyToast('error', result.message);
     }
   }
 
@@ -63,20 +66,17 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
     const result = await bffSend('DELETE', `/bff/documents/${confirmingDelete.id}`);
     setBusy(false);
     if (result.status === 204) {
-      setNotice(`Documento '${confirmingDelete.name}' foi removido.`);
+      notifyToast('success', `Documento '${confirmingDelete.name}' foi removido.`);
       setConfirmingDelete(null);
       void load();
+    } else {
+      notifyToast('error', result.message);
     }
   }
 
   return (
     <section aria-label="Documentos">
       <h2 className="font-display text-xl font-semibold text-navy-950">Documentos</h2>
-      {notice ? (
-        <p role="status" className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
-          {notice}
-        </p>
-      ) : null}
       {failed ? (
         <p role="alert" className="mt-4 rounded-xl border border-navy-950/10 bg-white p-6 text-navy-950/70">
           Não foi possível carregar os documentos agora. Tente novamente em instantes.

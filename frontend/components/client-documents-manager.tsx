@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { StatusSeal } from '@/components/status-seal';
 import { formatDate } from '@/lib/format';
 import { bffSend } from '@/lib/bff-client';
+import { notifyToast } from '@/lib/toast';
 import type { ClientDocuments } from '@/lib/types';
 
 const STATUSES = ['Em análise', 'Deferido', 'Indeferido'] as const;
@@ -16,7 +17,6 @@ export function ClientDocumentsManager({ initial, userId }: { initial: ClientDoc
   const [data, setData] = useState<ClientDocuments>(initial);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const [notice, setNotice] = useState({ kind: '', text: '' });
 
   const loadPage = useCallback(
     async (page: number) => {
@@ -45,7 +45,6 @@ export function ClientDocumentsManager({ initial, userId }: { initial: ClientDoc
   async function save(): Promise<void> {
     if (changed.length === 0 || saving) return;
     setSaving(true);
-    setNotice({ kind: '', text: '' });
     let failures = 0;
     for (const [id, status] of changed) {
       const result = await bffSend('PATCH', `/bff/documents/${id}/status`, { status });
@@ -53,14 +52,11 @@ export function ClientDocumentsManager({ initial, userId }: { initial: ClientDoc
     }
     setSaving(false);
     if (failures === 0) {
-      setNotice({ kind: 'ok', text: 'Alterações salvas com sucesso!' });
+      notifyToast('success', 'Alterações salvas com sucesso!');
       setDrafts({});
       void loadPage(data.page);
     } else {
-      setNotice({
-        kind: 'error',
-        text: `${failures} documento(s) não puderam ser atualizados. Tente novamente.`,
-      });
+      notifyToast('error', `${failures} documento(s) não puderam ser atualizados. Tente novamente.`);
     }
   }
 
@@ -79,12 +75,6 @@ export function ClientDocumentsManager({ initial, userId }: { initial: ClientDoc
           </div>
         ))}
       </div>
-
-      {notice.text ? (
-        <p role={notice.kind === 'ok' ? 'status' : 'alert'} className={`mt-4 rounded-lg px-3 py-2 text-sm font-semibold ${notice.kind === 'ok' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-          {notice.text}
-        </p>
-      ) : null}
 
       <div className="mt-6 overflow-x-auto rounded-xl border border-navy-950/10 bg-white shadow-sm">
         <table className="w-full min-w-[640px] text-left text-sm">

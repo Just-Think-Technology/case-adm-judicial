@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { bffSend } from '@/lib/bff-client';
+import { notifyToast } from '@/lib/toast';
 import type { CompanyDetails, CompanyInput } from '@/lib/types';
 
 const NATURES = ['Recuperação Judicial', 'Falência'] as const;
@@ -42,8 +43,7 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
         }
       : EMPTY,
   );
-  const [error, setError] = useState('');
-  const [done, setDone] = useState('');
+  const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   function set<Key extends keyof CompanyInput>(key: Key, value: string): void {
@@ -54,16 +54,15 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
     event.preventDefault();
     if (saving) return;
     setSaving(true);
-    setError('');
-    setDone('');
     const result = editing
       ? await bffSend('PUT', `/bff/companies/${initial.id}`, values)
       : await bffSend('POST', '/bff/companies', values);
     setSaving(false);
     if (result.status === 201 || result.status === 200) {
-      setDone(editing ? 'Empresa atualizada com sucesso!' : 'Empresa cadastrada com sucesso!');
+      notifyToast('success', editing ? 'Empresa atualizada com sucesso!' : 'Empresa cadastrada com sucesso!');
+      setSaved(true);
     } else {
-      setError(result.message);
+      notifyToast('error', result.message);
     }
   }
 
@@ -113,15 +112,9 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
           <textarea value={values.observations} maxLength={300} rows={3} onChange={(event) => set('observations', event.target.value)} className={inputClass} />
         </label>
       </div>
-      {error ? (
-        <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
-          {error}
-        </p>
-      ) : null}
-      {done ? (
-        <p role="status" className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
-          {done}{' '}
-          <Link href="/painel" className="underline underline-offset-2">
+      {saved ? (
+        <p className="mt-4 text-sm">
+          <Link href="/painel" className="font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-700">
             Voltar ao painel
           </Link>
         </p>

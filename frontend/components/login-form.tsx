@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AuthCard } from '@/components/auth-card';
 import { PasswordInput } from '@/components/password-input';
 import { bffPost } from '@/lib/bff-client';
+import { notifyToast } from '@/lib/toast';
 
 const UNVERIFIED = 'Necessário validar o e-mail.';
 
@@ -15,16 +16,22 @@ export function LoginForm({ notice }: { notice?: string }): React.ReactNode {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [needsVerification, setNeedsVerification] = useState(false);
-  const [resent, setResent] = useState(false);
   const [sending, setSending] = useState(false);
+  const announced = useRef(false);
+
+  // Arrival notices (post-signup, post-reset) toast once on mount.
+  useEffect(() => {
+    if (notice && !announced.current) {
+      announced.current = true;
+      notifyToast('success', notice);
+    }
+  }, [notice]);
 
   async function submit(event: React.FormEvent): Promise<void> {
     event.preventDefault();
     if (email.trim() === '' || password === '' || sending) return;
     setSending(true);
-    setError('');
     setNeedsVerification(false);
     const result = await bffPost('/bff/auth/login', { email: email.trim(), password });
     setSending(false);
@@ -34,7 +41,7 @@ export function LoginForm({ notice }: { notice?: string }): React.ReactNode {
     } else if (result.message === UNVERIFIED) {
       setNeedsVerification(true);
     } else {
-      setError(result.message);
+      notifyToast('error', result.message);
     }
   }
 
@@ -43,19 +50,15 @@ export function LoginForm({ notice }: { notice?: string }): React.ReactNode {
     const result = await bffPost('/bff/auth/verification-notification', { email: email.trim() });
     setSending(false);
     if (result.status === 200) {
-      setResent(true);
+      notifyToast('success', 'E-mail reenviado. Verifique também a caixa de spam.');
+      setNeedsVerification(false);
     } else {
-      setError(result.message);
+      notifyToast('error', result.message);
     }
   }
 
   return (
     <AuthCard title="Entrar" subtitle="Acesso com e-mail verificado.">
-      {notice ? (
-        <p role="status" className="mb-4 rounded-lg bg-mist-50 px-3 py-2 text-sm text-navy-950">
-          {notice}
-        </p>
-      ) : null}
       <form onSubmit={submit} className="space-y-4">
         <div>
           <label htmlFor="login-email" className="block text-sm font-semibold text-navy-950">
@@ -71,26 +74,17 @@ export function LoginForm({ notice }: { notice?: string }): React.ReactNode {
           />
         </div>
         <PasswordInput id="login-password" label="Senha" value={password} onChange={setPassword} autoComplete="current-password" />
-        {error ? (
-          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
-            {error}
-          </p>
-        ) : null}
         {needsVerification ? (
           <div role="alert" className="rounded-lg bg-gold-100 px-3 py-2 text-sm text-navy-950">
             <p>{UNVERIFIED}</p>
-            {resent ? (
-              <p className="mt-1">E-mail reenviado — verifique também a caixa de spam.</p>
-            ) : (
-              <button
-                type="button"
-                onClick={resend}
-                disabled={sending}
-                className="mt-2 rounded bg-navy-950 px-3 py-1.5 text-xs font-semibold text-white hover:bg-navy-800 disabled:opacity-40"
-              >
-                REENVIAR E-MAIL
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={resend}
+              disabled={sending}
+              className="mt-2 rounded bg-navy-950 px-3 py-1.5 text-xs font-semibold text-white hover:bg-navy-800 disabled:opacity-40"
+            >
+              REENVIAR E-MAIL
+            </button>
           </div>
         ) : null}
         <button
