@@ -119,6 +119,6 @@ test.describe('admin company documents', () => {
     await page.getByRole('button', { name: /excluir lista de credores/i }).click();
     await expect(page.getByRole('alertdialog')).toContainText('não pode ser desfeita');
     await page.getByRole('button', { name: 'EXCLUIR', exact: true }).click();
-    await expect(page.getByRole('status')).toContainText('foi removido');
+    await expect(page.getByRole('status').filter({ hasText: 'foi removido' })).toBeVisible();
   });
 });
