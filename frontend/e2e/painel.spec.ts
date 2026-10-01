@@ -12,14 +12,17 @@ test.describe('corporate panel', () => {
     await setStubFailure(request, { failCompanies: false });
   });
 
-  test('lists RJ companies first and switches to Falência', async ({ page }) => {
+  test('lists every company first and filters by nature', async ({ page }) => {
     await page.goto('/painel');
     await expect(page.getByRole('heading', { name: /painel corporativo/i })).toBeVisible();
     await expect(page.getByText('Alvorada Alimentos Ltda')).toBeVisible();
-    await expect(page.getByText('Pantanal Transportes SA')).not.toBeVisible();
+    await expect(page.getByText('Pantanal Transportes SA')).toBeVisible();
     await page.getByRole('tab', { name: 'Falência' }).click();
     await expect(page.getByText('Pantanal Transportes SA')).toBeVisible();
     await expect(page.getByText('Alvorada Alimentos Ltda')).not.toBeVisible();
+    await page.getByRole('tab', { name: 'Recuperação Judicial' }).click();
+    await expect(page.getByText('Alvorada Alimentos Ltda')).toBeVisible();
+    await expect(page.getByText('Pantanal Transportes SA')).not.toBeVisible();
   });
 
   test('searches instantly by name and process number', async ({ page }) => {
@@ -33,9 +36,23 @@ test.describe('corporate panel', () => {
     await expect(page.getByText(/tente buscar por outro termo/i)).toBeVisible();
   });
 
-  test('opens the company page from ACESSAR', async ({ page }) => {
+  test('sorts by name and by creation date', async ({ page }) => {
     await page.goto('/painel');
-    await page.getByRole('link', { name: 'ACESSAR' }).first().click();
+    await page.getByRole('tab', { name: 'Falência' }).click();
+    const cards = page.getByTestId('company-card');
+    await expect(cards.nth(0)).toContainText('Pantanal Transportes SA');
+    await page.getByLabel('Ordenar por nome').selectOption('az');
+    await expect(cards.nth(0)).toContainText('Aruana Logística Ltda');
+    await page.getByLabel('Ordenar por data de criação').selectOption('old');
+    await expect(cards.nth(0)).toContainText('Aruana Logística Ltda');
+    await page.getByLabel('Ordenar por data de criação').selectOption('new');
+    await expect(cards.nth(0)).toContainText('Pantanal Transportes SA');
+  });
+
+  test('opens the company page from the card link', async ({ page }) => {
+    await page.goto('/painel');
+    await page.getByRole('tab', { name: 'Recuperação Judicial' }).click();
+    await page.getByRole('link', { name: /acessar processo de/i }).first().click();
     await expect(page).toHaveURL(/\/empresas\/c1$/);
     await expect(page.getByRole('heading', { name: 'Alvorada Alimentos Ltda' })).toBeVisible();
   });

@@ -11,9 +11,8 @@ test.describe('signup', () => {
     await page.getByLabel('Confirmar senha').fill('Segura@123');
     await expect(submit).toBeEnabled();
     await submit.click();
-    await expect(page.getByRole('heading', { name: /cadastro realizado/i })).toBeVisible();
-    await expect(page.getByText(/inclusive a caixa de spam/i)).toBeVisible();
-    await expect(page.getByRole('link', { name: /ir para o login/i })).toHaveAttribute('href', '/login');
+    await expect(page).toHaveURL(/\/login\?cadastrado=1$/);
+    await expect(page.getByText(/verifique seu e-mail para ativar a conta/i)).toBeVisible();
   });
 
   test('shows the taken-e-mail error without leaving the form', async ({ page }) => {
@@ -64,7 +63,7 @@ test.describe('login', () => {
     await expect(page).toHaveURL(/\/painel$/);
     await page.getByRole('banner').getByText('Credor Teste').click();
     await page.getByRole('button', { name: 'Sair' }).click();
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
   });
 
@@ -84,10 +83,10 @@ test.describe('recovery', () => {
     await page.goto('/esqueci-senha');
     await page.getByLabel('E-mail').fill('credor@case.com');
     await page.getByRole('button', { name: /enviar link/i }).click();
-    await expect(page.getByRole('status')).toContainText(/redefinição enviado/i);
+    await expect(page.getByRole('status').filter({ hasText: /redefinição enviado/i })).toBeVisible();
     await page.getByLabel('E-mail').fill('ninguem@case.com');
     await page.getByRole('button', { name: /enviar link/i }).click();
-    await expect(page.getByRole('status')).toContainText(/não foi encontrado usuário/i);
+    await expect(page.getByRole('status').filter({ hasText: /não foi encontrado usuário/i })).toBeVisible();
   });
 
   test('valid reset links show the readonly address and finish at login', async ({ page }) => {

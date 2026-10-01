@@ -58,43 +58,46 @@ export function CompanyDocuments({
   }, [load]);
 
   return (
-    <section aria-label={authed ? 'Documentos' : 'Documentos públicos'}>
+    <section aria-label={authed ? 'Documentos' : 'Documentos públicos'} className="rounded-2xl border border-navy-950/10 bg-white p-5 shadow-sm sm:p-6">
       {authed ? (
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtro de documentos">
-          {SCOPES.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              aria-pressed={scope === option.id}
-              onClick={() => setScope(option.id)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-                scope === option.id
-                  ? 'bg-navy-950 text-white'
-                  : 'bg-white text-navy-950 ring-1 ring-navy-950/15 hover:ring-gold-500'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-semibold text-navy-950">Documentos</h2>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Filtro de documentos">
+            {SCOPES.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                aria-pressed={scope === option.id}
+                onClick={() => setScope(option.id)}
+                className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
+                  scope === option.id
+                    ? 'bg-navy-950 text-white'
+                    : 'bg-white text-navy-950 ring-1 ring-navy-950/15 hover:ring-gold-500'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
       ) : (
         <h2 className="font-display text-xl font-semibold text-navy-950">Documentos públicos</h2>
       )}
       {failed ? (
-        <p role="alert" className="mt-4 rounded-xl border border-navy-950/10 bg-white p-6 text-navy-950/70">
+        <p role="alert" className="mt-4 rounded-xl border border-navy-950/10 bg-paper-50 p-6 text-navy-950/70">
           Não foi possível carregar os documentos agora. Tente novamente em instantes.
         </p>
       ) : documents === null ? (
-        <p className="mt-4 rounded-xl border border-navy-950/10 bg-white p-6 text-center text-navy-950/50">
+        <p className="mt-4 rounded-xl border border-navy-950/10 bg-paper-50 p-6 text-center text-navy-950/50">
           Carregando documentos…
         </p>
       ) : documents.length > 0 ? (
-        <ul className="mt-4 space-y-2">
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {documents.map((document) => (
             <li
               key={document.id}
               data-testid="company-document"
-              className="flex items-center gap-3 rounded-lg border border-navy-950/10 bg-white px-4 py-3"
+              className="flex items-center gap-3 rounded-lg border border-navy-950/10 bg-paper-50 px-4 py-3"
             >
               <div className="min-w-0 flex-1">
                 <PublicDocumentRow document={document} bare />
@@ -106,7 +109,7 @@ export function CompanyDocuments({
           ))}
         </ul>
       ) : (
-        <p role="status" className="mt-4 rounded-xl border border-dashed border-navy-950/20 bg-white p-6 text-center text-navy-950/60">
+        <p role="status" className="mt-4 rounded-xl border border-dashed border-navy-950/20 bg-paper-50 p-6 text-center text-navy-950/60">
           {authed && scope !== 'all'
             ? 'Nenhum documento encontrado para o filtro selecionado.'
             : 'Nenhum documento encontrado para essa empresa.'}

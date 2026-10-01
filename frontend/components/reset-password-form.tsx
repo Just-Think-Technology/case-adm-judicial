@@ -8,6 +8,7 @@ import { PasswordChecklist } from '@/components/password-checklist';
 import { PasswordInput } from '@/components/password-input';
 import { bffPost } from '@/lib/bff-client';
 import { checkPassword, passwordValid } from '@/lib/password-rules';
+import { notifyToast } from '@/lib/toast';
 
 // New password behind the mailed link (§4.5): the address resolves
 // server-side and arrives readonly; the button unlocks on valid rules.
@@ -15,7 +16,6 @@ export function ResetPasswordForm({ email, token }: { email: string; token: stri
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
-  const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
 
   const checks = useMemo(() => checkPassword(password, confirmation), [password, confirmation]);
@@ -25,7 +25,6 @@ export function ResetPasswordForm({ email, token }: { email: string; token: stri
     event.preventDefault();
     if (!ready) return;
     setSending(true);
-    setError('');
     const result = await bffPost('/bff/auth/reset-password', {
       token,
       password,
@@ -36,7 +35,7 @@ export function ResetPasswordForm({ email, token }: { email: string; token: stri
       router.push('/login?redefinida=1');
       router.refresh();
     } else {
-      setError(result.message);
+      notifyToast('error', result.message);
     }
   }
 
@@ -59,11 +58,6 @@ export function ResetPasswordForm({ email, token }: { email: string; token: stri
         <PasswordInput id="reset-password" label="Nova senha" value={password} onChange={setPassword} autoComplete="new-password" />
         <PasswordInput id="reset-confirmation" label="Confirmar nova senha" value={confirmation} onChange={setConfirmation} autoComplete="new-password" />
         <PasswordChecklist checks={checks} />
-        {error ? (
-          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
-            {error}
-          </p>
-        ) : null}
         <button
           type="submit"
           disabled={!ready}

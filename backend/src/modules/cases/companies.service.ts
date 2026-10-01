@@ -14,6 +14,7 @@ export interface CompanyCard {
   nature: string;
   processNumber: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 /** The full case file, nature in PT-BR and the protocol as a calendar date. */
@@ -159,6 +160,7 @@ function toCard(row: Company): CompanyCard {
     nature: NATURE_LABELS[row.nature],
     processNumber: row.processNumber,
     createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   };
 }
 

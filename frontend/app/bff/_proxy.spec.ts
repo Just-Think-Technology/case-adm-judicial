@@ -62,14 +62,19 @@ describe('proxyBackend', () => {
       '/auth/login',
       new Request('http://test/bff/auth/login', {
         method: 'POST',
-        headers: { 'x-csrf-token': 'csrf-123', 'x-forwarded-for': '203.0.113.7' },
+        headers: {
+          'x-csrf-token': 'csrf-123',
+          'x-forwarded-for': '203.0.113.7',
+          origin: 'http://localhost:3001',
+        },
       }),
     );
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('http://localhost:3000/api/auth/login');
+    expect(url).toBe('http://localhost:3000/auth/login');
     const forwarded = init.headers as Headers;
     expect(forwarded.get('x-csrf-token')).toBe('csrf-123');
     expect(forwarded.get('x-forwarded-for')).toBe('203.0.113.7');
+    expect(forwarded.get('origin')).toBe('http://localhost:3001');
   });
 
   it('translates the refresh-cookie scope back to /bff/*', async () => {

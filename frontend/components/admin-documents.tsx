@@ -2,9 +2,18 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { StatusSeal } from '@/components/status-seal';
 import { bffSend } from '@/lib/bff-client';
+import { notifyToast } from '@/lib/toast';
 import type { AdminDocument } from '@/lib/types';
+
+const STATUSES = ['Em análise', 'Deferido', 'Indeferido'] as const;
+
+// The API answers visibility as a display label ('Público' / 'Privado'),
+// the same convention as status — never the storage key. Requests may send
+// either form; the backend normalizes both.
+function isPublicValue(visibility: string): boolean {
+  return visibility === 'Público';
+}
 
 // Admin document management on the company page (§4.8d): status, author, type
 // and visibility per row, with eye-toggle and delete — both confirmed, the
@@ -13,7 +22,6 @@ import type { AdminDocument } from '@/lib/types';
 export function AdminDocuments({ companyId }: { companyId: string }): React.ReactNode {
   const [documents, setDocuments] = useState<AdminDocument[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const [notice, setNotice] = useState('');
   const [confirmingVisibility, setConfirmingVisibility] = useState<AdminDocument | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<AdminDocument | null>(null);
   const [busy, setBusy] = useState(false);
@@ -38,22 +46,36 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
     void load();
   }, [load]);
 
+  async function setStatus(document: AdminDocument, status: string): Promise<void> {
+    const result = await bffSend('PATCH', `/bff/documents/${document.id}/status`, { status });
+    if (result.status === 200) {
+      notifyToast('success', `Documento '${document.name}' marcado como ${status}.`);
+      void load();
+    } else {
+      notifyToast('error', result.message);
+      void load();
+    }
+  }
+
   async function flipVisibility(): Promise<void> {
     if (!confirmingVisibility) return;
     setBusy(true);
-    const next = confirmingVisibility.visibility === 'PUBLICO' ? 'PRIVADO' : 'PUBLICO';
+    const next = isPublicValue(confirmingVisibility.visibility) ? 'PRIVADO' : 'PUBLICO';
     const result = await bffSend('PATCH', `/bff/documents/${confirmingVisibility.id}/visibility`, {
       visibility: next,
     });
     setBusy(false);
     if (result.status === 200) {
       setConfirmingVisibility(null);
-      setNotice(
+      notifyToast(
+        'success',
         next === 'PUBLICO'
           ? `Documento '${confirmingVisibility.name}' agora é público.`
           : `Documento '${confirmingVisibility.name}' agora é privado.`,
       );
       void load();
+    } else {
+      notifyToast('error', result.message);
     }
   }
 
@@ -63,20 +85,20 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
     const result = await bffSend('DELETE', `/bff/documents/${confirmingDelete.id}`);
     setBusy(false);
     if (result.status === 204) {
-      setNotice(`Documento '${confirmingDelete.name}' foi removido.`);
+      notifyToast('success', `Documento '${confirmingDelete.name}' foi removido.`);
       setConfirmingDelete(null);
       void load();
+    } else {
+      notifyToast('error', result.message);
     }
   }
 
   return (
-    <section aria-label="Documentos">
+    <section aria-label="Documentos" className="rounded-2xl border border-navy-950/10 bg-white p-5 shadow-sm sm:p-6">
       <h2 className="font-display text-xl font-semibold text-navy-950">Documentos</h2>
-      {notice ? (
-        <p role="status" className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
-          {notice}
-        </p>
-      ) : null}
+      <p className="mt-1 text-sm text-navy-950/60">
+        Troque o status ou a visibilidade direto aqui. A visão em lote fica em Documentos do cliente.
+      </p>
       {failed ? (
         <p role="alert" className="mt-4 rounded-xl border border-navy-950/10 bg-white p-6 text-navy-950/70">
           Não foi possível carregar os documentos agora. Tente novamente em instantes.
@@ -106,21 +128,41 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
                     {document.customType ?? document.type} · Adicionado por {document.uploadedBy}
                   </p>
                 </div>
-                <StatusSeal status={document.status} />
+                <label className="sr-only" htmlFor={`company-status-${document.id}`}>
+                  Status de {document.name}
+                </label>
+                <select
+                  id={`company-status-${document.id}`}
+                  value={document.status}
+                  onChange={(event) => void setStatus(document, event.target.value)}
+                  className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ring-1 focus:outline-none ${
+                    document.status === 'Deferido'
+                      ? 'bg-green-100 text-green-800 ring-green-200'
+                      : document.status === 'Indeferido'
+                        ? 'bg-red-100 text-red-800 ring-red-200'
+                        : 'bg-amber-100 text-amber-800 ring-amber-200'
+                  }`}
+                >
+                  {STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
                 <span
                   className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${
-                    document.visibility === 'PUBLICO'
+                    isPublicValue(document.visibility)
                       ? 'bg-navy-950 text-gold-500 ring-navy-950'
                       : 'bg-mist-50 text-navy-950/70 ring-navy-950/10'
                   }`}
                 >
-                  {document.visibility === 'PUBLICO' ? <GlobeIcon /> : <LockIcon />}
-                  {document.visibility === 'PUBLICO' ? 'Público' : 'Privado'}
+                  {isPublicValue(document.visibility) ? <GlobeIcon /> : <LockIcon />}
+                  {isPublicValue(document.visibility) ? 'Público' : 'Privado'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setConfirmingVisibility(document)}
-                  aria-label={`${document.visibility === 'PUBLICO' ? 'Tornar privado' : 'Tornar público'}: ${document.name}`}
+                  aria-label={`${isPublicValue(document.visibility) ? 'Tornar privado' : 'Tornar público'}: ${document.name}`}
                   className="rounded p-1.5 text-navy-950/60 hover:bg-mist-50 hover:text-navy-950"
                 >
                   <EyeIcon />
@@ -144,8 +186,8 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
       )}
       {confirmingVisibility ? (
         <ConfirmDialog
-          title={confirmingVisibility.visibility === 'PUBLICO' ? 'Tornar privado' : 'Tornar público'}
-          message={`Deseja ${confirmingVisibility.visibility === 'PUBLICO' ? 'restringir' : 'liberar para qualquer visitante'} o documento '${confirmingVisibility.name}'? A mudança vale imediatamente para todas as listagens.`}
+          title={isPublicValue(confirmingVisibility.visibility) ? 'Tornar privado' : 'Tornar público'}
+          message={`Deseja ${isPublicValue(confirmingVisibility.visibility) ? 'restringir' : 'liberar para qualquer visitante'} o documento '${confirmingVisibility.name}'? A mudança vale imediatamente para todas as listagens.`}
           confirmLabel="Confirmar"
           busy={busy}
           onConfirm={flipVisibility}

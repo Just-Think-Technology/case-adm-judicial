@@ -10,6 +10,7 @@ export interface CompanyCard {
   nature: CompanyNature;
   processNumber: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CompanyDetails extends CompanyCard {

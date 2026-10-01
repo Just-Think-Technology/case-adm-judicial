@@ -124,8 +124,9 @@ O sistema trabalha com **três situações de uso** (apenas as duas últimas exi
   2. Acompanhar o andamento das suas solicitações;  
   3. Manter seus dados atualizados junto à Administração Judicial;  
   4. Habilitar-se para participar da Assembleia Geral de Credores (AGC).  
-- Oferece atalhos para: **cadastro**,  **login**,  **página de documentos** (painel corporativo) e  **contato por e-mail**.  
-- Mostra os canais de atendimento da administração judicial: **telefone**,  **e-mail de contato** e  **endereço** (com mapa), além do rodapé com a marca e os direitos reservados.  
+- Oferece atalhos para: **cadastro**,  **login**,  **página de documentos** (painel corporativo) e  **contato por e-mail**.
+- (Mudança deliberada de 2026-09-30: o **processo em destaque** ao lado do título foi removido por decisão de produto; a apresentação leva direto ao painel.)
+- Os canais de atendimento da administração judicial (**telefone**,  **e-mail de contato** e  **endereço** com mapa) aparecem **somente no rodapé**, além da marca e os direitos reservados. (Mudança deliberada de 2026-09-29: a seção própria de canais na apresentação foi removida por decisão de produto.)  
 **Comportamento de navegação:** pessoas que já possuem conta são encaminhadas ao ambiente interno ao tentar acessar a apresentação.  
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnEAAAACCAYAAAA3pIp+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAANklEQVR4nO3OMQ2AABAAsSNBCkLfFDZwwIgHRiywEZJWQZeZ2ao9AAD+4lyruzq+ngAA8Nr1AOH0BedHjjlfAAAAAElFTkSuQmCC)  
 **4.2 Cadastro de credor**  

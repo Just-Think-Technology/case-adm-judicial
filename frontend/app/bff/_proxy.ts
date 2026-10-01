@@ -18,7 +18,10 @@ function translateSetCookie(value: string): string {
 export async function proxyBackend(path: string, request: Request): Promise<NextResponse> {
   const incoming = new URL(request.url);
   const headers = new Headers();
-  for (const name of ['cookie', 'x-csrf-token', 'x-forwarded-for', 'content-type']) {
+  // The browser's Origin rides along: the global OriginGuard rejects
+  // cookie-carrying mutations without an allow-listed Origin, and a
+  // server-side fetch sends none of its own.
+  for (const name of ['cookie', 'x-csrf-token', 'x-forwarded-for', 'content-type', 'origin']) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }

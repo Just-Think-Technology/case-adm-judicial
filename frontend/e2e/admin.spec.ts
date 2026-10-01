@@ -14,12 +14,11 @@ async function fillCompany(page: Parameters<typeof loginAs>[0], name: string): P
 }
 
 test.describe('admin panel', () => {
-  test('shows the Clientes tab, the Empresas link and the card menus', async ({ page }) => {
+  test('shows the Clientes and Nova empresa header links and the card menus', async ({ page }) => {
     await loginAs(page, 'admin@case.com');
-    await expect(page.getByRole('banner').getByRole('link', { name: 'Empresas' })).toBeVisible();
-    await expect(page.getByRole('tab', { name: 'Clientes' })).toBeVisible();
-    await expect(page.getByRole('link', { name: '+ Nova empresa' })).toBeVisible();
-    await expect(page.locator('summary[aria-label="Opções de Alvorada Alimentos Ltda"]')).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Nova empresa' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Clientes' })).toBeVisible();
+        await expect(page.locator('summary[aria-label="Opções de Alvorada Alimentos Ltda"]')).toBeVisible();
   });
 
   test('creates a company and confirms', async ({ page }) => {
@@ -56,15 +55,14 @@ test.describe('admin panel', () => {
     await loginAs(page, 'credor@case.com');
     await page.goto('/empresas/nova');
     await expect(page.getByRole('heading', { name: /acesso proibido/i })).toBeVisible();
-    await expect(page.getByRole('banner').getByRole('link', { name: 'Empresas' })).not.toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Nova empresa' })).not.toBeVisible();
   });
 });
 
 test.describe('admin clients', () => {
   test('searches clients and opens their documents with stats', async ({ page }) => {
     await loginAs(page, 'admin@case.com');
-    await page.goto('/painel');
-    await page.getByRole('tab', { name: 'Clientes' }).click();
+    await page.goto('/clientes');
     await expect(page.getByText('Credor Teste')).toBeVisible();
     await page.getByPlaceholder(/nome ou e-mail/i).fill('outro@case.com');
     await expect(page.getByText('Outro Credor')).toBeVisible();
@@ -79,27 +77,23 @@ test.describe('admin clients', () => {
     await expect(page.getByRole('link', { name: 'Petição inicial.pdf' })).toBeVisible();
   });
 
-  test('changes statuses in batch and saves once', async ({ page }) => {
+  test('shows stats and document cards without a table', async ({ page }) => {
     await loginAs(page, 'admin@case.com');
     await page.goto('/clientes/u1');
-    const save = page.getByRole('button', { name: 'SALVAR ALTERAÇÕES' });
-    await expect(save).toBeDisabled();
-    await page.getByLabel('Status de Petição inicial.pdf').selectOption('Deferido');
-    await expect(save).toBeEnabled();
-    await save.click();
-    await expect(page.getByRole('status')).toContainText('Alterações salvas com sucesso!');
+    await expect(page.getByText('Total')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Petição inicial.pdf' })).toBeVisible();
+    await expect(page.getByText('Em análise').first()).toBeVisible();
   });
 
   test('removes a client with confirmation, sparing its own card', async ({ page }) => {
     await loginAs(page, 'admin@case.com');
-    await page.goto('/painel');
-    await page.getByRole('tab', { name: 'Clientes' }).click();
+    await page.goto('/clientes');
     await expect(page.locator('summary[aria-label="Opções de Admin Teste"]')).toHaveCount(0);
     await page.locator('summary[aria-label="Opções de Credor Teste"]').click();
     await page.getByRole('button', { name: 'REMOVER' }).click();
     await expect(page.getByRole('alertdialog')).toContainText('remover');
     await page.getByRole('alertdialog').getByRole('button', { name: 'REMOVER' }).click();
-    await expect(page.getByRole('status')).toContainText("foi removido(a) com sucesso!");
+    await expect(page.getByText("Cliente 'Credor Teste' foi removido(a) com sucesso!")).toBeVisible();
   });
 
   test('creditors get 403 on client documents', async ({ page }) => {
@@ -110,18 +104,21 @@ test.describe('admin clients', () => {
 });
 
 test.describe('admin company documents', () => {
-  test('manages visibility and deletion with confirmation', async ({ page }) => {
+  test('manages status, visibility and deletion with confirmation', async ({ page }) => {
     await loginAs(page, 'admin@case.com');
     await page.goto('/empresas/c1');
     await expect(page.getByText('Adicionado por Credor Teste')).toBeVisible();
     await expect(page.getByText('Público').first()).toBeVisible();
+    await page.getByLabel('Status de Petição inicial.pdf').selectOption('Deferido');
+    await expect(page.getByText(/marcado como Deferido/i)).toBeVisible();
     await page.getByRole('button', { name: /tornar privado/i }).click();
     await expect(page.getByRole('alertdialog')).toContainText('restringir');
     await page.getByRole('button', { name: 'Confirmar' }).click();
-    await expect(page.getByRole('status')).toContainText('agora é privado');
+    await expect(page.getByRole('status').filter({ hasText: 'agora é privado' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /tornar público: petição inicial/i })).toBeVisible();
     await page.getByRole('button', { name: /excluir lista de credores/i }).click();
     await expect(page.getByRole('alertdialog')).toContainText('não pode ser desfeita');
     await page.getByRole('button', { name: 'EXCLUIR', exact: true }).click();
-    await expect(page.getByRole('status')).toContainText('foi removido');
+    await expect(page.getByRole('status').filter({ hasText: 'foi removido' })).toBeVisible();
   });
 });

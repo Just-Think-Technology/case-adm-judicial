@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { AuthCard } from '@/components/auth-card';
 import { backendFetch } from '@/lib/backend';
 
-export const metadata = { title: 'Verificar e-mail — Portal do Credor' };
 
 // Landing of the mailed confirmation link (§4.3): valid links confirm the
 // account and point at login, anything else explains the link is not valid.
@@ -33,7 +32,7 @@ export default async function VerifyEmailPage({
   return (
     <AuthCard title="E-mail verificado com sucesso!">
       <p role="status" className="text-navy-950/80">
-        Sua conta está ativa. Entre com seu e-mail e senha — se esta página abriu em outra
+        Sua conta está ativa. Entre com seu e-mail e senha. Se esta página abriu em outra
         aba, ela já pode ser fechada.
       </p>
       <Link

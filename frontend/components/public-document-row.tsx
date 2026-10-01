@@ -30,7 +30,7 @@ export function PublicDocumentRow({
   );
   if (bare) return inner;
   return (
-    <li data-testid="public-document" className="flex items-center gap-3 rounded-lg border border-navy-950/10 bg-white px-4 py-3">
+    <li data-testid="public-document" className="flex items-center gap-3 rounded-lg border border-navy-950/10 bg-paper-50 px-4 py-3">
       {inner}
     </li>
   );

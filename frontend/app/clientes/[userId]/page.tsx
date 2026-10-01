@@ -1,12 +1,11 @@
 import { forbidden, notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import Link from 'next/link';
 import { ClientDocumentsManager } from '@/components/client-documents-manager';
+import { BackButton } from '@/components/back-button';
 import { backendFetch } from '@/lib/backend';
 import { getSession } from '@/lib/session';
 import type { ClientDocuments } from '@/lib/types';
 
-export const metadata = { title: 'Documentos do cliente — Portal do Credor' };
 
 // One client's documents (§4.14): administrators only. Non-administrators get
 // the 403 page; visitors are sent to login first.
@@ -32,9 +31,7 @@ export default async function ClientDocumentsPage({
   if (!data) notFound();
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <Link href="/painel" className="text-sm font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-600">
-        ← VOLTAR
-      </Link>
+      <BackButton href="/clientes" />
       <h1 className="font-display mt-4 text-3xl font-semibold text-navy-950">{data.user.name}</h1>
       <p className="mt-1 text-navy-950/60">{data.user.email}</p>
       <div className="mt-6">

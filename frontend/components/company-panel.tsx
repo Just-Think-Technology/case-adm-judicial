@@ -1,57 +1,75 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { ClientsPanel } from '@/components/clients-panel';
 import { CompanyCard } from '@/components/company-card';
+import { notifyToast } from '@/lib/toast';
 import type { CompanyCard as CompanyCardData, CompanyNature } from '@/lib/types';
 
-const COMPANY_TABS: CompanyNature[] = ['Recuperação Judicial', 'Falência'];
+const COMPANY_TABS: Array<CompanyNature | 'Todas'> = ['Todas', 'Recuperação Judicial', 'Falência'];
 
-const EMPTY_BY_NATURE: Record<CompanyNature, string> = {
-  'Recuperação Judicial':
-    'Nenhuma empresa encontrada — nenhuma empresa de Recuperação Judicial foi cadastrada ainda',
-  Falência: 'Nenhuma empresa encontrada — nenhuma empresa em Falência foi cadastrada ainda',
+const EMPTY_BY_NATURE: Record<CompanyNature | 'Todas', string> = {
+  Todas: 'Nenhuma empresa cadastrada ainda',
+  'Recuperação Judicial': 'Nenhuma empresa de Recuperação Judicial cadastrada ainda',
+  Falência: 'Nenhuma empresa em Falência cadastrada ainda',
 };
 
-type Tab = CompanyNature | 'Clientes';
-
-// Visitor panel: nature tabs + instant search over name and process number.
-// Administrators also get the Clientes tab and the per-card management menu.
+// Company panel: nature tabs (including all), instant search, and two sort
+// controls that combine — the most recently touched is primary, the other
+// breaks ties, so name and date can filter together.
 export function CompanyPanel({
   companies,
   isAdmin = false,
-  ownId = '',
 }: {
   companies: CompanyCardData[];
   isAdmin?: boolean;
-  ownId?: string;
 }): React.ReactNode {
-  const [tab, setTab] = useState<Tab>('Recuperação Judicial');
+  const [tab, setTab] = useState<CompanyNature | 'Todas'>('Todas');
   const [query, setQuery] = useState('');
   const [items, setItems] = useState(companies);
-  const [notice, setNotice] = useState('');
+  const [priority, setPriority] = useState<Array<'name' | 'date'>>(['date']);
+  const [nameDir, setNameDir] = useState<'az' | 'za'>('az');
+  const [dateDir, setDateDir] = useState<'new' | 'old'>('new');
 
   const visible = useMemo(() => {
-    if (tab === 'Clientes') return [];
     const term = query.trim().toLowerCase();
-    return items.filter((company) => {
-      if (company.nature !== tab) return false;
+    const filtered = items.filter((company) => {
+      if (tab !== 'Todas' && company.nature !== tab) return false;
       if (!term) return true;
       return (
         company.name.toLowerCase().includes(term) || company.processNumber.toLowerCase().includes(term)
       );
     });
-  }, [items, tab, query]);
+    // Stable sorts applied least-recent first: the last touch wins overall.
+    const sorted = [...filtered];
+    const apply = (criterion: 'name' | 'date'): void => {
+      if (criterion === 'name') {
+        sorted.sort((a, b) =>
+          nameDir === 'az' ? a.name.localeCompare(b.name, 'pt-BR') : b.name.localeCompare(a.name, 'pt-BR'),
+        );
+      } else {
+        sorted.sort((a, b) =>
+          dateDir === 'new'
+            ? Date.parse(b.createdAt) - Date.parse(a.createdAt)
+            : Date.parse(a.createdAt) - Date.parse(b.createdAt),
+        );
+      }
+    };
+    [...priority].reverse().forEach(apply);
+    return sorted;
+  }, [items, tab, query, priority, nameDir, dateDir]);
+
+  function touch(criterion: 'name' | 'date'): void {
+    setPriority((current) => [criterion, ...current.filter((entry) => entry !== criterion)]);
+  }
 
   function removed(id: string, name: string): void {
     setItems((current) => current.filter((company) => company.id !== id));
-    setNotice(`Empresa '${name}' foi removido(a) com sucesso!`);
+    notifyToast('success', `Empresa '${name}' foi removido(a) com sucesso!`);
   }
 
   return (
     <div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div role="tablist" aria-label="Natureza do processo" className="flex flex-wrap gap-2">
           {COMPANY_TABS.map((nature) => (
             <button
@@ -66,21 +84,42 @@ export function CompanyPanel({
               {nature}
             </button>
           ))}
-          {isAdmin ? (
-            <button
-              role="tab"
-              aria-selected={tab === 'Clientes'}
-              onClick={() => setTab('Clientes')}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                tab === 'Clientes' ? 'bg-navy-950 text-white' : 'bg-white text-navy-950 ring-1 ring-navy-950/15 hover:ring-gold-500'
-              }`}
-            >
-              Clientes
-            </button>
-          ) : null}
         </div>
-        {tab === 'Clientes' ? null : (
-          <label className="relative block sm:w-80">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <label className="flex items-center gap-2 text-sm text-navy-950/70">
+            Nome
+            <select
+              aria-label="Ordenar por nome"
+              value={nameDir}
+              onChange={(event) => {
+                setNameDir(event.target.value as 'az' | 'za');
+                touch('name');
+              }}
+              className="rounded-lg border border-navy-950/15 bg-white px-2 py-2 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
+            >
+              <option value="az">A–Z</option>
+              <option value="za">Z–A</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-sm text-navy-950/70">
+            Data
+            <select
+              aria-label="Ordenar por data de criação"
+              value={priority.includes('date') ? dateDir : ''}
+              onChange={(event) => {
+                setDateDir(event.target.value as 'new' | 'old');
+                touch('date');
+              }}
+              className="rounded-lg border border-navy-950/15 bg-white px-2 py-2 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
+            >
+              <option value="" disabled>
+                Data…
+              </option>
+              <option value="new">Mais recentes</option>
+              <option value="old">Mais antigas</option>
+            </select>
+          </label>
+          <label className="relative block sm:w-72">
             <span className="sr-only">Buscar por nome da empresa ou número do processo</span>
             <span aria-hidden className="pointer-events-none absolute top-2.5 left-3 text-navy-950/40">
               <SearchIcon />
@@ -93,41 +132,26 @@ export function CompanyPanel({
               className="w-full rounded-lg border border-navy-950/15 bg-white py-2 pr-3 pl-10 text-sm text-navy-950 placeholder:text-navy-950/40 focus:border-gold-500 focus:outline-none"
             />
           </label>
-        )}
+        </div>
       </div>
 
-      {isAdmin && tab !== 'Clientes' ? (
-        <div className="mt-4">
-          <Link
-            href="/empresas/nova"
-            className="inline-block rounded-lg bg-gold-500 px-4 py-2 text-sm font-semibold text-navy-950 hover:bg-gold-600"
-          >
-            + Nova empresa
-          </Link>
-        </div>
-      ) : null}
-
-      {notice ? (
-        <p role="status" className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
-          {notice}
-        </p>
-      ) : null}
-
-      {tab === 'Clientes' ? (
-        <div className="mt-6">
-          <ClientsPanel ownId={ownId} />
-        </div>
-      ) : visible.length > 0 ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((company) => (
-            <CompanyCard key={company.id} company={company} isAdmin={isAdmin} onRemoved={removed} />
-          ))}
-        </div>
+      {visible.length > 0 ? (
+        <>
+          <p className="mt-5 text-sm text-navy-950/55" role="status">
+            {visible.length} {visible.length === 1 ? 'processo' : 'processos'}
+            {tab === 'Todas' ? '' : ` em ${tab}`}
+          </p>
+          <div className="mt-3 grid gap-5 sm:grid-cols-2">
+            {visible.map((company) => (
+              <CompanyCard key={company.id} company={company} isAdmin={isAdmin} onRemoved={removed} />
+            ))}
+          </div>
+        </>
       ) : (
         <p role="status" className="mt-6 rounded-xl border border-dashed border-navy-950/20 bg-white p-8 text-center text-navy-950/60">
           {query.trim()
-            ? 'Nenhum resultado encontrado — tente buscar por outro termo'
-            : EMPTY_BY_NATURE[tab as CompanyNature]}
+            ? 'Nenhum resultado encontrado. Tente buscar por outro termo'
+            : EMPTY_BY_NATURE[tab]}
         </p>
       )}
     </div>

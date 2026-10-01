@@ -6,6 +6,7 @@ import { PasswordChecklist } from '@/components/password-checklist';
 import { PasswordInput } from '@/components/password-input';
 import { bffPatch } from '@/lib/bff-client';
 import { checkPassword, passwordValid } from '@/lib/password-rules';
+import { notifyToast } from '@/lib/toast';
 import type { Session } from '@/lib/session';
 
 const NAME_PATTERN = /^[A-Za-zÀ-ÖØ-öø-ÿ ]+$/;
@@ -16,13 +17,11 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
   const router = useRouter();
   const [name, setName] = useState(session.name);
   const [email, setEmail] = useState(session.email);
-  const [profileMessage, setProfileMessage] = useState({ kind: '', text: '' });
   const [savingProfile, setSavingProfile] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
-  const [passwordMessage, setPasswordMessage] = useState({ kind: '', text: '' });
   const [savingPassword, setSavingPassword] = useState(false);
 
   const checks = useMemo(() => checkPassword(password, confirmation), [password, confirmation]);
@@ -44,10 +43,10 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
     const result = await bffPatch('/bff/account', { name: name.trim(), email: email.trim() });
     setSavingProfile(false);
     if (result.status === 200) {
-      setProfileMessage({ kind: 'ok', text: 'Dados atualizados!' });
+      notifyToast('success', 'Dados atualizados!');
       router.refresh();
     } else {
-      setProfileMessage({ kind: 'error', text: result.message });
+      notifyToast('error', result.message);
     }
   }
 
@@ -62,18 +61,18 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
     });
     setSavingPassword(false);
     if (result.status === 200) {
-      setPasswordMessage({ kind: 'ok', text: 'Senha alterada com sucesso!' });
+      notifyToast('success', 'Senha alterada com sucesso!');
       setCurrentPassword('');
       setPassword('');
       setConfirmation('');
     } else {
-      setPasswordMessage({ kind: 'error', text: result.message });
+      notifyToast('error', result.message);
     }
   }
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section aria-label="Nome e e-mail" className="h-fit rounded-xl border border-navy-950/10 bg-white p-6 shadow-sm">
+      <section aria-label="Nome e e-mail" className="h-fit rounded-xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm">
         <h2 className="font-display text-xl font-semibold text-navy-950">Nome e e-mail</h2>
         <form onSubmit={saveProfile} className="mt-4 space-y-4">
           <div>
@@ -101,11 +100,6 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
               className="mt-1 w-full rounded-lg border border-navy-950/15 px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
             />
           </div>
-          {profileMessage.text ? (
-            <p role={profileMessage.kind === 'ok' ? 'status' : 'alert'} className={`rounded-lg px-3 py-2 text-sm ${profileMessage.kind === 'ok' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-              {profileMessage.text}
-            </p>
-          ) : null}
           <button
             type="submit"
             disabled={!profileReady}
@@ -116,7 +110,7 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
         </form>
       </section>
 
-      <section aria-label="Senha" className="h-fit rounded-xl border border-navy-950/10 bg-white p-6 shadow-sm">
+      <section aria-label="Senha" className="h-fit rounded-xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm">
         <div className="flex items-center gap-2">
           <h2 className="font-display text-xl font-semibold text-navy-950">Senha</h2>
           <details className="relative">
@@ -136,11 +130,6 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
           <PasswordChecklist checks={checks} />
           {password !== '' && password === currentPassword ? (
             <p className="text-sm text-navy-950/60">A nova senha não pode ser igual à senha atual.</p>
-          ) : null}
-          {passwordMessage.text ? (
-            <p role={passwordMessage.kind === 'ok' ? 'status' : 'alert'} className={`rounded-lg px-3 py-2 text-sm ${passwordMessage.kind === 'ok' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-              {passwordMessage.text}
-            </p>
           ) : null}
           <button
             type="submit"

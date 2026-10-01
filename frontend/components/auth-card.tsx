@@ -1,6 +1,8 @@
 import Link from 'next/link';
+import { BackButton } from '@/components/back-button';
 
-// Centered card shell for the public auth screens (signup, login, recovery).
+// Card shell for the public auth screens (signup, login, recovery): roomy and
+// centered in the viewport, never glued to the top.
 export function AuthCard({
   title,
   subtitle,
@@ -11,13 +13,14 @@ export function AuthCard({
   children: React.ReactNode;
 }): React.ReactNode {
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-12 sm:px-6">
-      <div className="rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm sm:p-8">
-        <h1 className="font-display text-2xl font-semibold text-navy-950">{title}</h1>
-        {subtitle ? <p className="mt-2 text-sm text-navy-950/60">{subtitle}</p> : null}
-        <div className="mt-6">{children}</div>
+    <div className="mx-auto flex min-h-[70vh] w-full max-w-lg flex-col justify-center px-4 py-8 sm:px-6">
+      <BackButton href="/" label="INÍCIO" />
+      <div className="mt-4 rounded-2xl border border-navy-950/10 border-t-4 border-t-gold-500 bg-paper-50 p-6 shadow-sm sm:p-8">
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-navy-950">{title}</h1>
+        {subtitle ? <p className="mt-2 text-navy-950/60">{subtitle}</p> : null}
+        <div className="mt-7">{children}</div>
       </div>
-      <p className="mt-4 text-center text-sm text-navy-950/60">
+      <p className="mt-5 text-center text-sm text-navy-950/60">
         <Link href="/painel" className="underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-600">
           Ver documentos públicos sem entrar
         </Link>

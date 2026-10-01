@@ -1,12 +1,15 @@
 @import 'tailwindcss';
 
-/* Brand tokens carried over from the legacy portal: navy + gold on light. */
+/* Brand tokens: the office desk — warm paper, navy ink, restrained gold. */
 @theme {
   --color-navy-950: #0a112b;
   --color-navy-800: #25345d;
+  --color-gold-700: #a87b14;
   --color-gold-600: #c08a1c;
   --color-gold-500: #dca729;
   --color-gold-100: #fdf3dd;
+  --color-paper-50: #faf7ef;
+  --color-paper-100: #f3eee0;
   --color-mist-50: #f5f8fa;
 
   --font-display: 'Jost', 'Open Sans', system-ui, sans-serif;
@@ -14,5 +17,44 @@
 }
 
 body {
-  background-color: var(--color-mist-50);
+  background-color: var(--color-paper-50);
+}
+
+/* One smooth hover language for every link and button — quiet, 200ms, and
+   fully off for reduced-motion users. */
+a,
+button,
+summary {
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    opacity 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a,
+  button,
+  summary {
+    transition: none;
+  }
+  .toast-in {
+    animation: none;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast-in {
+  animation: toast-in 200ms ease;
 }

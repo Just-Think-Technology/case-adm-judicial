@@ -18,8 +18,10 @@
     }
   }
 
-  # API — unversioned by decision; controllers own their full paths
+  # API — unversioned by decision; the gateway owns the /api prefix, so it is
+  # stripped here and controllers own their full prefix-less paths.
   handle /api/* {
+    uri strip_prefix /api
     reverse_proxy backend:3000 {
       # See above: strip spoofed caller addresses before proxying.
       header_up -X-Forwarded-For
@@ -50,7 +52,10 @@
 # Uncomment and set APP_HOST env when deploying to Lightsail:
 # {$APP_HOST} {
 #   handle /health* { reverse_proxy backend:3000 }
-#   handle /api/* { reverse_proxy backend:3000 }
+#   handle /api/* {
+#     uri strip_prefix /api
+#     reverse_proxy backend:3000
+#   }
 #   handle /api/storage/* {
 #     uri strip_prefix /api/storage
 #     reverse_proxy seaweedfs:8333 { header_up Host {host} }

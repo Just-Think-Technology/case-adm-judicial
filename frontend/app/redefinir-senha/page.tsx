@@ -2,7 +2,6 @@ import { AuthCard } from '@/components/auth-card';
 import { ResetPasswordForm } from '@/components/reset-password-form';
 import { backendFetch } from '@/lib/backend';
 
-export const metadata = { title: 'Redefinir senha — Portal do Credor' };
 
 // Resolves the mailed token server-side: a valid link renders the readonly
 // address plus the form, anything else the invalid-link message (§4.5).

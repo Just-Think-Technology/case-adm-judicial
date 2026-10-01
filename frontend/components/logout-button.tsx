@@ -2,12 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 
-// Ends the session through the BFF and returns to the login screen (§4.4).
+// Ends the session through the BFF and returns to the home page.
 export function LogoutButton(): React.ReactNode {
   const router = useRouter();
   async function logout(): Promise<void> {
     await fetch('/bff/auth/logout', { method: 'POST' }).catch(() => null);
-    router.push('/login');
+    router.push('/');
     router.refresh();
   }
   return (

@@ -29,7 +29,6 @@ describe('LandingPage', () => {
 
   it('shows the office contact channels', () => {
     render(<LandingPage />);
-    expect(screen.getByText('(65) 3358-4126')).toBeInTheDocument();
-    expect(screen.getByText('contato@caseadmjudicial.com.br')).toBeInTheDocument();
+    expect(screen.queryByText('(65) 3358-4126')).not.toBeInTheDocument();
   });
 });

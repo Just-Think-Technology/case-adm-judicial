@@ -14,7 +14,7 @@ async function control(request: APIRequestContext, body: unknown): Promise<void>
 
 test.describe('creditor documents', () => {
   test.beforeEach(async ({ request }) => {
-    await control(request, { failUpload: false });
+    await control(request, { failUpload: false, resetDocuments: true });
   });
 
   test('filters by scope with status on the creditor documents', async ({ page }) => {
@@ -30,13 +30,13 @@ test.describe('creditor documents', () => {
     await expect(page.getByText('Petição inicial.pdf')).not.toBeVisible();
   });
 
-  test('upload sends two documents and summarizes', async ({ page }) => {
+  test('upload sends two documents and returns to the company', async ({ page }) => {
     await login(page);
     await page.goto('/empresas/c1');
     await page.getByRole('link', { name: /enviar documentos/i }).click();
     await expect(page).toHaveURL(/\/empresas\/c1\/enviar$/);
-    await page.getByLabel('Quantidade de documentos').fill('2');
-    await page.getByRole('button', { name: 'Adicionar' }).click();
+    await expect(page.getByRole('article', { name: 'Documento 1' })).toBeVisible();
+    await page.getByRole('button', { name: 'Novo documento' }).click();
     for (const index of [0, 1]) {
       const article = page.getByRole('article', { name: `Documento ${index + 1}` });
       await article.getByLabel('Nome do documento').fill(`Comprovante ${index + 1}`);
@@ -46,14 +46,13 @@ test.describe('creditor documents', () => {
         .setInputFiles({ name: `doc${index}.pdf`, mimeType: 'application/pdf', buffer: Buffer.from('%PDF-stub') });
     }
     await page.getByRole('button', { name: 'ENVIAR TODOS' }).click();
-    await expect(page.getByRole('status')).toContainText('Concluído: 2 de 2 documentos enviados com sucesso!');
+    await expect(page).toHaveURL(/\/empresas\/c1$/);
   });
 
   test('failed uploads stay on screen for a new attempt', async ({ page, request }) => {
     await login(page);
     await control(request, { failUpload: true });
     await page.goto('/empresas/c1/enviar');
-    await page.getByRole('button', { name: 'Adicionar' }).click();
     const article = page.getByRole('article', { name: 'Documento 1' });
     await article.getByLabel('Nome do documento').fill('Comprovante');
     await article.getByLabel('Descrição do documento').fill('Comprovante de crédito');
@@ -61,11 +60,12 @@ test.describe('creditor documents', () => {
       .getByLabel(/arquivo/i)
       .setInputFiles({ name: 'doc.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-stub') });
     await page.getByRole('button', { name: 'ENVIAR TODOS' }).click();
-    await expect(page.getByRole('status')).toContainText('0 de 1 documentos enviados com sucesso!');
+    await expect(page.getByText(/0 de 1 documentos enviados com sucesso/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/enviar$/);
     await expect(article.getByText('Comprovante')).toBeVisible();
     await control(request, { failUpload: false });
     await page.getByRole('button', { name: 'ENVIAR TODOS' }).click();
-    await expect(page.getByRole('status')).toContainText('Concluído: 1 de 1 documentos enviados com sucesso!');
+    await expect(page).toHaveURL(/\/empresas\/c1$/);
   });
 
   test('visitors are sent to login from the upload and account pages', async ({ page }) => {

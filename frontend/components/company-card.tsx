@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useState } from 'react';import { ConfirmDialog } from '@/components/confirm-dialog';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatRelative } from '@/lib/format';
 import { bffSend } from '@/lib/bff-client';
+import { notifyToast } from '@/lib/toast';
 import type { CompanyCard as CompanyCardData } from '@/lib/types';
 
-// Panel card per §4.7: nature icon, name, process number, creation date and
-// the ACESSAR button. Administrators also get the three-dot menu with EDITAR
-// (same form, prefilled) and REMOVER (confirmed, irreversible).
+// Panel card per §4.7: gold-tinted nature icon, name, process number with a
+// copy shortcut, and a relative-age footer. The whole card is one link to the
+// company page — the copy button and the admin menu float above it.
 export function CompanyCard({
   company,
   isAdmin = false,
@@ -32,26 +33,49 @@ export function CompanyCard({
     }
   }
 
+  async function copyProcessNumber(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(company.processNumber);
+      notifyToast('success', 'Número do processo copiado.');
+    } catch {
+      notifyToast('error', 'Não foi possível copiar agora.');
+    }
+  }
+
   return (
     <article
       data-testid="company-card"
-      className="relative flex flex-col rounded-xl border border-navy-950/10 bg-white p-5 shadow-sm transition hover:shadow-md"
+      className="group relative flex flex-col rounded-2xl border border-navy-950/10 bg-white p-6 shadow-sm transition hover:border-gold-500/40 hover:shadow-lg"
     >
-      <div className="flex items-start gap-3">
+      <div className="relative flex items-start gap-4">
         <span
           aria-hidden
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isRJ ? 'bg-navy-950 text-gold-500' : 'bg-gold-100 text-gold-600'}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold-500/10 ${isRJ ? 'text-gold-700' : 'text-navy-800'}`}
         >
           {isRJ ? <BuildingIcon /> : <AlertIcon />}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="font-display truncate text-lg font-semibold text-navy-950" title={company.name}>
+          <p className="text-[11px] font-medium tracking-[0.18em] text-gold-700 uppercase">
+            {company.nature}
+          </p>
+          <h3 className="font-display mt-1 line-clamp-2 text-xl leading-snug font-semibold text-navy-950" title={company.name}>
             {company.name}
           </h3>
-          <p className="text-sm text-navy-950/60">{company.processNumber}</p>
+          <p className="mt-1.5 flex items-center gap-1.5 text-sm text-navy-950/60 tabular-nums">
+            <span className="truncate">{company.processNumber}</span>
+            <button
+              type="button"
+              onClick={copyProcessNumber}
+              aria-label={`Copiar número do processo de ${company.name}`}
+              title="Copiar número do processo"
+              className="relative z-10 shrink-0 rounded p-1 text-navy-950/40 hover:bg-mist-50 hover:text-gold-700"
+            >
+              <CopyIcon />
+            </button>
+          </p>
         </div>
         {isAdmin ? (
-          <details className="relative shrink-0">
+          <details className="relative z-10 shrink-0">
             <summary aria-label={`Opções de ${company.name}`} className="cursor-pointer list-none rounded px-2 py-1 text-xl leading-none text-navy-950/60 hover:bg-mist-50 hover:text-navy-950">
               ⋮
             </summary>
@@ -73,13 +97,21 @@ export function CompanyCard({
           </details>
         ) : null}
       </div>
-      <p className="mt-3 text-xs text-navy-950/50">Cadastrada em {formatDate(company.createdAt)}</p>
-      <Link
-        href={`/empresas/${company.id}`}
-        className="mt-4 rounded-lg bg-navy-950 px-4 py-2 text-center text-sm font-semibold tracking-wide text-white hover:bg-navy-800"
-      >
-        ACESSAR
-      </Link>
+      <div className="relative mt-4 flex items-center justify-between gap-3 border-t border-navy-950/10 pt-4">
+        <p className="min-w-0 truncate text-xs text-navy-950/50" title={`Cadastrada em ${formatDate(company.createdAt)}`}>
+          Atualizado {formatRelative(company.updatedAt)}
+        </p>
+        <Link
+          href={`/empresas/${company.id}`}
+          aria-label={`Acessar processo de ${company.name}`}
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-navy-950 transition after:absolute after:inset-0 after:rounded-2xl after:content-[''] group-hover:text-gold-700"
+        >
+          <span aria-hidden className="inline-flex items-center gap-1">
+            Acessar processo
+            <span className="inline-block transition group-hover:translate-x-1">→</span>
+          </span>
+        </Link>
+      </div>
       {confirming ? (
         <ConfirmDialog
           title="Remover empresa"
@@ -96,7 +128,7 @@ export function CompanyCard({
 
 function BuildingIcon(): React.ReactNode {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
       <rect x="4" y="3" width="12" height="14" rx="1" />
       <path d="M7.5 6.5h1.5M11 6.5h1.5M7.5 9.5h1.5M11 9.5h1.5M7.5 12.5h1.5M11 12.5h1.5M9 17v-2h2v2" />
     </svg>
@@ -105,9 +137,18 @@ function BuildingIcon(): React.ReactNode {
 
 function AlertIcon(): React.ReactNode {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
       <path d="M10 2.5 17.5 15.5h-15L10 2.5Z" strokeLinejoin="round" />
       <path d="M10 7.5v3.5M10 13.2v.1" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CopyIcon(): React.ReactNode {
+  return (
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <rect x="7" y="7" width="10" height="10" rx="1.5" />
+      <path d="M13 7V5.5A1.5 1.5 0 0 0 11.5 4h-6A1.5 1.5 0 0 0 4 5.5v6A1.5 1.5 0 0 0 5.5 13H7" />
     </svg>
   );
 }

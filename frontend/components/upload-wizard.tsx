@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { notifyToast } from '@/lib/toast';
 
 const DOCUMENT_TYPES = [
   'Habilitação de crédito',
@@ -38,32 +40,26 @@ const BLANK = (key: number): UploadForm => ({
   message: '',
 });
 
+const fieldClass =
+  'mt-1.5 w-full rounded-lg border border-navy-950/15 bg-white px-3 py-2.5 text-navy-950 focus:border-gold-600 focus:outline-none';
+
 // Multi-document upload (§4.9): the company arrives fixed from the page of
-// origin, forms are added by quantity, and Enviar Todos ships them in groups
-// of three with batch progress and per-document status. Failures stay on
-// screen for a new attempt; full success clears the forms.
+// origin. One form is always present, Novo documento adds more, Enviar Todos
+// ships them three at a time with per-document status. Failures stay on
+// screen for a new attempt; full success returns to the company page.
 export function UploadWizard({ companyId, companyName }: { companyId: string; companyName: string }): React.ReactNode {
-  const [quantity, setQuantity] = useState('1');
-  const [forms, setForms] = useState<UploadForm[]>([]);
+  const router = useRouter();
+  const keyCounter = useRef(1);
+  const [forms, setForms] = useState<UploadForm[]>(() => [BLANK(1)]);
   const [sendingAll, setSendingAll] = useState(false);
-  const [summary, setSummary] = useState('');
-  const keyCounter = useRef(0);
 
   const patch = (key: number, update: Partial<UploadForm>): void => {
     setForms((current) => current.map((form) => (form.key === key ? { ...form, ...update } : form)));
   };
 
-  function addForms(): void {
-    const count = Math.max(1, Math.floor(Number(quantity) || 1));
-    setForms((current) => {
-      const next = [...current];
-      for (let index = 0; index < count; index += 1) {
-        keyCounter.current += 1;
-        next.push(BLANK(keyCounter.current));
-      }
-      return next;
-    });
-    setSummary('');
+  function addForm(): void {
+    keyCounter.current += 1;
+    setForms((current) => [...current, BLANK(keyCounter.current)]);
   }
 
   function formError(form: UploadForm): string {
@@ -123,7 +119,7 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
     const pending = forms.filter((form) => form.status !== 'done');
     if (pending.length === 0 || sendingAll) return;
     setSendingAll(true);
-    setSummary('');
+    const total = pending.length;
     let succeeded = 0;
     const queue = [...pending];
     const workers = Array.from(
@@ -138,190 +134,196 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
     );
     await Promise.all(workers);
     setSendingAll(false);
-    const total = pending.length;
     if (succeeded === total) {
-      setForms([]);
-      setSummary(`Concluído: ${succeeded} de ${total} documentos enviados com sucesso!`);
+      notifyToast('success', `Concluído: ${succeeded} de ${total} documentos enviados com sucesso!`);
+      router.push(`/empresas/${encodeURIComponent(companyId)}`);
     } else {
-      setSummary(
+      notifyToast(
+        'error',
         `Concluído: ${succeeded} de ${total} documentos enviados com sucesso! ` +
-          `${total - succeeded} não puderam ser enviados — confira e tente novamente.`,
+          `${total - succeeded} não puderam ser enviados. Confira e tente novamente.`,
       );
     }
   }
 
-  const finished = forms.filter((form) => form.status === 'done').length;
-  const progress = forms.length > 0 ? Math.round((finished / forms.length) * 100) : 0;
-
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <Link href={`/empresas/${companyId}`} className="text-sm font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-600">
+      <Link href={`/empresas/${companyId}`} className="text-sm font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-700">
         ← VOLTAR
       </Link>
-      <h1 className="font-display mt-4 text-3xl font-semibold text-navy-950">Adicionar documento</h1>
+      <p className="mt-4 text-xs font-bold tracking-[0.2em] text-gold-700 uppercase">Novo envio</p>
+      <h1 className="font-display mt-2 text-4xl font-semibold tracking-tight text-navy-950">Adicionar documento</h1>
       <p className="mt-2 text-navy-950/60">
         Empresa: <strong className="text-navy-950">{companyName}</strong>
       </p>
 
-      <div className="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-navy-950/10 bg-white p-5 shadow-sm">
-        <div>
-          <label htmlFor="upload-quantity" className="block text-sm font-semibold text-navy-950">
-            Quantidade de documentos
-          </label>
-          <input
-            id="upload-quantity"
-            type="number"
-            min={1}
-            value={quantity}
-            onChange={(event) => setQuantity(event.target.value)}
-            className="mt-1 w-28 rounded-lg border border-navy-950/15 px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
-          />
-        </div>
+      <div className="mt-8 flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={addForms}
-          className="rounded-lg border border-navy-950/20 px-4 py-2 text-sm font-semibold text-navy-950 hover:border-gold-500"
+          onClick={addForm}
+          className="rounded-lg border border-navy-950/20 px-5 py-2.5 text-sm font-semibold text-navy-950 hover:border-gold-600"
         >
-          Adicionar
+          Novo documento
         </button>
       </div>
 
-      {forms.length > 0 ? (
-        <div className="mt-6 space-y-4">
-          {forms.map((form, index) => (
-            <article key={form.key} className="rounded-xl border border-navy-950/10 bg-white p-5 shadow-sm" aria-label={`Documento ${index + 1}`}>
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-lg font-semibold text-navy-950">Documento {index + 1}</h2>
-                {form.status === 'sending' ? (
-                  <span className="animate-pulse text-sm font-semibold text-gold-600">Enviando…</span>
-                ) : form.status === 'done' ? (
-                  <span className="text-sm font-semibold text-green-700">✓ Enviado</span>
-                ) : form.status === 'error' ? (
-                  <span className="text-sm font-semibold text-red-700">✗ Falhou</span>
-                ) : null}
-              </div>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor={`type-${form.key}`} className="block text-sm font-semibold text-navy-950">
-                    Tipo de documento
-                  </label>
-                  <select
-                    id={`type-${form.key}`}
-                    value={form.type}
-                    disabled={form.status === 'done'}
-                    onChange={(event) => patch(form.key, { type: event.target.value })}
-                    className="mt-1 w-full rounded-lg border border-navy-950/15 bg-white px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
-                  >
-                    {DOCUMENT_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+      <section aria-label="Documentos" className="mt-6">
+        <div className="mt-4 space-y-5">
+            {forms.map((form, index) => (
+              <article
+                key={form.key}
+                aria-label={`Documento ${index + 1}`}
+                className={`rounded-2xl border bg-paper-50 p-6 shadow-sm sm:p-7 ${
+                  form.status === 'done'
+                    ? 'border-green-200'
+                    : form.status === 'error'
+                      ? 'border-red-200'
+                      : 'border-navy-950/10'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-display text-xl font-semibold text-navy-950">Documento {index + 1}</h3>
+                  {form.status === 'sending' ? (
+                    <span className="animate-pulse text-sm font-semibold text-gold-700">Enviando…</span>
+                  ) : form.status === 'done' ? (
+                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-800">✓ Enviado</span>
+                  ) : form.status === 'error' ? (
+                    <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800">✗ Falhou</span>
+                  ) : null}
                 </div>
-                {form.type === 'Outros' ? (
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
                   <div>
-                    <label htmlFor={`custom-${form.key}`} className="block text-sm font-semibold text-navy-950">
-                      Especificação do tipo
+                    <label htmlFor={`type-${form.key}`} className="block text-sm font-semibold text-navy-950">
+                      Tipo de documento
                     </label>
-                    <input
-                      id={`custom-${form.key}`}
-                      value={form.customType}
+                    <select
+                      id={`type-${form.key}`}
+                      value={form.type}
                       disabled={form.status === 'done'}
-                      onChange={(event) => patch(form.key, { customType: event.target.value })}
-                      className="mt-1 w-full rounded-lg border border-navy-950/15 px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
+                      onChange={(event) => patch(form.key, { type: event.target.value })}
+                      className={fieldClass}
+                    >
+                      {DOCUMENT_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {form.type === 'Outros' ? (
+                    <div>
+                      <label htmlFor={`custom-${form.key}`} className="block text-sm font-semibold text-navy-950">
+                        Especificação do tipo
+                      </label>
+                      <input
+                        id={`custom-${form.key}`}
+                        value={form.customType}
+                        disabled={form.status === 'done'}
+                        onChange={(event) => patch(form.key, { customType: event.target.value })}
+                        className={fieldClass}
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label htmlFor={`name-${form.key}`} className="block text-sm font-semibold text-navy-950">
+                        Nome do documento
+                      </label>
+                      <input
+                        id={`name-${form.key}`}
+                        value={form.name}
+                        maxLength={255}
+                        disabled={form.status === 'done'}
+                        onChange={(event) => patch(form.key, { name: event.target.value })}
+                        className={fieldClass}
+                      />
+                    </div>
+                  )}
+                  {form.type === 'Outros' ? (
+                    <div className="sm:col-span-2">
+                      <label htmlFor={`name-${form.key}`} className="block text-sm font-semibold text-navy-950">
+                        Nome do documento
+                      </label>
+                      <input
+                        id={`name-${form.key}`}
+                        value={form.name}
+                        maxLength={255}
+                        disabled={form.status === 'done'}
+                        onChange={(event) => patch(form.key, { name: event.target.value })}
+                        className={fieldClass}
+                      />
+                    </div>
+                  ) : null}
+                  <div className="sm:col-span-2">
+                    <label htmlFor={`description-${form.key}`} className="block text-sm font-semibold text-navy-950">
+                      Descrição do documento
+                    </label>
+                    <textarea
+                      id={`description-${form.key}`}
+                      value={form.description}
+                      maxLength={1000}
+                      rows={2}
+                      disabled={form.status === 'done'}
+                      onChange={(event) => patch(form.key, { description: event.target.value })}
+                      className={fieldClass}
                     />
                   </div>
+                  <div className="sm:col-span-2">
+                    <span id={`file-label-${form.key}`} className="block text-sm font-semibold text-navy-950">
+                      Arquivo
+                    </span>
+                    <label
+                      htmlFor={`file-${form.key}`}
+                      className={`mt-1.5 flex cursor-pointer items-center justify-between gap-3 rounded-xl border-2 border-dashed px-4 py-4 text-sm transition ${
+                        form.file
+                          ? 'border-gold-600 bg-gold-100/40 text-navy-950'
+                          : 'border-navy-950/20 bg-paper-50 text-navy-950/60 hover:border-gold-600'
+                      } ${form.status === 'done' ? 'pointer-events-none opacity-60' : ''}`}
+                    >
+                      <span className="truncate font-medium">
+                        {form.file ? form.file.name : 'Escolher PDF, JPEG, JPG, PNG, DOCX ou XLSX'}
+                      </span>
+                      <span className="shrink-0 rounded-lg bg-navy-950 px-3 py-1.5 text-xs font-bold text-white">
+                        {form.file ? 'Trocar' : 'Procurar'}
+                      </span>
+                    </label>
+                    <input
+                      id={`file-${form.key}`}
+                      aria-labelledby={`file-label-${form.key}`}
+                      type="file"
+                      accept={ACCEPT_ATTR}
+                      disabled={form.status === 'done'}
+                      onChange={(event) => patch(form.key, { file: event.target.files?.[0] ?? null })}
+                      className="sr-only"
+                    />
+                  </div>
+                </div>
+                {form.message && form.status !== 'done' ? (
+                  <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+                    {form.message}
+                  </p>
                 ) : null}
-                <div>
-                  <label htmlFor={`name-${form.key}`} className="block text-sm font-semibold text-navy-950">
-                    Nome do documento
-                  </label>
-                  <input
-                    id={`name-${form.key}`}
-                    value={form.name}
-                    maxLength={255}
-                    disabled={form.status === 'done'}
-                    onChange={(event) => patch(form.key, { name: event.target.value })}
-                    className="mt-1 w-full rounded-lg border border-navy-950/15 px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`file-${form.key}`} className="block text-sm font-semibold text-navy-950">
-                    Arquivo (PDF, JPEG, JPG, PNG, DOCX, XLSX)
-                  </label>
-                  <input
-                    id={`file-${form.key}`}
-                    type="file"
-                    accept={ACCEPT_ATTR}
-                    disabled={form.status === 'done'}
-                    onChange={(event) => patch(form.key, { file: event.target.files?.[0] ?? null })}
-                    className="mt-1 w-full text-sm text-navy-950/70 file:mr-3 file:rounded-lg file:border-0 file:bg-navy-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-navy-800"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label htmlFor={`description-${form.key}`} className="block text-sm font-semibold text-navy-950">
-                    Descrição do documento
-                  </label>
-                  <textarea
-                    id={`description-${form.key}`}
-                    value={form.description}
-                    maxLength={1000}
-                    rows={2}
-                    disabled={form.status === 'done'}
-                    onChange={(event) => patch(form.key, { description: event.target.value })}
-                    className="mt-1 w-full rounded-lg border border-navy-950/15 px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-              {form.message && form.status !== 'done' ? (
-                <p role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
-                  {form.message}
-                </p>
-              ) : null}
-              {form.status === 'done' ? (
-                <button
-                  type="button"
-                  onClick={() => patch(form.key, { ...BLANK(form.key), key: form.key })}
-                  className="mt-3 text-sm font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-600"
-                >
-                  Preparar outro arquivo neste formulário
-                </button>
-              ) : null}
-            </article>
-          ))}
-
-          <div className="rounded-xl border border-navy-950/10 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between text-sm font-semibold text-navy-950">
-              <span>Progresso do envio</span>
-              <span>{progress}%</span>
-            </div>
-            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-mist-50" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Progresso do envio">
-              <div
-                className={`h-full rounded-full bg-gold-500 transition-all ${sendingAll ? 'animate-pulse' : ''}`}
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={sendAll}
-              disabled={sendingAll}
-              className="mt-4 w-full rounded-lg bg-navy-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-40 sm:w-auto sm:px-8"
-            >
-              {sendingAll ? 'Enviando…' : 'ENVIAR TODOS'}
-            </button>
+                {form.status === 'done' ? (
+                  <button
+                    type="button"
+                    onClick={() => patch(form.key, { ...BLANK(form.key), key: form.key })}
+                    className="mt-4 text-sm font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-700"
+                  >
+                    Preparar outro arquivo neste formulário
+                  </button>
+                ) : null}
+              </article>
+            ))}
           </div>
-        </div>
-      ) : null}
 
-      {summary ? (
-        <p role="status" className="mt-6 rounded-xl border border-navy-950/10 bg-white p-5 text-center font-semibold text-navy-950">
-          {summary}{' '}
-          <Link href={`/empresas/${companyId}`} className="underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-600">
-            Voltar à empresa
-          </Link>
-        </p>
-      ) : null}
+          <button
+            type="button"
+            onClick={sendAll}
+            disabled={sendingAll}
+            className="mt-6 w-full rounded-lg bg-navy-950 px-4 py-3 text-sm font-bold tracking-wide text-white hover:bg-navy-800 disabled:opacity-40 sm:w-auto sm:px-10"
+          >
+            {sendingAll ? 'Enviando…' : 'ENVIAR TODOS'}
+          </button>
+        </section>
     </div>
   );
 }

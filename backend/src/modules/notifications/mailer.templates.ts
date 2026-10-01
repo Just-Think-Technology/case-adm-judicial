@@ -19,17 +19,33 @@ export function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;');
 }
 
+const BRAND_FONT = `font-family:Arial,Helvetica,sans-serif;color:#0a112b;`;
+
 function layout(title: string, name: string, lines: string[], buttonLabel: string, link: string): OutgoingMail {
   const safeName = escapeHtml(name);
-  const paragraphs = lines.map((line) => `<p>${line}</p>`).join('');
+  const paragraphs = lines.map((line) => `<p style="margin:0 0 12px;">${line}</p>`).join('');
+  const html = [
+    `<div style="${BRAND_FONT}background-color:#f3eee0;padding:24px 12px;">`,
+    '<div style="max-width:560px;margin:0 auto;background-color:#ffffff;border:1px solid #e3ddcb;border-radius:12px;overflow:hidden;">',
+    '<div style="background-color:#0a112b;padding:20px 28px;">',
+    '<p style="margin:0;font-size:11px;letter-spacing:2px;color:#dca729;">CASE ADMINISTRAÇÃO JUDICIAL</p>',
+    `<p style="margin:6px 0 0;font-size:20px;font-weight:bold;color:#ffffff;">${title}</p>`,
+    '</div>',
+    '<div style="padding:24px 28px;font-size:15px;line-height:1.6;">',
+    `<p style="margin:0 0 12px;">Olá, ${safeName}!</p>`,
+    paragraphs,
+    `<p style="margin:20px 0 8px;"><a href="${link}" style="display:inline-block;background-color:#dca729;color:#0a112b;font-weight:bold;font-size:14px;letter-spacing:1px;text-decoration:none;padding:12px 28px;border-radius:8px;">${buttonLabel}</a></p>`,
+    '<p style="margin:12px 0 0;font-size:13px;color:#5a5a5a;">Se você não solicitou este e-mail, apenas ignore.</p>',
+    '</div>',
+    '<div style="padding:14px 28px;border-top:1px solid #e3ddcb;">',
+    '<p style="margin:0;font-size:12px;color:#8a8a8a;">Case Administração Judicial — Portal do Credor</p>',
+    '</div>',
+    '</div>',
+    '</div>',
+  ].join('');
   return {
     subject: title,
-    html: [
-      `<p>Olá, ${safeName}!</p>`,
-      paragraphs,
-      `<p><a href="${link}">${buttonLabel}</a></p>`,
-      '<p>Se você não solicitou este e-mail, apenas ignore.</p>',
-    ].join(''),
+    html,
     text: [`Olá, ${name}!`, ...lines, `${buttonLabel}: ${link}`, 'Se você não solicitou este e-mail, apenas ignore.'].join(
       '\n\n',
     ),

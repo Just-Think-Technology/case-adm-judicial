@@ -16,7 +16,10 @@ const contentSecurityPolicy = [
   // blocking it throws React #412 and kills client-side navigation — verified
   // in a production build. Removing it requires per-request nonces, which
   // forces every page to be dynamic and gives up static generation.
-  "script-src 'self' 'unsafe-inline'",
+  // 'unsafe-eval' joins it in development only: React's dev build reconstructs
+  // call stacks with eval(), and the production build never does — so prod
+  // keeps the strict policy while `next dev` stays error-free.
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"}`,
   // Inline styles are needed for the same reason: Next injects style tags.
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
@@ -50,10 +53,11 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      // In local dev without Caddy, proxy /api to backend directly
+      // In local dev without Caddy, proxy /api to backend directly — the
+      // prefix is stripped like the gateway does, controllers are prefix-less.
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*',
+        destination: 'http://localhost:3000/:path*',
       },
     ];
   },
