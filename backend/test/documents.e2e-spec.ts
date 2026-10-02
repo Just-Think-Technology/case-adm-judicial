@@ -268,6 +268,28 @@ describe('POST /companies/:id/documents', () => {
     expect(response.status).toBe(409);
   });
 
+  it('accepts the same content in another company', async () => {
+    const firstId = await createCompany('203.0.113.223');
+    const secondId = await createCompany('203.0.113.223');
+    const cookies = await creditorCookies('203.0.113.223', 'outra@case.com');
+    const first = await upload('203.0.113.223', firstId, cookies);
+    expect(first.status).toBe(201);
+
+    const second = await upload('203.0.113.223', secondId, cookies);
+    expect(second.status).toBe(201);
+  });
+
+  it('accepts the same content from another creditor', async () => {
+    const companyId = await createCompany('203.0.113.224');
+    const first = await creditorCookies('203.0.113.224', 'primeiro@case.com');
+    const second = await creditorCookies('203.0.113.225', 'segundo@case.com');
+    const firstUpload = await upload('203.0.113.224', companyId, first);
+    expect(firstUpload.status).toBe(201);
+
+    const secondUpload = await upload('203.0.113.225', companyId, second);
+    expect(secondUpload.status).toBe(201);
+  });
+
   it('lets only one of two simultaneous identical uploads through', async () => {
     const companyId = await createCompany('203.0.113.221');
     const cookies = await creditorCookies('203.0.113.221', 'corrida@case.com');
