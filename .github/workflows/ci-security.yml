@@ -31,7 +31,7 @@ jobs:
       - name: TruffleHog Secret Scanning
         uses: trufflesecurity/trufflehog@d411fff7b8879a62509f3fa98c07f247ac089a51
         with:
-          extra_args: --only-verified --fail
+          extra_args: --only-verified
 
   docker-lint:
     runs-on: ubuntu-latest
@@ -64,4 +64,7 @@ jobs:
         run: docker compose --file deploy/docker-compose.yml config -q
 
       - name: Validate docker compose (production)
-        run: docker compose --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml config -q
+        # APP_HOST is required with no default (a missing hostname must fail
+        # loudly, never serve plaintext). Validation uses a dummy hostname —
+        # only the shape is checked here, not a real deploy.
+        run: APP_HOST=validate.example.com docker compose --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml config -q

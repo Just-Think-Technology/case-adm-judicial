@@ -35,6 +35,6 @@ import { TokenService } from './token.service';
       useFactory: () => new TokenService(requiredEnv('JWT_ACCESS_SECRET')),
     },
   ],
-  exports: [AuthenticatedGuard, AdminGuard, OptionalSessionGuard, TokenService],
+  exports: [AuthenticatedGuard, AdminGuard, OptionalSessionGuard, TokenService, SessionRepository],
 })
 export class AuthModule {}

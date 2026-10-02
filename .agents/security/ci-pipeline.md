@@ -27,7 +27,9 @@ dependency-review`
   revisit when the parents move. Pinned Actions stay fresh via Dependabot
   (`.github/dependabot.yml`) — every `uses:` is a full SHA with a version
   comment.
-- **Secret scanning:** TruffleHog, `--only-verified --fail`.
+- **Secret scanning:** TruffleHog, `--only-verified` (the action fails the job
+  on verified secrets by itself — passing `--fail` explicitly duplicates its
+  internal flag and errors out).
 - **Static analysis:** CodeQL with `security-extended` + `security-and-quality`
   for TypeScript/JavaScript, in both apps.
 - **Security linting:** the security ruleset is enabled in the project linter
