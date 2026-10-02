@@ -18,9 +18,10 @@ import type { Response } from 'express';
 import {
   FORGOT_PASSWORD_LIMIT_PER_MINUTE,
   LOGIN_LIMIT_PER_MINUTE,
+  ONE_HOUR_IN_MS,
   ONE_MINUTE_IN_MS,
   REGISTER_LIMIT_PER_MINUTE,
-  RESET_PASSWORD_LIMIT_PER_MINUTE,
+  RESET_PASSWORD_LIMIT_PER_HOUR,
   VERIFICATION_LIMIT_PER_MINUTE,
 } from '../../common/throttling/throttling.constants';
 import { getThrottleTracker } from '../../common/throttling/throttler.config';
@@ -229,8 +230,8 @@ export class AuthController {
   @UseGuards(CsrfGuard)
   @Throttle({
     default: {
-      limit: RESET_PASSWORD_LIMIT_PER_MINUTE,
-      ttl: ONE_MINUTE_IN_MS,
+      limit: RESET_PASSWORD_LIMIT_PER_HOUR,
+      ttl: ONE_HOUR_IN_MS,
       getTracker: getThrottleTracker,
     },
   })
