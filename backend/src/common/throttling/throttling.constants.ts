@@ -18,6 +18,9 @@ export const VERIFICATION_LIMIT_PER_MINUTE = 6;
 /** `POST /auth/forgot-password` — e-mail bombing. */
 export const FORGOT_PASSWORD_LIMIT_PER_MINUTE = 5;
 
+/** `POST /auth/reset-password` — token redemption abuse and error probing. */
+export const RESET_PASSWORD_LIMIT_PER_HOUR = 5;
+
 /** `POST /companies/:id/documents` — bandwidth abuse and object-storage cost. */
 export const UPLOAD_LIMIT_PER_MINUTE = 20;
 
@@ -32,6 +35,8 @@ export const DOWNLOAD_LIMIT_PER_MINUTE = 60;
 export const MAX_ACCOUNTS_PER_IP = 2;
 
 export const ONE_MINUTE_IN_MS = 60_000;
+
+export const ONE_HOUR_IN_MS = 3_600_000;
 
 /** Shown whenever a limit is hit. Tells the user what to do, per the decision. */
 export const THROTTLED_MESSAGE =

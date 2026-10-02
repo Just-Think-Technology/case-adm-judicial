@@ -208,7 +208,7 @@ done when the affected suites plus lint and typecheck are green.
 * **Data access:** repositories only, through Prisma — no query in controllers,
   no query outside a repository in services
 * **Uploads:** streamed through the backend to SeaweedFS, never buffered in
-  memory and never written to a public path; 40 MB per file
+  memory and never written to a public path; 60 MB per file
   ([document storage](.agents/decisions/document-storage.md))
 * **Document visibility:** `publico` / `privado` per document, with the full
   matrix in

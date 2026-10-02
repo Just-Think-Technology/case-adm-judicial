@@ -545,7 +545,21 @@ export class DocumentsService {
       }
       let busboy;
       try {
-        busboy = Busboy({ headers: req.headers as { 'content-type': string } });
+        // Parser limits are the first ceiling: without them a giant text
+        // field would sit in memory before DTO validation ever sees it. No
+        // fileSize here on purpose: busboy would silently truncate the stream
+        // at exactly the cap and the capped size would pass as valid — the
+        // mid-stream tap below rejects oversize loudly instead. The gateway
+        // (70 MB) sits above both.
+        busboy = Busboy({
+          headers: req.headers as { 'content-type': string },
+          limits: {
+            fieldNameSize: 64,
+            fieldSize: 4 * 1024,
+            fields: 10,
+            files: 1,
+          },
+        });
       } catch {
         reject(new BadRequestException('Envio inválido. Tente novamente.'));
         return;
