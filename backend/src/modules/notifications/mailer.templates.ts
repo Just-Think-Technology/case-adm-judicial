@@ -21,10 +21,9 @@ export function escapeHtml(value: string): string {
 
 const BRAND_FONT = `font-family:Arial,Helvetica,sans-serif;color:#0a112b;`;
 
-function layout(title: string, name: string, lines: string[], buttonLabel: string, link: string): OutgoingMail {
-  const safeName = escapeHtml(name);
-  const paragraphs = lines.map((line) => `<p style="margin:0 0 12px;">${line}</p>`).join('');
-  const html = [
+/** Brand frame shared by every e-mail: navy header, card body, footer. */
+function frame(title: string, body: string): string {
+  return [
     `<div style="${BRAND_FONT}background-color:#f3eee0;padding:24px 12px;">`,
     '<div style="max-width:560px;margin:0 auto;background-color:#ffffff;border:1px solid #e3ddcb;border-radius:12px;overflow:hidden;">',
     '<div style="background-color:#0a112b;padding:20px 28px;">',
@@ -32,10 +31,7 @@ function layout(title: string, name: string, lines: string[], buttonLabel: strin
     `<p style="margin:6px 0 0;font-size:20px;font-weight:bold;color:#ffffff;">${title}</p>`,
     '</div>',
     '<div style="padding:24px 28px;font-size:15px;line-height:1.6;">',
-    `<p style="margin:0 0 12px;">Olá, ${safeName}!</p>`,
-    paragraphs,
-    `<p style="margin:20px 0 8px;"><a href="${link}" style="display:inline-block;background-color:#dca729;color:#0a112b;font-weight:bold;font-size:14px;letter-spacing:1px;text-decoration:none;padding:12px 28px;border-radius:8px;">${buttonLabel}</a></p>`,
-    '<p style="margin:12px 0 0;font-size:13px;color:#5a5a5a;">Se você não solicitou este e-mail, apenas ignore.</p>',
+    body,
     '</div>',
     '<div style="padding:14px 28px;border-top:1px solid #e3ddcb;">',
     '<p style="margin:0;font-size:12px;color:#8a8a8a;">Case Administração Judicial — Portal do Credor</p>',
@@ -43,6 +39,20 @@ function layout(title: string, name: string, lines: string[], buttonLabel: strin
     '</div>',
     '</div>',
   ].join('');
+}
+
+function layout(title: string, name: string, lines: string[], buttonLabel: string, link: string): OutgoingMail {
+  const safeName = escapeHtml(name);
+  const paragraphs = lines.map((line) => `<p style="margin:0 0 12px;">${line}</p>`).join('');
+  const html = frame(
+    title,
+    [
+      `<p style="margin:0 0 12px;">Olá, ${safeName}!</p>`,
+      paragraphs,
+      `<p style="margin:20px 0 8px;"><a href="${link}" style="display:inline-block;background-color:#dca729;color:#0a112b;font-weight:bold;font-size:14px;letter-spacing:1px;text-decoration:none;padding:12px 28px;border-radius:8px;">${buttonLabel}</a></p>`,
+      '<p style="margin:12px 0 0;font-size:13px;color:#5a5a5a;">Se você não solicitou este e-mail, apenas ignore.</p>',
+    ].join(''),
+  );
   return {
     subject: title,
     html,
@@ -115,11 +125,15 @@ export function buildNewDocumentEmail(notice: NewDocumentNotice): OutgoingMail {
     ...(notice.description ? [`Descrição: ${escapeHtml(notice.description)}`] : []),
     `Data/hora do envio: ${notice.sentAt.toLocaleString('pt-BR', { timeZone: 'America/Cuiaba' })}`,
   ];
+  const subject = `Novo documento adicionado por ${notice.addedBy}`;
+  const body = ['<p style="margin:0 0 12px;">Olá!</p>', ...lines.map((line) => `<p style="margin:0 0 12px;">${line}</p>`)].join(
+    '',
+  );
   return {
-    subject: `Novo documento adicionado por ${notice.addedBy}`,
-    html: [`<p>Olá!</p>`, ...lines.map((line) => `<p>${line}</p>`), '<p>Case Administração Judicial</p>'].join(
-      '',
-    ),
+    subject,
+    // The subject header is not markup, but the frame title is — the sender
+    // name reaches HTML only escaped, or a name is stored XSS in every notice.
+    html: frame(escapeHtml(subject), body),
     text: ['Olá!', ...lines, 'Case Administração Judicial'].join('\n\n'),
   };
 }
