@@ -46,6 +46,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Fingerprinting: never advertise the framework (SBP-001).
+  poweredByHeader: false,
   // Backend is source of truth — frontend never talks to DB/storage directly
   // Enables the forbidden() + forbidden.tsx convention for the branded 403.
   experimental: {
