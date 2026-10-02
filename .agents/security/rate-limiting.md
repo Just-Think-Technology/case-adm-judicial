@@ -49,8 +49,11 @@ Rules:
   budget correctly for its lifetime. A restart clears the windows — acceptable
   for abuse control. If the backend is ever scaled to more than one replica,
   this decision must be revisited (the decision record is the place to say so).
-- **Reverse proxy** contributes its own connection/rate ceiling as the outermost
-  layer; application limits stay authoritative for the sensitive routes.
+- **Reverse proxy** contributes an outer body ceiling (`request_body max_size 70MB`
+  in `deploy/Caddyfile`) so absurd bodies die before reaching Node; stock Caddy
+  has no rate/connection ceiling without a third-party plugin, so request-rate
+  enforcement stays backend-only by recorded decision — application limits are
+  authoritative for the sensitive routes.
 - The **2-accounts-per-IP cap is stored in the database**, not in memory, so it
   survives restarts and redeploys. It is the one limit that must not be lost.
 - Tests cover: limit hit, window reset, per-account vs per-IP keying, and that

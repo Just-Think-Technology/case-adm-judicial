@@ -32,7 +32,10 @@ export class AccountService {
     return toProfile(await this.require(userId));
   }
 
-  async updateProfile(userId: string, input: { name?: string; email?: string }): Promise<Profile> {
+  async updateProfile(
+    userId: string,
+    input: { name?: string; email?: string },
+  ): Promise<{ profile: Profile; emailChanged: boolean }> {
     const user = await this.require(userId);
 
     const name = input.name?.trim() ? input.name.trim() : undefined;
@@ -46,15 +49,21 @@ export class AccountService {
     }
 
     if ((name === undefined || name === user.name) && (email === undefined || email === user.email)) {
-      return toProfile(user);
+      return { profile: toProfile(user), emailChanged: false };
     }
 
-    return toProfile(
-      await this.users.updateProfile(userId, {
-        ...(name !== undefined && name !== user.name ? { name } : {}),
-        ...(email !== undefined && email !== user.email ? { email } : {}),
-      }),
-    );
+    const changed = email !== undefined && email !== user.email;
+    return {
+      profile: toProfile(
+        await this.users.updateProfile(userId, {
+          ...(name !== undefined && name !== user.name ? { name } : {}),
+          // A new address is never verified: it must prove itself before
+          // inheriting upload and notification privileges.
+          ...(changed ? { email, emailVerified: false, emailVerifiedAt: null } : {}),
+        }),
+      ),
+      emailChanged: changed,
+    };
   }
 
   private async require(userId: string) {

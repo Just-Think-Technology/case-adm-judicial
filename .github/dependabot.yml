@@ -1,0 +1,10 @@
+# Pinned GitHub Actions stay current through Dependabot: every `uses:` is a
+# full SHA with a version comment, and these updates refresh both together.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore

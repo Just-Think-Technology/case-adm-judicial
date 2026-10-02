@@ -1,7 +1,7 @@
 // Change password DTO — §4.6 account menu, password card
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsString, MaxLength } from 'class-validator';
 import { IsContractPassword } from './password.rules';
 
 /**
@@ -12,6 +12,9 @@ import { IsContractPassword } from './password.rules';
 export class ChangePasswordDto {
   @ApiProperty()
   @IsString({ message: 'A senha atual deve ser um texto.' })
+  // Registration caps passwords at 255 chars, so anything longer can never
+  // verify — and unbounded input into argon2 is a CPU/RAM DoS vector.
+  @MaxLength(255, { message: 'A senha atual deve ser um texto.' })
   currentPassword!: string;
 
   @IsContractPassword()

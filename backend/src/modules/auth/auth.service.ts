@@ -1,6 +1,6 @@
 // Auth service — registration, verification, login, reset and sessions
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { THROTTLED_MESSAGE } from '../../common/throttling/throttling.constants';
 import { QueryClient } from '../../prisma/query-client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -197,6 +197,19 @@ export class AuthService {
       }
       await this.users.markVerified(record.userId, tx);
     });
+  }
+
+  /**
+   * Mails a fresh confirmation after an account e-mail change. No cooldown:
+   * this is an explicit authenticated action, not a resend loop — the new
+   * address must prove itself before inheriting anything.
+   */
+  async sendChangeEmailVerification(userId: string): Promise<void> {
+    const user = await this.users.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('Sessão inválida ou expirada. Entre novamente.');
+    }
+    await this.sendVerificationEmail(user.id, user.email, user.name);
   }
 
   /**

@@ -127,7 +127,7 @@ model Document {
   size            Int                // bytes, max 40 MB enforced app-side
   mimeType        String             @map("mime_type") @db.VarChar(255)
   extension       String             @db.VarChar(10)
-  contentHash     String             @unique @map("content_hash") @db.VarChar(64) // SHA-256 unique
+  contentHash     String             @map("content_hash") @db.VarChar(64) // SHA-256, unique per owner+company
   companyId       String             @map("company_id")
   ownerId         String             @map("owner_id")
   createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz
@@ -138,6 +138,10 @@ model Document {
 
   @@index([companyId])
   @@index([ownerId])
+  // Same bytes by the same owner in the same company are one document.
+  // Scoped (never global): a global unique would let anyone probe whether
+  // another user's exact file exists by watching for the 409 answer.
+  @@unique([ownerId, companyId, contentHash])
   @@index([status])
   @@index([visibility])
   @@map("documents")

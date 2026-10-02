@@ -29,11 +29,15 @@ export class AccountController {
 
   @Patch()
   @HttpCode(HttpStatus.OK)
-  updateProfile(
+  async updateProfile(
     @CurrentUser() user: AuthenticatedUser,
     @Body() input: UpdateProfileDto,
   ): Promise<Profile> {
-    return this.account.updateProfile(user.id, input);
+    const { profile, emailChanged } = await this.account.updateProfile(user.id, input);
+    if (emailChanged) {
+      await this.auth.sendChangeEmailVerification(user.id);
+    }
+    return profile;
   }
 
   /** Password change lives here for the path, with auth for the session. */

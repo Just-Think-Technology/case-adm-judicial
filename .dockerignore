@@ -8,3 +8,23 @@ npm-debug.log*
 coverage
 .next
 dist
+# Judicial documents must never bake into an image layer: the build context is
+# the repo root, so anything dropped in the working tree (fixtures, support
+# bundles) would ship to GHCR. Mirrors .gitignore, minus what git needs.
+*.pdf
+*.docx
+*.xlsx
+*.doc
+*.xls
+*.jpg
+*.jpeg
+*.png
+# Exception: the office brand assets ship with the frontend by design.
+!frontend/public/img/logo-*.png
+!frontend/public/img/favicon.png
+# Local data volumes and test output.
+postgres_data/
+seaweedfs_data/
+backup_data/
+test-results/
+playwright-report/

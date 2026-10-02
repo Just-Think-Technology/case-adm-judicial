@@ -14,7 +14,13 @@ async function main(): Promise<void> {
 
   // Local development default — overridable without touching code. The value
   // never reaches logs: credentials in stdout end up in collectors.
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? 'Admin@123';
+  // Production refuses the default: a predictable admin password must never
+  // exist outside local development.
+  const fallback = process.env.NODE_ENV === 'production' ? undefined : 'Admin@123';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? fallback;
+  if (!adminPassword) {
+    throw new Error('Refusing to seed the admin account: set SEED_ADMIN_PASSWORD.');
+  }
   const passwordHash = await argon2.hash(adminPassword, { type: argon2.argon2id });
 
   await prisma.user.create({

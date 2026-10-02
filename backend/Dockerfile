@@ -8,7 +8,9 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
 COPY backend/package.json ./backend/package.json
-RUN pnpm install --filter backend --frozen-lockfile || pnpm install --filter backend
+# No fallback: lockfile drift must fail loudly, never silently resolve
+# unreviewed transitive versions into the production image.
+RUN pnpm install --filter backend --frozen-lockfile
 
 FROM deps AS build
 COPY backend ./backend

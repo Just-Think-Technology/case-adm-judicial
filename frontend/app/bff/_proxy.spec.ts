@@ -77,6 +77,21 @@ describe('proxyBackend', () => {
     expect(forwarded.get('origin')).toBe('http://localhost:3001');
   });
 
+  it('keeps only the gateway-attested tail of a spoofed XFF chain', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}'));
+    vi.stubGlobal('fetch', fetchMock);
+    await proxyBackend(
+      '/auth/login',
+      new Request('http://test/bff/auth/login', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': '198.51.100.9, 203.0.113.7' },
+      }),
+    );
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const forwarded = init.headers as Headers;
+    expect(forwarded.get('x-forwarded-for')).toBe('203.0.113.7');
+  });
+
   it('translates the refresh-cookie scope back to /bff/*', async () => {
     vi.stubGlobal(
       'fetch',

@@ -40,13 +40,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Hadolint backend Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
         with:
           dockerfile: backend/Dockerfile
           failure-threshold: warning
 
       - name: Hadolint frontend Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
         with:
           dockerfile: frontend/Dockerfile
           failure-threshold: warning
@@ -64,4 +64,7 @@ jobs:
         run: docker compose --file deploy/docker-compose.yml config -q
 
       - name: Validate docker compose (production)
-        run: docker compose --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml config -q
+        # APP_HOST is required with no default (a missing hostname must fail
+        # loudly, never serve plaintext). Validation uses a dummy hostname —
+        # only the shape is checked here, not a real deploy.
+        run: APP_HOST=validate.example.com docker compose --file deploy/docker-compose.yml --file deploy/docker-compose.production.yml config -q

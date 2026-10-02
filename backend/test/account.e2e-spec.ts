@@ -84,7 +84,7 @@ describe('PATCH /account', () => {
     expect(response.body).toEqual(expect.objectContaining({ name: 'Novo Nome' }));
   });
 
-  it('updates the e-mail lowercased without re-verifying', async () => {
+  it('updates the e-mail lowercased and requires re-verification', async () => {
     const cookies = await verifiedCookies('203.0.113.304', 'antigo@case.com');
 
     const response = await api('PATCH', '/account', {
@@ -96,7 +96,9 @@ describe('PATCH /account', () => {
     expect(response.status).toBe(200);
     const { rows } = await db.query('SELECT email, email_verified FROM users');
     expect(rows[0].email).toBe('novo@case.com');
-    expect(rows[0].email_verified).toBe(true);
+    expect(rows[0].email_verified).toBe(false);
+    const mail = await findMail('novo@case.com');
+    expect(mail.link).toContain('token=');
   });
 
   it('refuses a taken e-mail and invalid input', async () => {

@@ -79,14 +79,14 @@ test.describe('login', () => {
 });
 
 test.describe('recovery', () => {
-  test('known and unknown addresses get their respective messages', async ({ page }) => {
+  test('known and unknown addresses get the same message', async ({ page }) => {
     await page.goto('/esqueci-senha');
     await page.getByLabel('E-mail').fill('credor@case.com');
     await page.getByRole('button', { name: /enviar link/i }).click();
-    await expect(page.getByRole('status').filter({ hasText: /redefinição enviado/i })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: /receberá o link de redefinição/i })).toBeVisible();
     await page.getByLabel('E-mail').fill('ninguem@case.com');
     await page.getByRole('button', { name: /enviar link/i }).click();
-    await expect(page.getByRole('status').filter({ hasText: /não foi encontrado usuário/i })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: /receberá o link de redefinição/i })).toBeVisible();
   });
 
   test('valid reset links show the readonly address and finish at login', async ({ page }) => {
