@@ -124,7 +124,7 @@ model Document {
   visibility      DocumentVisibility
   // Storage — private bucket, server-generated key
   storageKey      String             @unique @map("storage_key")
-  size            Int                // bytes, max 40 MB enforced app-side
+  size            Int                // bytes, max 60 MB enforced app-side
   mimeType        String             @map("mime_type") @db.VarChar(255)
   extension       String             @db.VarChar(10)
   contentHash     String             @map("content_hash") @db.VarChar(64) // SHA-256, unique per owner+company

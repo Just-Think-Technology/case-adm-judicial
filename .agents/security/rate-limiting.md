@@ -21,6 +21,7 @@ point so it also covers static and health traffic. Baseline target:
 | `POST /auth/register` | **2 accounts per IP** (hard cap, persisted) | mass account creation; see [accounts and access](../decisions/accounts-and-access.md) |
 | `POST /auth/verification-notification` | 6 req/min **+ 5 min cooldown per user** | e-mail bombing; the legacy behavior is the reference |
 | `POST /auth/forgot-password` | 5 req/min per IP | e-mail bombing via password reset |
+| `POST /auth/reset-password` | 10 req/min per IP | token redemption abuse and error probing |
 | `POST /companies/:id/documents` (upload) | 20 req/min per account | bandwidth abuse and object-storage cost |
 | `GET /documents/:id/content` (open/download) | 60 req/min per account | scraping of public documents |
 

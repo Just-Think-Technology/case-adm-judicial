@@ -20,6 +20,7 @@ import {
   LOGIN_LIMIT_PER_MINUTE,
   ONE_MINUTE_IN_MS,
   REGISTER_LIMIT_PER_MINUTE,
+  RESET_PASSWORD_LIMIT_PER_MINUTE,
   VERIFICATION_LIMIT_PER_MINUTE,
 } from '../../common/throttling/throttling.constants';
 import { getThrottleTracker } from '../../common/throttling/throttler.config';
@@ -226,6 +227,13 @@ export class AuthController {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @UseGuards(CsrfGuard)
+  @Throttle({
+    default: {
+      limit: RESET_PASSWORD_LIMIT_PER_MINUTE,
+      ttl: ONE_MINUTE_IN_MS,
+      getTracker: getThrottleTracker,
+    },
+  })
   async resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
     await this.auth.resetPassword(dto.token, dto.password, dto.passwordConfirmation);
     return { message: 'Senha redefinida com sucesso!' };
