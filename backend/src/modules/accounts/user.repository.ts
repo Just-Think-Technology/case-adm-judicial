@@ -53,7 +53,7 @@ export class UserRepository {
 
   async updateProfile(
     id: string,
-    data: { name?: string; email?: string },
+    data: { name?: string; email?: string; emailVerified?: boolean; emailVerifiedAt?: Date | null },
     client: QueryClient = this.prisma,
   ): Promise<UserRow> {
     return client.user.update({ where: { id }, data });

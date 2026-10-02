@@ -21,9 +21,21 @@ export async function proxyBackend(path: string, request: Request): Promise<Next
   // The browser's Origin rides along: the global OriginGuard rejects
   // cookie-carrying mutations without an allow-listed Origin, and a
   // server-side fetch sends none of its own.
-  for (const name of ['cookie', 'x-csrf-token', 'x-forwarded-for', 'content-type', 'origin']) {
+  for (const name of ['cookie', 'x-csrf-token', 'content-type', 'origin']) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
+  }
+  // The gateway appends the attested client IP last, so a spoofed chain
+  // arrives as "forged, …, real" — only the tail is trustworthy. Dropping the
+  // header entirely would be worse: the backend would key every BFF caller as
+  // a single shared bucket (shared throttle, shared registration cap).
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    const entries = forwardedFor
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+    if (entries.length > 0) headers.set('x-forwarded-for', entries[entries.length - 1]);
   }
   const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
   let upstream: Response;

@@ -1,6 +1,9 @@
 # Backups and Restore
 
-- **Status:** Accepted — inherited from the previous project
+- **Status:** Accepted — `db-backup` service implemented 2026-10-02 in
+  `deploy/docker-compose.production.yml` (daily dump + 7-day retention,
+  checksum per dump). Off-instance copy remains an operator step in the
+  Lightsail runbook — dumps alone on the machine are not a backup.
 - **Why it matters here:** the production stack is **one AWS Lightsail
   instance**. A dump kept in the same instance is **not a backup** — it dies
   with the disk.

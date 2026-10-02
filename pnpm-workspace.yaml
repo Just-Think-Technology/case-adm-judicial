@@ -1,6 +1,12 @@
 packages:
   - backend
   - frontend
+# Security floor for transitive deps whose pinned parents lag behind patched
+# lines (pnpm audit gates on high). Revisit when the parents move — overrides
+# can break the parent at runtime; CI (build, migrate, e2e) is the signal.
+overrides:
+  mysql2: 3.24.5
+  deepmerge-ts: 8.0.2
 allowBuilds:
   '@parcel/watcher': true
   '@prisma/engines': true

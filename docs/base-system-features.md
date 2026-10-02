@@ -187,7 +187,7 @@ O sistema trabalha com **três situações de uso** (apenas as duas últimas exi
 **Fluxo:**  
 1. Na tela de login, o usuário clica em **“Esqueceu sua senha?”**.  
 2. Informa o **e-mail cadastrado** e clica em  **“ENVIAR LINK”**.  
-3. Se o e-mail existir, o sistema confirma o envio (**“E-mail de redefinição enviado!”**); caso contrário, informa que não foi encontrado usuário com aquele endereço.  
+3. O sistema responde sempre com a mesma mensagem (**“Se o e-mail estiver cadastrado, você receberá o link de redefinição.”**); o e-mail só é enviado quando o endereço existe. (Mudança deliberada de 2026-10-02: mensagens distintas permitiam enumerar contas.)  
 4. O e-mail chega com assunto **“Redefinição de senha”**, personalizado com o nome, e um botão  **“REDEFINIR SENHA”**.  
 5. Ao clicar, abre-se a tela de redefinição, que exibe o e-mail em modo somente leitura e pede **nova senha** e  **confirmação**.  
 6. Os requisitos de senha são verificados em tempo real (mesma lista do cadastro) e o botão **“REDEFINIR”** só é liberado quando todos forem atendidos.  
@@ -543,7 +543,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 - O status é livre: o administrador pode voltar um documento deferido ou indeferido para Em análise, ou vice-versa.  
 - Não há aprovação automática: nada muda de status sozinho.  
 - A exclusão é definitiva e não pode ser desfeita.  
-- **O mesmo arquivo não pode ser enviado duas vezes**: o sistema identifica o conteúdo do arquivo e recusa envios duplicados, informando falha no processamento. Na prática, é preciso enviar o documento com arquivo diferente (por exemplo, uma nova versão exportada).  
+- **O mesmo arquivo não pode ser enviado duas vezes pelo mesmo usuário na mesma empresa**: o sistema identifica o conteúdo do arquivo e recusa o reenvio idêntico, informando falha no processamento. O mesmo arquivo em outra empresa, ou por outro usuário, é aceito. (Mudança deliberada de 2026-10-02: o bloqueio global permitia sondar a existência de arquivos alheios.)  
 **6.3 Ciclo de vida da conta**  
 [cadastro] → [e-mail de confirmação enviado] → [aguardando verificação] → [conta verificada] ⇄ [login ativo]  
                                                  │                            │  
@@ -553,7 +553,7 @@ O sistema exibe páginas de erro próprias, com a marca do escritório e a opç�
 - Conta sem e-mail verificado **não consegue entrar**.  
 - Cadastro não deixa o usuário logado.  
 - Senha redefinida **desconecta as sessões abertas em outros dispositivos**.  
-- E-mail pode ser alterado pelo próprio usuário **sem nova verificação**.  
+- E-mail pode ser alterado pelo próprio usuário, mas o novo endereço **exige nova verificação** (a conta perde o selo de verificada até confirmar o link). (Mudança deliberada de 2026-10-02: endereço trocado herdava a verificação sem provar nada.)  
 - Nome restrito a 5–20 letras; e-mail único no sistema.  
 - Datas de criação da conta e de cadastro das empresas são exibidas formatadas (dia/mês/ano).  
 **6.4 Ciclo de vida da empresa (processo)**  
@@ -640,7 +640,7 @@ Registrados aqui para evitar surpresas e orientar melhorias futuras:
 6. **Não há histórico de alterações de status**, nem trilha de auditoria visível ao usuário: o status é sobrescrito e o valor anterior só aparece momentaneamente na tela, antes de salvar.  
 7. **O campo “Autor” do processo é obrigatório no cadastro, mas não é exibido na página da empresa.**  
 8. **As estatísticas da tela de documentos do cliente refletem o total histórico do cliente**, não apenas a página exibida.  
-9. **Trocar o e-mail no perfil dispensa nova verificação de e-mail.**  
+9. **Trocar o e-mail no perfil exige nova verificação do novo endereço.**  
 10. **Não há autoexclusão de conta nem interface de gestão de contas** (editar o perfil de outro usuário, redefinir a senha de terceiros, promover alguém a administrador).  
 11. **Não há mecanismo de notificação ao credor sobre a decisão (deferimento/indeferimento)** — o credor precisa consultar periodicamente a empresa para ver o novo status.  
 12. **Recuperação de senha apenas por e-mail**; não há suporte por telefone ou atendimento presencial dentro do sistema.  

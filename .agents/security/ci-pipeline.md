@@ -22,6 +22,11 @@ dependency-review`
   (backend + frontend), run in `security`.
 - **Dependency review** action on PRs — a new dependency is an explicit review,
   never an automatic merge.
+- **Transitive floor:** `pnpm-workspace.yaml` `overrides` hold patched lines
+  for transitives whose pinned parents lag (mysql2/deepmerge-ts via Prisma);
+  revisit when the parents move. Pinned Actions stay fresh via Dependabot
+  (`.github/dependabot.yml`) — every `uses:` is a full SHA with a version
+  comment.
 - **Secret scanning:** TruffleHog, `--only-verified --fail`.
 - **Static analysis:** CodeQL with `security-extended` + `security-and-quality`
   for TypeScript/JavaScript, in both apps.

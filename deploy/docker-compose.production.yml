@@ -70,6 +70,10 @@ services:
   caddy:
     # In production Caddy terminates TLS (auto HTTPS via Let's Encrypt).
     # Set APP_URL / CORS_ORIGIN and DNS accordingly before first deploy.
+    environment:
+      # Required, no default — an empty hostname must fail loudly, never
+      # silently serve production over plaintext HTTP.
+      CADDY_SITE: ${APP_HOST:?APP_HOST is required for production TLS}
     ports:
       - "80:80"
       - "443:443"
@@ -77,8 +81,31 @@ services:
   mailpit:
     profiles: ["debug"] # never start in production unless explicitly debugging
 
+  db-backup:
+    # Daily compressed pg_dump with BACKUP_RETENTION_DAYS retention (see
+    # deploy/db-backup/backup.sh). Runs as the database owner — the app role
+    # cannot read every table. Dumps stay on backup_data until the operator's
+    # off-instance copy (Lightsail runbook); alone on this machine they are
+    # not a backup.
+    image: postgres:17-alpine
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+    volumes:
+      - ./db-backup/backup.sh:/backup.sh:ro
+      - backup_data:/backups
+    entrypoint: ["/bin/sh", "/backup.sh"]
+
 volumes:
   postgres_data:
   seaweedfs_data:
+  backup_data:
   caddy_data:
   caddy_config:

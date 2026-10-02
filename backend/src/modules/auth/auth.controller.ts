@@ -85,8 +85,16 @@ export class AuthController {
   }
 
   private clearSessionCookies(response: Response): void {
-    response.clearCookie('access_token', { path: '/' });
-    response.clearCookie('refresh_token', { path: '/auth/refresh' });
+    // Mirror the set flags: without Secure/HttpOnly/SameSite the browser
+    // keeps the original Secure cookie and the session residue survives logout.
+    const secure = isProduction();
+    response.clearCookie('access_token', { httpOnly: true, secure, sameSite: 'lax', path: '/' });
+    response.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure,
+      sameSite: 'strict',
+      path: '/auth/refresh',
+    });
   }
 
   /** Issues the readable half of the double-submit CSRF check. */
@@ -197,11 +205,11 @@ export class AuthController {
     },
   })
   async forgotPassword(@Body() dto: EmailDto): Promise<{ message: string }> {
-    const { sent } = await this.auth.forgotPassword(dto.email);
+    // One message either way: distinct answers let anyone probe which
+    // addresses have accounts. The mail only goes out when the user exists.
+    await this.auth.forgotPassword(dto.email);
     return {
-      message: sent
-        ? 'E-mail de redefinição enviado!'
-        : 'Não foi encontrado usuário com esse endereço.',
+      message: 'Se o e-mail estiver cadastrado, você receberá o link de redefinição.',
     };
   }
 

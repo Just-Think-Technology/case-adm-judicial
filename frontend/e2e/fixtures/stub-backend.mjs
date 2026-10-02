@@ -233,11 +233,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (url.pathname === '/auth/forgot-password' && req.method === 'POST') {
-    const body = await readBody(req);
-    if (body.email === 'credor@case.com') {
-      return authJson(res, 200, { message: 'E-mail de redefinição enviado!' });
-    }
-    return authJson(res, 200, { message: 'Não foi encontrado usuário com esse endereço.' });
+    // One message either way, like the real backend — distinct answers would
+    // let anyone probe which addresses have accounts.
+    await readBody(req);
+    return authJson(res, 200, { message: 'Se o e-mail estiver cadastrado, você receberá o link de redefinição.' });
   }
 
   if (url.pathname === '/auth/reset-password' && req.method === 'GET') {

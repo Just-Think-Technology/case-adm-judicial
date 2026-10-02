@@ -145,6 +145,10 @@ services:
   caddy:
     image: caddy:2.10-alpine
     restart: unless-stopped
+    environment:
+      # Local dev serves plain HTTP on :80; production overrides with the
+      # public hostname (required, no default) for auto-HTTPS.
+      CADDY_SITE: ${CADDY_SITE:-:80}
     ports:
       - "80:80"
       - "443:443"

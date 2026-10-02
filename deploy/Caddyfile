@@ -1,29 +1,24 @@
 # Caddy — reverse proxy, the only published port.
 # Backend is source of truth; frontend never talks to DB/storage directly.
 # Keep Host header for S3 presigned URLs — SigV4 includes host.
+#
+# One site block for every environment: CADDY_SITE is ":80" locally and the
+# public hostname in production (auto-HTTPS plus the HTTP redirect come free
+# with a hostname). Dev and prod can no longer diverge into separate blocks.
+#
+# The backend trusts X-Forwarded-For for throttles and the per-IP account cap,
+# so EVERY reverse_proxy strips client-supplied values first — Caddy re-adds
+# the real client IP after the removal. Never proxy without the strip.
 
 {
   admin off
-  # local dev: http://localhost; production: APP_URL with auto HTTPS
+  # local dev: http://localhost; production: APP_HOST with auto HTTPS
 }
 
-:80 {
+{$CADDY_SITE::80} {
   # Health — answers directly on the backend, outside /api
   handle /health* {
     reverse_proxy backend:3000 {
-      # The backend trusts X-Forwarded-For for throttles and the account cap:
-      # a client-supplied value must never survive. Caddy re-adds the real
-      # client IP after the removal below.
-      header_up -X-Forwarded-For
-    }
-  }
-
-  # API — unversioned by decision; the gateway owns the /api prefix, so it is
-  # stripped here and controllers own their full prefix-less paths.
-  handle /api/* {
-    uri strip_prefix /api
-    reverse_proxy backend:3000 {
-      # See above: strip spoofed caller addresses before proxying.
       header_up -X-Forwarded-For
     }
   }
@@ -37,9 +32,28 @@
     }
   }
 
-  # Frontend — everything else
+  # API — unversioned by decision; the gateway owns the /api prefix, so it is
+  # stripped here and controllers own their full prefix-less paths.
+  handle /api/* {
+    uri strip_prefix /api
+    reverse_proxy backend:3000 {
+      header_up -X-Forwarded-For
+    }
+  }
+
+  # Frontend — everything else. The BFF forwards X-Forwarded-For to the
+  # backend verbatim, so the browser path gets the same strip as the
+  # direct API path; otherwise every IP throttle and cap is spoofable.
   handle {
-    reverse_proxy frontend:3001
+    reverse_proxy frontend:3001 {
+      header_up -X-Forwarded-For
+    }
+  }
+
+  # Outer body ceiling: uploads are 60 MB plus multipart overhead, enforced
+  # precisely mid-stream by the backend — this only stops absurd bodies early.
+  request_body {
+    max_size 70MB
   }
 
   log {
@@ -47,18 +61,3 @@
     format json
   }
 }
-
-# Production with TLS — Caddy will obtain certs for {$APP_HOST} when APP_URL is set.
-# Uncomment and set APP_HOST env when deploying to Lightsail:
-# {$APP_HOST} {
-#   handle /health* { reverse_proxy backend:3000 }
-#   handle /api/* {
-#     uri strip_prefix /api
-#     reverse_proxy backend:3000
-#   }
-#   handle /api/storage/* {
-#     uri strip_prefix /api/storage
-#     reverse_proxy seaweedfs:8333 { header_up Host {host} }
-#   }
-#   handle { reverse_proxy frontend:3001 }
-# }
