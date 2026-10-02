@@ -103,9 +103,18 @@ a server-side rotating refresh token for continuity and revocation.
 ### CSRF
 
 Because the session rides on a cookie, every state-changing request is checked
-for: `SameSite` + **server-side `Origin` validation** + a **double-submit token**
-on the sensitive actions (login, password change, profile change, visibility
-change, delete, bulk status save).
+for `SameSite` + **server-side `Origin` validation**, with a **double-submit
+token** on top for the auth/account writes (login, signup, password change,
+profile change, recovery — the `bffWrite` callers).
+
+Deliberate split, recorded 2026-10-02: admin mutations (companies, clients,
+documents via `bffSend`) and logout carry no double-submit token and rely on
+`Origin` + `SameSite` alone. Rationale: CSRF needs the victim's browser to
+attach the ambient cookie, and `SameSite=Lax/Strict` already withholds it on
+cross-site POSTs while `OriginGuard` rejects any mutation without an
+allow-listed `Origin`. A forged-site logout is nuisance-level (it only ends a
+session), and every admin fetch re-checks session + role server-side — a token
+there would add ceremony without adding a blocked attack.
 
 ### Revocation
 
