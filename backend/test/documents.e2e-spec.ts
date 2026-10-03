@@ -102,9 +102,9 @@ async function creditorCookies(ip: string, email: string): Promise<Record<string
   return login.cookies;
 }
 
-async function createCompany(ip: string): Promise<string> {
+async function createCompany(ip: string, body: unknown = COMPANY): Promise<string> {
   const cookies = await adminCookies(ip);
-  const response = await api('POST', '/companies', { body: COMPANY, cookies, ip });
+  const response = await api('POST', '/companies', { body, cookies, ip });
   expect(response.status).toBe(201);
   return (response.body as { id: string }).id;
 }
@@ -270,7 +270,10 @@ describe('POST /companies/:id/documents', () => {
 
   it('accepts the same content in another company', async () => {
     const firstId = await createCompany('203.0.113.223');
-    const secondId = await createCompany('203.0.113.223');
+    const secondId = await createCompany('203.0.113.223', {
+      ...COMPANY,
+      processNumber: '7654321-09.2024.8.11.0000',
+    });
     const cookies = await creditorCookies('203.0.113.223', 'outra@case.com');
     const first = await upload('203.0.113.223', firstId, cookies);
     expect(first.status).toBe(201);

@@ -59,6 +59,7 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
     setSaving(false);
     if (result.status === 201 || result.status === 200) {
       notifyToast('success', editing ? 'Empresa atualizada com sucesso!' : 'Empresa cadastrada com sucesso!');
+      if (!editing) setValues(EMPTY);
     } else {
       notifyToast('error', result.message);
     }
@@ -66,10 +67,10 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
 
   return (
     <form onSubmit={submit} className="mt-6 space-y-6">
-      <fieldset className="rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm sm:p-8">
-        <legend className="px-2 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
+      <section className="rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm sm:p-8">
+        <h2 className="mb-4 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
           Do processo
-        </legend>
+        </h2>
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block text-sm font-semibold text-navy-950 sm:col-span-2">
             Nome da empresa
@@ -98,11 +99,11 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
             <input value={values.author} maxLength={300} onChange={(event) => set('author', event.target.value)} className={inputClass} />
           </label>
         </div>
-      </fieldset>
-      <fieldset className="rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm sm:p-8">
-        <legend className="px-2 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
+      </section>
+      <section className="rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm sm:p-8">
+        <h2 className="mb-4 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
           Das partes
-        </legend>
+        </h2>
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block text-sm font-semibold text-navy-950">
             Administrador Judicial
@@ -113,11 +114,11 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
             <input value={values.judge} maxLength={300} onChange={(event) => set('judge', event.target.value)} className={inputClass} />
           </label>
         </div>
-      </fieldset>
-      <fieldset className="rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm sm:p-8">
-        <legend className="px-2 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
+      </section>
+      <section className="rounded-2xl border border-navy-950/10 bg-paper-50 p-6 shadow-sm sm:p-8">
+        <h2 className="mb-4 text-xs font-bold tracking-[0.18em] text-gold-700 uppercase">
           Do juízo
-        </legend>
+        </h2>
         <div className="grid gap-5">
           <label className="block text-sm font-semibold text-navy-950">
             Comarca / Escrivania
@@ -128,7 +129,7 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
             <textarea value={values.observations} maxLength={300} rows={4} onChange={(event) => set('observations', event.target.value)} className={inputClass} />
           </label>
         </div>
-      </fieldset>
+      </section>
       <button
         type="submit"
         disabled={saving}

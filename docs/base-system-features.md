@@ -270,7 +270,8 @@ A tela tem dois cartões:
 - O botão **ADICIONAR** grava o caso e exibe a confirmação  **“Empresa cadastrada com sucesso!”**.  
 - O formulário **mantém os dados digitados** quando há erro de validação, para que o usuário não precise redigitar tudo.  
 - Erros de validação são exibidos como notificações, com a lista dos campos incorretos.  
-- O **número do processo** não aceita caracteres fora do padrão permitido (apenas letras, números, ., - e /).  
+- O **número do processo** não aceita caracteres fora do padrão permitido (apenas letras, números, ., - e /).
+- O **número do processo é único**: tentar cadastrar outra empresa com o mesmo número recusa com a mensagem "Já existe uma empresa com este número de processo." (Mudança deliberada de 2026-10-03: sem isso, o mesmo caso podia ser cadastrado duas vezes.)  
 ***b) Edição de empresa***  
 **Quem usa:** apenas administradores, pelo menu  **EDITAR** do cartão da empresa no painel.  
 - Abre o **mesmo formulário** do cadastro, já preenchido com os dados atuais e com o título  **“Editar empresa”**.  

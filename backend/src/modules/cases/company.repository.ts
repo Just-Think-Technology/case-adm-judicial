@@ -52,6 +52,10 @@ export class CompanyRepository {
     return this.prisma.company.findUnique({ where: { id } });
   }
 
+  async findByProcessNumber(processNumber: string): Promise<Company | null> {
+    return this.prisma.company.findFirst({ where: { processNumber } });
+  }
+
   async update(id: string, data: CreateCompanyData): Promise<Company> {
     return this.prisma.company.update({ where: { id }, data });
   }
