@@ -147,7 +147,7 @@ pnpm prisma:generate  # regenerate the Prisma client after a schema change
 pnpm prisma:migrate   # prisma migrate dev (local only)
 pnpm prisma:deploy    # prisma migrate deploy (deploy/production)
 pnpm prisma:studio    # Prisma Studio — local only, never in production
-pnpm seed             # create the local ADMIN account (admin@case.local) — no fake data; documents are uploaded by hand
+pnpm seed             # create the local ADMIN account (admin@case.local) — no fake data; documents are uploaded by hand; the dev compose stack already runs it on every boot, so this is only needed for apps-on-host mode
 
 # Frontend — inside frontend/
 pnpm dev              # next dev
