@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
 import { bffSend } from '@/lib/bff-client';
 import { notifyToast } from '@/lib/toast';
@@ -21,7 +20,7 @@ const EMPTY: CompanyInput = {
 };
 
 const inputClass =
-  'mt-1 w-full rounded-lg border border-navy-950/15 bg-white px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none';
+  'mt-1 w-full rounded-lg border border-navy-950/15 bg-canvas px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none';
 
 // Company form (§4.8a/b): the same fields for create and edit, every one
 // required. Typed data survives validation errors (client state), and backend
@@ -43,7 +42,6 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
         }
       : EMPTY,
   );
-  const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   function set<Key extends keyof CompanyInput>(key: Key, value: string): void {
@@ -60,7 +58,6 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
     setSaving(false);
     if (result.status === 201 || result.status === 200) {
       notifyToast('success', editing ? 'Empresa atualizada com sucesso!' : 'Empresa cadastrada com sucesso!');
-      setSaved(true);
     } else {
       notifyToast('error', result.message);
     }
@@ -131,13 +128,6 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
           </label>
         </div>
       </fieldset>
-      {saved ? (
-        <p className="mt-4 text-sm">
-          <Link href="/painel" className="font-semibold text-navy-950 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-700">
-            Voltar ao painel
-          </Link>
-        </p>
-      ) : null}
       <button
         type="submit"
         disabled={saving}

@@ -10,7 +10,7 @@ import { checkPassword, passwordValid } from '@/lib/password-rules';
 import { notifyToast } from '@/lib/toast';
 
 const inputClass =
-  'mt-1 w-full rounded-lg border border-navy-950/15 bg-white px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none';
+  'mt-1 w-full rounded-lg border border-navy-950/15 bg-canvas px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none';
 
 // Signup (§4.2): the account is created unverified and nobody is logged in —
 // success points back to login with the spam-folder warning.

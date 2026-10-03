@@ -95,7 +95,7 @@ export function CompanyPanel({
                 setNameDir(event.target.value as 'az' | 'za');
                 touch('name');
               }}
-              className="rounded-lg border border-navy-950/15 bg-white px-2 py-2 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
+              className="rounded-lg border border-navy-950/15 bg-canvas px-2 py-2 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
             >
               <option value="az">A–Z</option>
               <option value="za">Z–A</option>
@@ -110,7 +110,7 @@ export function CompanyPanel({
                 setDateDir(event.target.value as 'new' | 'old');
                 touch('date');
               }}
-              className="rounded-lg border border-navy-950/15 bg-white px-2 py-2 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
+              className="rounded-lg border border-navy-950/15 bg-canvas px-2 py-2 text-sm font-semibold text-navy-950 focus:border-gold-500 focus:outline-none"
             >
               <option value="" disabled>
                 Data…
@@ -129,7 +129,7 @@ export function CompanyPanel({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar por empresa ou processo…"
-              className="w-full rounded-lg border border-navy-950/15 bg-white py-2 pr-3 pl-10 text-sm text-navy-950 placeholder:text-navy-950/40 focus:border-gold-500 focus:outline-none"
+              className="w-full rounded-lg border border-navy-950/15 bg-canvas py-2 pr-3 pl-10 text-sm text-navy-950 placeholder:text-navy-950/40 focus:border-gold-500 focus:outline-none"
             />
           </label>
         </div>
@@ -141,7 +141,7 @@ export function CompanyPanel({
             {visible.length} {visible.length === 1 ? 'processo' : 'processos'}
             {tab === 'Todas' ? '' : ` em ${tab}`}
           </p>
-          <div className="mt-3 grid gap-5 sm:grid-cols-2">
+          <div className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((company) => (
               <CompanyCard key={company.id} company={company} isAdmin={isAdmin} onRemoved={removed} />
             ))}

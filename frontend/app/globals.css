@@ -11,13 +11,14 @@
   --color-paper-50: #faf7ef;
   --color-paper-100: #f3eee0;
   --color-mist-50: #f5f8fa;
+  --color-canvas: #eeeeee;
 
   --font-display: 'Jost', 'Open Sans', system-ui, sans-serif;
   --font-sans: 'Open Sans', system-ui, sans-serif;
 }
 
 body {
-  background-color: var(--color-paper-50);
+  background-color: var(--color-canvas);
 }
 
 /* One smooth hover language for every link and button — quiet, 200ms, and
@@ -39,7 +40,9 @@ summary {
   summary {
     transition: none;
   }
-  .toast-in {
+  .toast-in,
+  .toast-out,
+  .toast-bar {
     animation: none;
   }
 }
@@ -57,4 +60,32 @@ summary {
 
 .toast-in {
   animation: toast-in 200ms ease;
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+.toast-out {
+  animation: toast-out 250ms ease forwards;
+}
+
+@keyframes toast-bar {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.toast-bar {
+  animation: toast-bar 6000ms linear forwards;
 }

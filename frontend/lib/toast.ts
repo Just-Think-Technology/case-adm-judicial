@@ -11,7 +11,7 @@ export interface Toast {
 
 type Listener = (toasts: Toast[]) => void;
 
-const DISMISS_AFTER_MS = 8000;
+const DISMISS_AFTER_MS = 6000;
 
 let sequence = 0;
 let current: Toast[] = [];

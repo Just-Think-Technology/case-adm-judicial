@@ -50,7 +50,7 @@ export function CompanyCard({
       <div className="relative flex items-start gap-4">
         <span
           aria-hidden
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold-500/10 ${isRJ ? 'text-gold-700' : 'text-navy-800'}`}
+          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gold-500/10 ${isRJ ? 'text-gold-700' : 'text-navy-800'}`}
         >
           {isRJ ? <BuildingIcon /> : <AlertIcon />}
         </span>
@@ -128,7 +128,7 @@ export function CompanyCard({
 
 function BuildingIcon(): React.ReactNode {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
       <rect x="4" y="3" width="12" height="14" rx="1" />
       <path d="M7.5 6.5h1.5M11 6.5h1.5M7.5 9.5h1.5M11 9.5h1.5M7.5 12.5h1.5M11 12.5h1.5M9 17v-2h2v2" />
     </svg>
@@ -137,7 +137,7 @@ function BuildingIcon(): React.ReactNode {
 
 function AlertIcon(): React.ReactNode {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
       <path d="M10 2.5 17.5 15.5h-15L10 2.5Z" strokeLinejoin="round" />
       <path d="M10 7.5v3.5M10 13.2v.1" strokeLinecap="round" />
     </svg>

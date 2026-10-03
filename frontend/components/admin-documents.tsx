@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { TrashIcon } from '@/components/icons';
 import { bffSend } from '@/lib/bff-client';
 import { notifyToast } from '@/lib/toast';
 import type { AdminDocument } from '@/lib/types';
@@ -152,7 +153,7 @@ export function AdminDocuments({ companyId }: { companyId: string }): React.Reac
                 <span
                   className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${
                     isPublicValue(document.visibility)
-                      ? 'bg-navy-950 text-gold-500 ring-navy-950'
+                      ? 'bg-gold-100 text-gold-700 ring-gold-600/30'
                       : 'bg-mist-50 text-navy-950/70 ring-navy-950/10'
                   }`}
                 >
@@ -235,10 +236,3 @@ function EyeIcon(): React.ReactNode {
   );
 }
 
-function TrashIcon(): React.ReactNode {
-  return (
-    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <path d="M3.5 5.5h13M8 5.5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M6 5.5l1 11h6l1-11" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}

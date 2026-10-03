@@ -41,7 +41,7 @@ const BLANK = (key: number): UploadForm => ({
 });
 
 const fieldClass =
-  'mt-1.5 w-full rounded-lg border border-navy-950/15 bg-white px-3 py-2.5 text-navy-950 focus:border-gold-600 focus:outline-none';
+  'mt-1.5 w-full rounded-lg border border-navy-950/15 bg-canvas px-3 py-2.5 text-navy-950 focus:border-gold-600 focus:outline-none';
 
 // Multi-document upload (§4.9): the company arrives fixed from the page of
 // origin. One form is always present, Novo documento adds more, Enviar Todos
