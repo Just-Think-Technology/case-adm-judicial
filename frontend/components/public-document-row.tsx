@@ -19,6 +19,8 @@ export function PublicDocumentRow({
       <div className="min-w-0 flex-1">
         <a
           href={`/bff/documents/${document.id}/content`}
+          target="_blank"
+          rel="noreferrer"
           className="block truncate font-semibold text-navy-950 hover:text-gold-600 hover:underline"
           title={document.name}
         >

@@ -36,9 +36,9 @@ describe('buildVerificationEmail', () => {
     expect(mail.html).toContain('http://localhost/verificar-email?token=abc');
   });
 
-  it('warns about the spam folder, in both versions', () => {
-    expect(mail.html).toMatch(/spam/i);
-    expect(mail.text).toMatch(/spam/i);
+  it('centers the verification button', () => {
+    expect(mail.html).toContain('text-align:center');
+    expect(mail.html).toContain('VERIFICAR E-MAIL');
   });
 
   it('carries the raw link in the plain-text version', () => {

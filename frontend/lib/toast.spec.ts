@@ -24,7 +24,7 @@ describe('toast bus', () => {
       const unsubscribe = subscribeToasts((toasts) => seen.push(toasts.map((toast) => toast.text)));
       notifyToast('error', 'Falhou.');
       expect(seen.at(-1)).toEqual(['Falhou.']);
-      vi.advanceTimersByTime(9000);
+      vi.advanceTimersByTime(6000);
       expect(seen.at(-1)).toEqual([]);
       unsubscribe();
     } finally {

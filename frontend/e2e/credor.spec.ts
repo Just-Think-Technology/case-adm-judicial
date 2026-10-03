@@ -80,7 +80,7 @@ test.describe('account menu', () => {
   test('updates name and e-mail and greets with the new name', async ({ page }) => {
     await login(page);
     await page.getByRole('banner').getByText('Credor Teste').click();
-    await page.getByRole('link', { name: 'Menu' }).click();
+    await page.getByRole('menuitem', { name: 'Minha conta' }).click();
     await expect(page).toHaveURL(/\/conta$/);
     const save = page.getByRole('button', { name: 'Salvar' }).first();
     await expect(save).toBeDisabled();

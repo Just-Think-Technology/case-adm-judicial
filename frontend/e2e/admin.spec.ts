@@ -14,10 +14,11 @@ async function fillCompany(page: Parameters<typeof loginAs>[0], name: string): P
 }
 
 test.describe('admin panel', () => {
-  test('shows the Clientes and Nova empresa header links and the card menus', async ({ page }) => {
+  test('shows the Clientes and Nova empresa panel actions and the card menus', async ({ page }) => {
     await loginAs(page, 'admin@case.com');
-    await expect(page.getByRole('banner').getByRole('link', { name: 'Nova empresa' })).toBeVisible();
-    await expect(page.getByRole('banner').getByRole('link', { name: 'Clientes' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Nova empresa' })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Nova empresa' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Clientes' })).toBeVisible();
         await expect(page.locator('summary[aria-label="Opções de Alvorada Alimentos Ltda"]')).toBeVisible();
   });
 

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AdminDocuments } from '@/components/admin-documents';
 import { CompanyDocuments } from '@/components/company-documents';
+import { ObservationsBox } from '@/components/observations-box';
 import { backendFetch } from '@/lib/backend';
 import { getSession } from '@/lib/session';
 import type { CompanyDetails } from '@/lib/types';
@@ -50,12 +51,7 @@ export default async function CompanyPage({
           {field('Vara', company.comarca)}
           {field('Juiz de Direito', company.judge)}
           {field('Protocolo', company.protocolDate)}
-          <div className="mt-4 rounded-lg bg-gold-100 p-4">
-            <p className="text-xs font-semibold tracking-wide text-gold-700 uppercase">OBS/AVISOS</p>
-            <p className="mt-1 max-h-64 overflow-y-auto text-sm leading-relaxed whitespace-pre-wrap text-navy-950">
-              {company.observations?.trim() ? company.observations : 'Nenhum aviso disponível.'}
-            </p>
-          </div>
+          <ObservationsBox text={company.observations} />
           <Link
             href={session ? `/empresas/${company.id}/enviar` : '/login'}
             className="mt-5 block rounded-lg bg-navy-950 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-navy-800"

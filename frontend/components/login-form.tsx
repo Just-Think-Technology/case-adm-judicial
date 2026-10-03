@@ -7,6 +7,7 @@ import { AuthCard } from '@/components/auth-card';
 import { PasswordInput } from '@/components/password-input';
 import { bffPost } from '@/lib/bff-client';
 import { notifyToast } from '@/lib/toast';
+import { Spinner } from '@/components/icons';
 
 const UNVERIFIED = 'Necessário validar o e-mail.';
 
@@ -70,7 +71,7 @@ export function LoginForm({ notice }: { notice?: string }): React.ReactNode {
             value={email}
             autoComplete="email"
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-navy-950/15 bg-white px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-navy-950/15 bg-canvas px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
           />
         </div>
         <PasswordInput id="login-password" label="Senha" value={password} onChange={setPassword} autoComplete="current-password" />
@@ -90,9 +91,9 @@ export function LoginForm({ notice }: { notice?: string }): React.ReactNode {
         <button
           type="submit"
           disabled={sending}
-          className="w-full rounded-lg bg-navy-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-40"
         >
-          {sending ? 'Entrando…' : 'ENTRAR'}
+          {sending ? (<><Spinner /> Entrando…</>) : 'ENTRAR'}
         </button>
       </form>
       <div className="mt-4 flex items-center justify-between text-sm">

@@ -8,6 +8,7 @@ import { bffPatch } from '@/lib/bff-client';
 import { checkPassword, passwordValid } from '@/lib/password-rules';
 import { notifyToast } from '@/lib/toast';
 import type { Session } from '@/lib/session';
+import { Spinner } from '@/components/icons';
 
 const NAME_PATTERN = /^[A-Za-zÀ-ÖØ-öø-ÿ ]+$/;
 
@@ -103,9 +104,9 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
           <button
             type="submit"
             disabled={!profileReady}
-            className="rounded-lg bg-navy-950 px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center justify-center gap-2 rounded-lg bg-navy-950 px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {savingProfile ? 'Salvando…' : 'Salvar'}
+            {savingProfile ? (<><Spinner /> Salvando…</>) : 'Salvar'}
           </button>
         </form>
       </section>
@@ -134,9 +135,9 @@ export function AccountForms({ session }: { session: Session }): React.ReactNode
           <button
             type="submit"
             disabled={!passwordReady}
-            className="rounded-lg bg-navy-950 px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center justify-center gap-2 rounded-lg bg-navy-950 px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {savingPassword ? 'Salvando…' : 'Salvar'}
+            {savingPassword ? (<><Spinner /> Salvando…</>) : 'Salvar'}
           </button>
         </form>
       </section>

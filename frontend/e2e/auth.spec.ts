@@ -62,7 +62,7 @@ test.describe('login', () => {
     await page.getByRole('button', { name: 'ENTRAR' }).click();
     await expect(page).toHaveURL(/\/painel$/);
     await page.getByRole('banner').getByText('Credor Teste').click();
-    await page.getByRole('button', { name: 'Sair' }).click();
+    await page.getByRole('menuitem', { name: 'Sair' }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
   });
@@ -109,7 +109,7 @@ test.describe('recovery', () => {
   test('verification links confirm or explain', async ({ page }) => {
     await page.goto('/verificar-email?token=valido');
     await expect(page.getByRole('heading', { name: /verificado com sucesso/i })).toBeVisible();
-    await expect(page.getByText(/pode ser fechada/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/login$/, { timeout: 8000 });
     await page.goto('/verificar-email?token=forjado');
     await expect(page.getByText(/não é válido/i).first()).toBeVisible();
   });

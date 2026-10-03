@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AuthCard } from '@/components/auth-card';
 import { bffPost } from '@/lib/bff-client';
 import { notifyToast } from '@/lib/toast';
+import { Spinner } from '@/components/icons';
 
 // Password recovery request (§4.5): known addresses get the link, unknown
 // ones are told so — the distinction comes from the backend message itself.
@@ -33,15 +34,15 @@ export function ForgotPasswordForm(): React.ReactNode {
             value={email}
             autoComplete="email"
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-navy-950/15 bg-white px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-navy-950/15 bg-canvas px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
           />
         </div>
         <button
           type="submit"
           disabled={sending}
-          className="w-full rounded-lg bg-navy-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-40"
         >
-          {sending ? 'Enviando…' : 'ENVIAR LINK'}
+          {sending ? (<><Spinner /> Enviando…</>) : 'ENVIAR LINK'}
         </button>
       </form>
     </AuthCard>
