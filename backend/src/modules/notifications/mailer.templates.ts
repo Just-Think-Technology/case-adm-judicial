@@ -49,7 +49,7 @@ function layout(title: string, name: string, lines: string[], buttonLabel: strin
     [
       `<p style="margin:0 0 12px;">Olá, ${safeName}!</p>`,
       paragraphs,
-      `<p style="margin:20px 0 8px;"><a href="${link}" style="display:inline-block;background-color:#dca729;color:#0a112b;font-weight:bold;font-size:14px;letter-spacing:1px;text-decoration:none;padding:12px 28px;border-radius:8px;">${buttonLabel}</a></p>`,
+      `<p style="margin:20px 0 8px;text-align:center;"><a href="${link}" style="display:inline-block;background-color:#dca729;color:#0a112b;font-weight:bold;font-size:14px;letter-spacing:1px;text-decoration:none;padding:12px 28px;border-radius:8px;">${buttonLabel}</a></p>`,
       '<p style="margin:12px 0 0;font-size:13px;color:#5a5a5a;">Se você não solicitou este e-mail, apenas ignore.</p>',
     ].join(''),
   );
@@ -74,7 +74,6 @@ export function buildVerificationEmail(name: string, link: string): OutgoingMail
     name,
     [
       'Seu cadastro no Portal do Credor foi criado. Para ativar sua conta, confirme seu e-mail clicando no botão abaixo.',
-      'Verifique também a caixa de spam, caso a mensagem não apareça na caixa de entrada.',
     ],
     'VERIFICAR E-MAIL',
     link,
