@@ -137,6 +137,7 @@ export interface DocumentSummary {
 export interface DocumentItem extends DocumentSummary {
   uploadedBy: string;
   createdAt: Date;
+  mine: boolean;
 }
 
 export interface DocumentFile {
@@ -315,7 +316,7 @@ export class DocumentsService {
       parsedScope,
     );
 
-    return rows.map(toItem);
+    return rows.map((row) => toItem(row, viewer?.id));
   }
 
   /** Opens one document for an authorized reader; strangers get a 404. */
@@ -822,10 +823,11 @@ function toSummary(row: {
   };
 }
 
-function toItem(row: DocumentWithOwner): DocumentItem {
+function toItem(row: DocumentWithOwner, viewerId: string | undefined): DocumentItem {
   return {
     ...toSummary(row),
     uploadedBy: row.owner.name,
     createdAt: row.createdAt,
+    mine: viewerId !== undefined && viewerId === row.ownerId,
   };
 }

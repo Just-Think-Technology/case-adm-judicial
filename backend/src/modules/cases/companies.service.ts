@@ -1,6 +1,6 @@
 // Companies service — cases CRUD and the public panel listing
 
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import type { Company } from '@prisma/client';
 import { StorageService } from '../../common/storage/storage.service';
 import { CompanyDto } from './dto/company.dto';
@@ -36,6 +36,13 @@ export class CompanyNotFoundError extends NotFoundException {
   }
 }
 
+/** Thrown when the process number is already taken — one case, one number. */
+export class DuplicateCompanyError extends ConflictException {
+  constructor() {
+    super('Já existe uma empresa com este número de processo.');
+    this.name = 'DuplicateCompanyError';
+  }
+}
 /** Thrown when the stored objects cannot be removed — the row is kept. */
 export class CompanyStorageError extends InternalServerErrorException {
   constructor() {
@@ -75,6 +82,7 @@ export class CompaniesService {
   }
 
   async create(input: CompanyDto): Promise<CompanyDetails> {
+    await this.rejectTakenProcessNumber(input.processNumber);
     const row = await this.companies.create({
       name: input.name,
       judicialAdmin: input.judicialAdmin,
@@ -92,6 +100,7 @@ export class CompaniesService {
 
   async replace(id: string, input: CompanyDto): Promise<CompanyDetails> {
     await this.require(id);
+    await this.rejectTakenProcessNumber(input.processNumber, id);
     const row = await this.companies.update(id, {
       name: input.name,
       judicialAdmin: input.judicialAdmin,
@@ -150,6 +159,13 @@ export class CompaniesService {
     }
 
     return row;
+  }
+
+  private async rejectTakenProcessNumber(processNumber: string, exceptId?: string): Promise<void> {
+    const taken = await this.companies.findByProcessNumber(processNumber);
+    if (taken && taken.id !== exceptId) {
+      throw new DuplicateCompanyError();
+    }
   }
 }
 

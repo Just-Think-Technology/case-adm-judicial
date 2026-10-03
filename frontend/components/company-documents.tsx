@@ -17,6 +17,7 @@ interface ListedDocument {
   status?: string;
   uploadedBy?: string;
   createdAt?: string;
+  mine?: boolean;
 }
 
 const SCOPES = [
@@ -127,7 +128,7 @@ export function CompanyDocuments({
               <div className="min-w-0 flex-1">
                 <PublicDocumentRow document={document} bare />
                 {document.uploadedBy || document.createdAt ? (
-                  <p className="mt-1 truncate pl-12 text-xs text-navy-950/55">
+                  <p className="mt-1 truncate text-center text-xs text-navy-950/55">
                     {document.createdAt ? formatDate(document.createdAt) : null}
                     {document.createdAt && document.uploadedBy ? ' · ' : null}
                     {document.uploadedBy ? `por ${document.uploadedBy}` : null}
@@ -137,7 +138,7 @@ export function CompanyDocuments({
               {authed && scope === 'mine' && document.status ? (
                 <StatusSeal status={document.status} />
               ) : null}
-              {authed && scope === 'mine' ? (
+              {authed && document.mine ? (
                 <button
                   type="button"
                   onClick={() => setConfirmingDelete(document)}

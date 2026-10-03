@@ -218,6 +218,18 @@ describe('POST /companies', () => {
     expect(rows[0].name).toBe('Empresa Exemplo S.A.');
     expect(rows[0].nature).toBe('RECUPERACAO_JUDICIAL');
   });
+
+  it('refuses a second company with the same process number', async () => {
+    await createCompany('203.0.113.192');
+    const cookies = await adminCookies('203.0.113.192');
+
+    const response = await api('POST', '/companies', { body: COMPANY, cookies, ip: '203.0.113.192' });
+
+    expect(response.status).toBe(409);
+    expect((response.body as { message: string }).message).toBe(
+      'Já existe uma empresa com este número de processo.',
+    );
+  });
 });
 
 describe('PUT /companies/:id', () => {

@@ -7,7 +7,7 @@ import { getSession } from '@/lib/session';
 export async function SiteHeader(): Promise<React.ReactNode> {
   const session = await getSession();
   return (
-    <header className="sticky top-0 z-10 border-b border-navy-950/15 bg-paper-50/95 backdrop-blur">
+    <header className="sticky top-0 z-10 border-b border-navy-950/15 bg-canvas/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center" aria-label="Portal do Credor: início">
           <img src="/img/logo-header.png" alt="Case Administração Judicial" width={200} height={29} />

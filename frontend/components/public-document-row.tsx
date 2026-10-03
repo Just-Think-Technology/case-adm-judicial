@@ -12,11 +12,11 @@ export function PublicDocumentRow({
 }): React.ReactNode {
   const label = document.customType ?? document.type;
   const inner = (
-    <>
+    <span className="flex items-center gap-3">
       <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-mist-50 text-navy-950">
         <FileIcon />
       </span>
-      <div className="min-w-0 flex-1">
+      <span className="min-w-0 flex-1">
         <a
           href={`/bff/documents/${document.id}/content`}
           target="_blank"
@@ -26,9 +26,9 @@ export function PublicDocumentRow({
         >
           {document.name}
         </a>
-        <p className="truncate text-xs text-navy-950/60">{label}</p>
-      </div>
-    </>
+        <span className="block truncate text-xs text-navy-950/60">{label}</span>
+      </span>
+    </span>
   );
   if (bare) return inner;
   return (
