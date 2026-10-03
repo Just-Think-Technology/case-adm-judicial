@@ -21,7 +21,7 @@ const EMPTY: CompanyInput = {
 };
 
 const inputClass =
-  'mt-1 w-full rounded-lg border border-navy-950/15 bg-canvas px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none';
+  'mt-1 w-full rounded-lg border border-navy-950/15 bg-paper-50 px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none';
 
 // Company form (§4.8a/b): the same fields for create and edit, every one
 // required. Typed data survives validation errors (client state), and backend
