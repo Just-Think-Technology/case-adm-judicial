@@ -33,7 +33,7 @@ export default async function PanelPage(): Promise<React.ReactNode> {
               href="/empresas/nova"
               className="rounded-lg bg-gold-500 px-4 py-2 text-sm font-bold text-navy-950 hover:bg-gold-600"
             >
-              + Nova empresa
+              Nova empresa
             </a>
             <a
               href="/clientes"

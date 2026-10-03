@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { AuthCard } from '@/components/auth-card';
+import { AutoRedirect } from '@/components/auto-redirect';
 import { backendFetch } from '@/lib/backend';
 
 
@@ -31,9 +32,10 @@ export default async function VerifyEmailPage({
   }
   return (
     <AuthCard title="E-mail verificado com sucesso!">
+      <AutoRedirect to="/login" />
       <p role="status" className="text-navy-950/80">
-        Sua conta está ativa. Entre com seu e-mail e senha. Se esta página abriu em outra
-        aba, ela já pode ser fechada.
+        Sua conta está ativa. Entre com seu e-mail e senha. Você será levado ao
+        login em instantes.
       </p>
       <Link
         href="/login"

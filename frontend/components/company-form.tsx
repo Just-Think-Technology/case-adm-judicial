@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { bffSend } from '@/lib/bff-client';
 import { notifyToast } from '@/lib/toast';
 import type { CompanyDetails, CompanyInput } from '@/lib/types';
+import { Spinner } from '@/components/icons';
 
 const NATURES = ['Recuperação Judicial', 'Falência'] as const;
 
@@ -131,9 +132,9 @@ export function CompanyForm({ initial }: { initial?: CompanyDetails }): React.Re
       <button
         type="submit"
         disabled={saving}
-        className="mt-6 rounded-lg bg-navy-950 px-8 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-40"
+        className="mt-6 flex items-center justify-center gap-2 rounded-lg bg-navy-950 px-8 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-40"
       >
-        {saving ? 'Salvando…' : editing ? 'SALVAR' : 'ADICIONAR'}
+        {saving ? (<><Spinner /> Salvando…</>) : editing ? 'SALVAR' : 'ADICIONAR'}
       </button>
     </form>
   );

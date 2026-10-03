@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Spinner } from '@/components/icons';
 import { notifyToast } from '@/lib/toast';
 
 const DOCUMENT_TYPES = [
@@ -60,6 +61,10 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
   function addForm(): void {
     keyCounter.current += 1;
     setForms((current) => [...current, BLANK(keyCounter.current)]);
+  }
+
+  function removeForm(key: number): void {
+    setForms((current) => (current.length <= 1 ? current : current.filter((form) => form.key !== key)));
   }
 
   function formError(form: UploadForm): string {
@@ -157,16 +162,6 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
         Empresa: <strong className="text-navy-950">{companyName}</strong>
       </p>
 
-      <div className="mt-8 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={addForm}
-          className="rounded-lg border border-navy-950/20 px-5 py-2.5 text-sm font-semibold text-navy-950 hover:border-gold-600"
-        >
-          Novo documento
-        </button>
-      </div>
-
       <section aria-label="Documentos" className="mt-6">
         <div className="mt-4 space-y-5">
             {forms.map((form, index) => (
@@ -183,13 +178,25 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
               >
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-display text-xl font-semibold text-navy-950">Documento {index + 1}</h3>
-                  {form.status === 'sending' ? (
-                    <span className="animate-pulse text-sm font-semibold text-gold-700">Enviando…</span>
-                  ) : form.status === 'done' ? (
-                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-800">✓ Enviado</span>
-                  ) : form.status === 'error' ? (
-                    <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800">✗ Falhou</span>
-                  ) : null}
+                  <div className="flex items-center gap-2">
+                    {form.status === 'sending' ? (
+                      <span className="animate-pulse text-sm font-semibold text-gold-700">Enviando…</span>
+                    ) : form.status === 'done' ? (
+                      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-800">✓ Enviado</span>
+                    ) : form.status === 'error' ? (
+                      <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800">✗ Falhou</span>
+                    ) : null}
+                    {forms.length > 1 && form.status !== 'done' ? (
+                      <button
+                        type="button"
+                        onClick={() => removeForm(form.key)}
+                        aria-label={`Remover documento ${index + 1}`}
+                        className="rounded-lg border border-navy-950/20 px-3 py-1 text-xs font-semibold text-navy-950/70 hover:border-red-300 hover:text-red-700"
+                      >
+                        Remover
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
                   <div>
@@ -315,14 +322,30 @@ export function UploadWizard({ companyId, companyName }: { companyId: string; co
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={sendAll}
-            disabled={sendingAll}
-            className="mt-6 w-full rounded-lg bg-navy-950 px-4 py-3 text-sm font-bold tracking-wide text-white hover:bg-navy-800 disabled:opacity-40 sm:w-auto sm:px-10"
-          >
-            {sendingAll ? 'Enviando…' : 'ENVIAR TODOS'}
-          </button>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              onClick={addForm}
+              className="rounded-lg border border-navy-950/20 px-5 py-3 text-sm font-semibold text-navy-950 hover:border-gold-600"
+            >
+              + Novo documento
+            </button>
+            <button
+              type="button"
+              onClick={sendAll}
+              disabled={sendingAll}
+              className="flex items-center justify-center gap-2 rounded-lg bg-navy-950 px-4 py-3 text-sm font-bold tracking-wide text-white hover:bg-navy-800 disabled:opacity-40 sm:px-10"
+            >
+              {sendingAll ? (
+                <>
+                  <Spinner />
+                  Enviando…
+                </>
+              ) : (
+                'ENVIAR TODOS'
+              )}
+            </button>
+          </div>
         </section>
     </div>
   );

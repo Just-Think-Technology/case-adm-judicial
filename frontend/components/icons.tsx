@@ -8,3 +8,28 @@ export function TrashIcon(): React.ReactNode {
     </svg>
   );
 }
+
+export function UserIcon(): React.ReactNode {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <circle cx="10" cy="6.5" r="3" />
+      <path d="M3.5 16.5c1-3.2 3.5-4.5 6.5-4.5s5.5 1.3 6.5 4.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function LogoutIcon(): React.ReactNode {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M8 3.5H4.5v13H8M13 6.5l3.5 3.5-3.5 3.5M16 10H8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function Spinner(): React.ReactNode {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden className="animate-spin">
+      <path d="M10 2.5a7.5 7.5 0 1 0 7.5 7.5" strokeLinecap="round" />
+    </svg>
+  );
+}

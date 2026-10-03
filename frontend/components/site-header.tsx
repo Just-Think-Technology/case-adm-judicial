@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LogoutButton } from '@/components/logout-button';
+import { UserMenu } from '@/components/user-menu';
 import { getSession } from '@/lib/session';
 
 // Fixed header (§8): office mark, navigation links, and the user menu. The
@@ -17,26 +17,7 @@ export async function SiteHeader(): Promise<React.ReactNode> {
             Painel de documentos
           </Link>
           {session ? (
-            <details className="group relative">
-              <summary
-                title="Abrir o menu da conta"
-                className="flex cursor-pointer list-none items-center gap-1.5 rounded-lg bg-navy-950 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-800 hover:ring-2 hover:ring-gold-500"
-              >
-                {session.name}
-                <span aria-hidden className="text-gold-500 transition group-open:rotate-180">
-                  <ChevronIcon />
-                </span>
-              </summary>
-              <div className="absolute right-0 mt-2 w-44 rounded-lg border border-navy-950/10 bg-white p-1 shadow-lg">
-                <Link
-                  href="/conta"
-                  className="block rounded px-3 py-2 text-sm text-navy-950 hover:bg-mist-50"
-                >
-                  Menu
-                </Link>
-                <LogoutButton />
-              </div>
-            </details>
+            <UserMenu name={session.name} />
           ) : (
             <>
               <Link
@@ -56,13 +37,5 @@ export async function SiteHeader(): Promise<React.ReactNode> {
         </nav>
       </div>
     </header>
-  );
-}
-
-function ChevronIcon(): React.ReactNode {
-  return (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
-      <path d="m5 7.5 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }

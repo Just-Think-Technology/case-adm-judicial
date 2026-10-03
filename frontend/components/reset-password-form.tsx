@@ -9,6 +9,7 @@ import { PasswordInput } from '@/components/password-input';
 import { bffPost } from '@/lib/bff-client';
 import { checkPassword, passwordValid } from '@/lib/password-rules';
 import { notifyToast } from '@/lib/toast';
+import { Spinner } from '@/components/icons';
 
 // New password behind the mailed link (§4.5): the address resolves
 // server-side and arrives readonly; the button unlocks on valid rules.
@@ -61,9 +62,9 @@ export function ResetPasswordForm({ email, token }: { email: string; token: stri
         <button
           type="submit"
           disabled={!ready}
-          className="w-full rounded-lg bg-navy-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {sending ? 'Redefinindo…' : 'REDEFINIR'}
+          {sending ? (<><Spinner /> Redefinindo…</>) : 'REDEFINIR'}
         </button>
       </form>
       <p className="mt-4 text-center text-sm">
