@@ -57,7 +57,7 @@ services:
       target: base
     restart: unless-stopped
     working_dir: /app
-    command: sh -c "corepack enable && corepack prepare pnpm@11.25.0 --activate && pnpm install && pnpm --filter backend prisma:generate && pnpm --filter backend prisma:deploy || true && pnpm --filter backend dev"
+    command: sh -c "corepack enable && corepack prepare pnpm@11.25.0 --activate && pnpm install && pnpm --filter backend prisma:generate && pnpm --filter backend prisma:deploy || true && pnpm --filter backend seed || true && pnpm --filter backend dev"
     env_file:
       - ../.env
     environment:
