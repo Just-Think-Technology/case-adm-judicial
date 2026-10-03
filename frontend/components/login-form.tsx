@@ -71,7 +71,7 @@ export function LoginForm({ notice }: { notice?: string }): React.ReactNode {
             value={email}
             autoComplete="email"
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-navy-950/15 bg-canvas px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-navy-950/15 bg-paper-50 px-3 py-2 text-navy-950 focus:border-gold-500 focus:outline-none"
           />
         </div>
         <PasswordInput id="login-password" label="Senha" value={password} onChange={setPassword} autoComplete="current-password" />

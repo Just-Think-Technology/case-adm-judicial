@@ -70,7 +70,7 @@ export function ClientsPanel({ ownId }: { ownId: string }): React.ReactNode {
               setPage(1);
             }}
             placeholder="Buscar por nome ou e-mail…"
-            className="w-full rounded-lg border border-navy-950/15 bg-canvas px-3 py-2 text-sm text-navy-950 placeholder:text-navy-950/40 focus:border-gold-500 focus:outline-none"
+            className="w-full rounded-lg border border-navy-950/15 bg-paper-50 px-3 py-2 text-sm text-navy-950 placeholder:text-navy-950/40 focus:border-gold-500 focus:outline-none"
           />
         </label>
         <label className="block">
@@ -83,7 +83,7 @@ export function ClientsPanel({ ownId }: { ownId: string }): React.ReactNode {
               setPage(1);
             }}
             placeholder="Buscar pelo nome da empresa…"
-            className="w-full rounded-lg border border-navy-950/15 bg-canvas px-3 py-2 text-sm text-navy-950 placeholder:text-navy-950/40 focus:border-gold-500 focus:outline-none"
+            className="w-full rounded-lg border border-navy-950/15 bg-paper-50 px-3 py-2 text-sm text-navy-950 placeholder:text-navy-950/40 focus:border-gold-500 focus:outline-none"
           />
         </label>
       </div>
